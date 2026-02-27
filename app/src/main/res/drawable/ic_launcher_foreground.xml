@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Adaptive icon foreground — 108dp × 108dp canvas.
+    Safe zone: 18dp inset on all sides (72dp × 72dp center area).
+
+    Transform math:
+      Potrace path coords span ~[0,5020] x [40,5120].
+      scale = 72/5120 = 0.014063  (height-limiting, uniform to preserve aspect ratio)
+      logo width in canvas = 5020 * 0.014063 = 70.59dp (fits inside 72dp safe zone)
+      translateX = (108 - 70.59) / 2 = 18.70  (centers horizontally)
+      translateY = 90                           (for Y-flip: -y*scale + 90)
+
+    White background included so the icon looks correct whether rendered
+    through the adaptive icon system or directly as @drawable.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- White background -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M0,0 H108 V108 H0 Z" />
+
+    <!-- Logo mark — centered in safe zone -->
+    <group
+        android:translateX="18.70"
+        android:translateY="90"
+        android:scaleX="0.014063"
+        android:scaleY="-0.014063">
+        <path
+            android:fillColor="#29A829"
+            android:pathData="M3430 4841 l0 -151 -1337 0 -1338 0 -371 -408 -372 -407 369 -3 369 -2 0 -1145 0 -1145 -151 0 c-117 0 -150 -3 -146 -12 20 -46 740 -1534 745 -1540 7 -6 742 1537 742 1556 0 5 -57 5 -130 1 l-130 -7 0 326 0 326 159 0 159 0 88 208 c48 114 136 321 195 460 l107 252 -354 0 -354 0 0 310 0 310 875 0 874 0 3 -135 3 -134 777 367 c428 202 777 369 778 372 0 4 -1499 729 -1542 745 -17 7 -18 -4 -18 -144z" />
+    </group>
+
+</vector>

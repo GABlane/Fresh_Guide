@@ -1,0 +1,11 @@
+# IDE-generated files — do not commit
+/shelf/
+/workspace.xml
+/caches/
+/libraries/
+/modules.xml
+/navEditor.xml
+/assetWizardSettings.xml
+/deploymentTargetSelector.xml
+/deviceManager.xml
+/AndroidProjectSystem.xml

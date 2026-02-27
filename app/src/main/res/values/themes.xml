@@ -1,0 +1,16 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Base.Theme.FreshGuide" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/green_primary</item>
+        <item name="colorPrimaryVariant">@color/green_dark</item>
+        <item name="colorSecondary">@color/orange_accent</item>
+        <item name="android:windowBackground">@color/surface_white</item>
+    </style>
+
+    <style name="Theme.FreshGuide" parent="Base.Theme.FreshGuide" />
+
+    <style name="Theme.FreshGuide.Splash" parent="Base.Theme.FreshGuide">
+        <item name="android:windowBackground">@color/surface_white</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">false</item>
+    </style>
+</resources>

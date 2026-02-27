@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Fresh Guide</string>
+    <string name="label_username">Username</string>
+    <string name="label_password">Password</string>
+    <string name="btn_sign_in">SIGN IN</string>
+    <string name="btn_create_account">CREATE NEW ACCOUNT</string>
+    <string name="hint_username">Enter username</string>
+    <string name="hint_password">Enter password</string>
+    <string name="logo_description">FreshGuide logo</string>
+    <string name="logo_mark_description">FreshGuide icon</string>
+</resources>

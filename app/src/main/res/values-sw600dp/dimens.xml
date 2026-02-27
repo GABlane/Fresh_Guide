@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tablet overrides -->
+    <dimen name="login_logo_width">170dp</dimen>
+    <dimen name="content_margin">24dp</dimen>
+    <dimen name="content_padding">40dp</dimen>
+    <dimen name="screen_min_height">700dp</dimen>
+    <dimen name="map_padding">16dp</dimen>
+    <dimen name="building_label_size">13sp</dimen>
+    <dimen name="search_bar_height">56dp</dimen>
+</resources>

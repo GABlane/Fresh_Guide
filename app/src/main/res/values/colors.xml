@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="green_primary">#29A829</color>
+    <color name="green_dark">#1B5E20</color>
+    <color name="green_light">#A5D6A7</color>
+    <color name="orange_accent">#FF6D00</color>
+    <color name="orange_text">#FFA500</color>
+    <color name="surface_white">#FFFFFF</color>
+    <color name="text_primary">#1C1B1F</color>
+    <color name="text_hint">#9E9E9E</color>
+    <color name="chip_border">#29A829</color>
+    <color name="input_background">#F0F0F0</color>
+</resources>

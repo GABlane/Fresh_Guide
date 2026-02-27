@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Layout spacing -->
+    <dimen name="content_margin">16dp</dimen>
+    <dimen name="content_padding">32dp</dimen>
+    <dimen name="card_max_width">480dp</dimen>
+
+    <!-- Login screen -->
+    <dimen name="screen_min_height">600dp</dimen>
+    <dimen name="login_logo_width">130dp</dimen>
+    <dimen name="input_height">48dp</dimen>
+    <dimen name="button_height">48dp</dimen>
+
+    <!-- Map screen -->
+    <dimen name="map_padding">8dp</dimen>
+    <dimen name="chip_height">32dp</dimen>
+    <dimen name="bottom_nav_height">56dp</dimen>
+    <dimen name="building_label_size">10sp</dimen>
+    <dimen name="search_bar_height">48dp</dimen>
+</resources>
