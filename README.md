@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">FreshGuide</h1>
-<h3 align="center">Emergency Exit Route Guide System</h3>
+<h3 align="center">A Friendly Guide To UCC</h3>
 
 <p align="center">
   An Android app that helps users quickly locate the nearest emergency exit in a building — no GPS, no internet required.
