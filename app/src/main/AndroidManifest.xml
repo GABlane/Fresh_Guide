@@ -30,6 +30,12 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
+        <!-- Onboarding — shown once after first login -->
+        <activity
+            android:name=".OnboardingActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
         <!-- Main app screen -->
         <activity
             android:name=".MainActivity"

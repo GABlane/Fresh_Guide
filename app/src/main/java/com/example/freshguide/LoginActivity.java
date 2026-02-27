@@ -1,6 +1,7 @@
 package com.example.freshguide;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.method.PasswordTransformationMethod;
 import android.text.method.SingleLineTransformationMethod;
@@ -54,7 +55,17 @@ public class LoginActivity extends AppCompatActivity {
 
             // TODO: Replace with real auth logic
             Toast.makeText(this, "Signing in...", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+
+            // First login → show onboarding, otherwise go straight to main
+            SharedPreferences prefs = getSharedPreferences(
+                    OnboardingActivity.PREFS_NAME, MODE_PRIVATE);
+            boolean onboardingDone = prefs.getBoolean(
+                    OnboardingActivity.KEY_ONBOARDING_COMPLETE, false);
+
+            Intent next = onboardingDone
+                    ? new Intent(LoginActivity.this, MainActivity.class)
+                    : new Intent(LoginActivity.this, OnboardingActivity.class);
+            startActivity(next);
             finish();
         });
 
