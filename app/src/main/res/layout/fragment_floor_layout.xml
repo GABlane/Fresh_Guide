@@ -1,0 +1,541 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:paddingTop="10dp"
+        android:paddingBottom="6dp">
+
+        <ImageView
+            android:layout_width="56dp"
+            android:layout_height="44dp"
+            android:src="@drawable/logo"
+            android:contentDescription="@string/logo_description"
+            android:scaleType="fitCenter" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_search_bar"
+        android:gravity="center_vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/ic_search"
+            android:contentDescription="Search" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:gravity="center_vertical"
+            android:text="@string/hint_search"
+            android:textColor="@color/text_hint"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chip_group_floor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        app:singleSelection="true"
+        app:chipSpacingHorizontal="6dp">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_floor_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1st Floor"
+            android:checkable="true"
+            android:textColor="@color/green_primary"
+            app:chipBackgroundColor="@android:color/transparent"
+            app:chipStrokeColor="@color/green_primary"
+            app:chipStrokeWidth="1dp"
+            app:checkedIconVisible="false" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_floor_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2nd Floor"
+            android:checkable="true"
+            android:textColor="@color/green_primary"
+            app:chipBackgroundColor="@android:color/transparent"
+            app:chipStrokeColor="@color/green_primary"
+            app:chipStrokeWidth="1dp"
+            app:checkedIconVisible="false" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_floor_3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3rd Floor"
+            android:checkable="true"
+            android:textColor="@color/green_primary"
+            app:chipBackgroundColor="@android:color/transparent"
+            app:chipStrokeColor="@color/green_primary"
+            app:chipStrokeWidth="1dp"
+            app:checkedIconVisible="false" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chip_floor_4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="4th Floor"
+            android:checkable="true"
+            android:textColor="@color/green_primary"
+            app:chipBackgroundColor="@android:color/transparent"
+            app:chipStrokeColor="@color/green_primary"
+            app:chipStrokeWidth="1dp"
+            app:checkedIconVisible="false" />
+    </com.google.android.material.chip.ChipGroup>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <View
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:background="@drawable/dot_classroom" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="Classroom"
+            android:textSize="11sp"
+            android:textColor="@color/text_hint" />
+
+        <View
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:layout_marginStart="16dp"
+            android:background="@drawable/dot_door" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="Door / Entrance"
+            android:textSize="11sp"
+            android:textColor="@color/text_hint" />
+
+        <View
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:layout_marginStart="16dp"
+            android:background="@drawable/dot_faculty" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="Faculty"
+            android:textSize="11sp"
+            android:textColor="@color/text_hint" />
+    </LinearLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="8dp">
+
+        <LinearLayout
+            android:id="@+id/column_left"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintWidth_percent="0.42">
+
+            <TextView
+                android:id="@+id/box_guard"
+                android:layout_width="120dp"
+                android:layout_height="34dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_utility_box"
+                android:gravity="center"
+                android:text="Guard’s\nDesk"
+                android:textSize="10sp"
+                android:textColor="@color/text_hint" />
+
+            <LinearLayout
+                android:id="@+id/box_stairs_top"
+                android:layout_width="match_parent"
+                android:layout_height="26dp"
+                android:layout_marginBottom="6dp"
+                android:background="@drawable/bg_stairs"
+                android:orientation="horizontal"
+                android:showDividers="middle"
+                android:divider="@drawable/stairs_divider"
+                android:dividerPadding="0dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp">
+
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/room_1"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_room_card">
+
+                <TextView
+                    android:id="@+id/tv_room_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="Room"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_hint" />
+
+                <View
+                    android:layout_width="6dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginEnd="4dp"
+                    android:background="@color/green_primary" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/room_3"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_room_card">
+
+                <TextView
+                    android:id="@+id/tv_room_3"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="Room"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_hint" />
+
+                <View
+                    android:layout_width="6dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginEnd="4dp"
+                    android:background="@color/green_primary" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/room_5"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_room_card">
+
+                <TextView
+                    android:id="@+id/tv_room_5"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="Room"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_hint" />
+
+                <View
+                    android:layout_width="6dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginEnd="4dp"
+                    android:background="@color/green_primary" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/room_7"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_room_card">
+
+                <TextView
+                    android:id="@+id/tv_room_7"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="Room"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_hint" />
+
+                <View
+                    android:layout_width="6dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginEnd="4dp"
+                    android:background="@color/green_primary" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/room_9"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_room_card">
+
+                <TextView
+                    android:id="@+id/tv_room_9"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="Room"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_hint" />
+
+                <View
+                    android:layout_width="6dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="end|center_vertical"
+                    android:layout_marginEnd="4dp"
+                    android:background="@color/green_primary" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:id="@+id/box_stairs_bottom"
+                android:layout_width="match_parent"
+                android:layout_height="26dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_stairs"
+                android:orientation="horizontal"
+                android:showDividers="middle"
+                android:divider="@drawable/stairs_divider"
+                android:dividerPadding="0dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp">
+
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_hallway"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1st Floor Hallway"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@color/green_primary"
+            android:rotation="90"
+            app:layout_constraintStart_toEndOf="@id/column_left"
+            app:layout_constraintEnd_toStartOf="@id/column_right"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/column_right"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintWidth_percent="0.42">
+
+            <TextView
+                android:id="@+id/box_boys"
+                android:layout_width="match_parent"
+                android:layout_height="34dp"
+                android:layout_marginBottom="6dp"
+                android:background="@drawable/bg_utility_box"
+                android:gravity="center"
+                android:text="Boy’s Restroom"
+                android:textSize="10sp"
+                android:textColor="@color/text_hint" />
+
+            <TextView
+                android:id="@+id/box_girls"
+                android:layout_width="match_parent"
+                android:layout_height="34dp"
+                android:layout_marginBottom="6dp"
+                android:background="@drawable/bg_utility_box"
+                android:gravity="center"
+                android:text="Girl’s Restroom"
+                android:textSize="10sp"
+                android:textColor="@color/text_hint" />
+
+            <FrameLayout
+                android:id="@+id/room_2"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_room_card">
+
+                <TextView
+                    android:id="@+id/tv_room_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="Room"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_hint" />
+
+                <View
+                    android:layout_width="6dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="start|center_vertical"
+                    android:layout_marginStart="4dp"
+                    android:background="@color/green_primary" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/room_4"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_room_card">
+
+                <TextView
+                    android:id="@+id/tv_room_4"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="Room"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_hint" />
+
+                <View
+                    android:layout_width="6dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="start|center_vertical"
+                    android:layout_marginStart="4dp"
+                    android:background="@color/green_primary" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/room_6"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_room_card">
+
+                <TextView
+                    android:id="@+id/tv_room_6"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="Room"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_hint" />
+
+                <View
+                    android:layout_width="6dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="start|center_vertical"
+                    android:layout_marginStart="4dp"
+                    android:background="@color/green_primary" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/room_8"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_room_card">
+
+                <TextView
+                    android:id="@+id/tv_room_8"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="Room"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_hint" />
+
+                <View
+                    android:layout_width="6dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="start|center_vertical"
+                    android:layout_marginStart="4dp"
+                    android:background="@color/green_primary" />
+            </FrameLayout>
+
+            <FrameLayout
+                android:id="@+id/room_10"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_room_card">
+
+                <TextView
+                    android:id="@+id/tv_room_10"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="Room"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_hint" />
+
+                <View
+                    android:layout_width="6dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="start|center_vertical"
+                    android:layout_marginStart="4dp"
+                    android:background="@color/green_primary" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/box_elevator"
+                android:layout_width="100dp"
+                android:layout_height="36dp"
+                android:layout_marginTop="10dp"
+                android:layout_gravity="end"
+                android:background="@drawable/bg_utility_box"
+                android:gravity="center"
+                android:text="Elevator"
+                android:textSize="10sp"
+                android:textColor="@color/text_hint" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</LinearLayout>

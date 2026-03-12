@@ -3,6 +3,7 @@ package com.example.freshguide.ui.view;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
@@ -65,9 +66,12 @@ public class CampusMapView extends View {
     private final Paint pMarkerOuter = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint pMarkerInner = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint pMarkerCore  = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint pDashed = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint pPin = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint pPinInner = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint pBg     = new Paint();
 
-    private String selectedCode = "MAIN";
+    private String selectedCode = null;
     private OnBuildingClickListener clickListener;
 
     private float panX = 0f, panY = 0f, zoom = 1f;
@@ -118,9 +122,9 @@ public class CampusMapView extends View {
      */
     private void computeMapTransform(int w, int h) {
         if (w <= 0 || h <= 0) return;
-        mapScale = Math.min(w * 0.88f, h * 0.90f);
+        mapScale = Math.min(w * 0.98f, h * 0.98f);
         mapOffX  = (w - mapScale) / 2f;
-        mapOffY  = (h - mapScale) / 2f + mapScale * 0.01f;
+        mapOffY  = (h - mapScale) / 2f - mapScale * 0.08f;
     }
 
     // ── Building layout ───────────────────────────────────────────────────
@@ -136,34 +140,35 @@ public class CampusMapView extends View {
 
     private void initBuildings() {
         // MAIN — tall portrait, left (drawn first = behind COURT)
-        buildings.add(new BuildingShape("MAIN", "UCC SOUTH\nMAIN BUILDING",
-                new float[]{ 0.11f,0.26f, 0.38f,0.26f, 0.36f,0.79f, 0.09f,0.79f },
-                Color.parseColor("#4CAF50")));
+        buildings.add(new BuildingShape("MAIN", "UCC - SOUTH MAIN\nBUILDING",
+                new float[]{ 0.08f,0.26f, 0.44f,0.26f, 0.42f,0.86f, 0.06f,0.86f },
+                Color.parseColor("#4FAE63")));
 
         // REGISTRAR — small landscape, upper-right
         buildings.add(new BuildingShape("REG", "REGISTRAR",
-                new float[]{ 0.48f,0.12f, 0.72f,0.12f, 0.70f,0.22f, 0.46f,0.22f },
-                Color.parseColor("#66BB6A")));
+                new float[]{ 0.48f,0.14f, 0.78f,0.14f, 0.76f,0.26f, 0.46f,0.26f },
+                Color.parseColor("#6CC978")));
 
         // COURT — medium, centre (sits to the right of MAIN)
         buildings.add(new BuildingShape("COURT", "COURT",
-                new float[]{ 0.47f,0.24f, 0.86f,0.24f, 0.84f,0.58f, 0.45f,0.58f },
-                Color.parseColor("#81C784")));
+                new float[]{ 0.50f,0.30f, 0.88f,0.30f, 0.86f,0.70f, 0.48f,0.70f },
+                Color.parseColor("#7ACB86")));
 
         // LIBRARY — medium landscape, right
         buildings.add(new BuildingShape("LIB", "LIBRARY",
-                new float[]{ 0.67f,0.60f, 0.86f,0.60f, 0.84f,0.79f, 0.65f,0.79f },
-                Color.parseColor("#66BB6A")));
+                new float[]{ 0.70f,0.71f, 0.86f,0.71f, 0.84f,0.87f, 0.68f,0.87f },
+                Color.parseColor("#6CC978")));
 
         // ENTRANCE — compact grey block, lower-left
         buildings.add(new BuildingShape("ENT", "ENTRANCE",
-                new float[]{ 0.10f,0.80f, 0.34f,0.80f, 0.32f,0.95f, 0.08f,0.95f },
-                Color.parseColor("#E6E6E6")));
+                new float[]{ 0.26f,0.90f, 0.42f,0.90f, 0.42f,1.00f, 0.26f,1.00f },
+                Color.parseColor("#F2F2F2")));
 
         // EXIT — small grey block, bottom-right
         buildings.add(new BuildingShape("EXIT", "EXIT",
-                new float[]{ 0.66f,0.82f, 0.82f,0.82f, 0.80f,0.93f, 0.64f,0.93f },
-                Color.parseColor("#EEEEEE")));
+                new float[]{ 0.60f,0.90f, 0.76f,0.90f, 0.76f,1.00f, 0.60f,1.00f },
+                Color.parseColor("#F4F4F4")));
+
     }
 
     private void initPaints() {
@@ -171,16 +176,16 @@ public class CampusMapView extends View {
 
         pStroke.setStyle(Paint.Style.STROKE);
         pStroke.setColor(Color.WHITE);
-        pStroke.setStrokeWidth(2.5f);
+        pStroke.setStrokeWidth(2.0f);
 
         pSelect.setStyle(Paint.Style.STROKE);
         pSelect.setColor(Color.parseColor("#1E88E5"));
-        pSelect.setStrokeWidth(7f);
+        pSelect.setStrokeWidth(6f);
 
         pLabel.setStyle(Paint.Style.FILL);
         pLabel.setTextAlign(Paint.Align.CENTER);
         pLabel.setFakeBoldText(false);
-        pLabel.setColor(Color.parseColor("#6B6B6B"));
+        pLabel.setColor(Color.parseColor("#6A6A6A"));
 
         pAccent.setStyle(Paint.Style.FILL);
         pAccent.setColor(Color.parseColor("#FF6D00"));
@@ -192,7 +197,16 @@ public class CampusMapView extends View {
         pMarkerInner.setColor(Color.WHITE);
 
         pMarkerCore.setStyle(Paint.Style.FILL);
-        pMarkerCore.setColor(Color.parseColor("#2E7D32"));
+        pMarkerCore.setColor(Color.parseColor("#D9D9D9"));
+
+        pDashed.setStyle(Paint.Style.STROKE);
+        pDashed.setColor(Color.parseColor("#BDBDBD"));
+
+        pPin.setStyle(Paint.Style.FILL);
+        pPin.setColor(Color.parseColor("#29A829"));
+
+        pPinInner.setStyle(Paint.Style.FILL);
+        pPinInner.setColor(Color.WHITE);
 
         pBg.setColor(Color.WHITE);
         pBg.setStyle(Paint.Style.FILL);
@@ -213,10 +227,13 @@ public class CampusMapView extends View {
         canvas.translate(w / 2f * (1 - zoom) + panX, h / 2f * (1 - zoom) + panY);
         canvas.scale(zoom, zoom);
 
-        pLabel.setTextSize(mapScale * 0.026f);
+        pLabel.setTextSize(mapScale * 0.0205f);
         // Stroke widths scale with map size
         pStroke.setStrokeWidth(mapScale * 0.004f);
         pSelect.setStrokeWidth(mapScale * 0.014f);
+        pDashed.setStrokeWidth(mapScale * 0.0035f);
+        pDashed.setPathEffect(new DashPathEffect(
+                new float[]{ mapScale * 0.012f, mapScale * 0.008f }, 0));
 
         drawAccentBars(canvas);
 
@@ -236,16 +253,16 @@ public class CampusMapView extends View {
 
     /** Orange pathway markers to match the home-map composition. */
     private void drawAccentBars(Canvas canvas) {
-        float bw = mapScale * 0.016f;
+        float bw = mapScale * 0.012f;
         float leftX = mapOffX + mapScale * 0.04f;
         canvas.drawRect(leftX, mapOffY + mapScale * 0.12f,
-                leftX + bw, mapOffY + mapScale * 0.28f, pAccent);
-        canvas.drawRect(leftX, mapOffY + mapScale * 0.82f,
-                leftX + bw, mapOffY + mapScale * 0.96f, pAccent);
+                leftX + bw, mapOffY + mapScale * 0.30f, pAccent);
+        canvas.drawRect(leftX, mapOffY + mapScale * 0.86f,
+                leftX + bw, mapOffY + mapScale * 1.00f, pAccent);
 
-        float barTop = mapOffY + mapScale * 0.80f;
-        canvas.drawRect(mapOffX + mapScale * 0.43f, barTop,
-                mapOffX + mapScale * 0.84f, barTop + bw, pAccent);
+        float barTop = mapOffY + mapScale * 0.92f;
+        canvas.drawRect(mapOffX + mapScale * 0.40f, barTop,
+                mapOffX + mapScale * 0.86f, barTop + bw, pAccent);
     }
 
     /** Draws only the filled shape + outline (no label). */
@@ -257,6 +274,7 @@ public class CampusMapView extends View {
         }
         if ("ENT".equals(b.code) || "EXIT".equals(b.code)) {
             drawFlatQuad(canvas, p, b.baseColor);
+            canvas.drawPath(quad(p), pDashed);
             if (b.code.equals(selectedCode)) {
                 RectF bounds = new RectF();
                 quad(p).computeBounds(bounds, true);
@@ -290,6 +308,7 @@ public class CampusMapView extends View {
 
     /** Draws only the label — always on top of all shapes. */
     private void drawBuildingLabel(Canvas canvas, BuildingShape b) {
+        if (b.name == null || b.name.trim().isEmpty()) return;
         float[] p = toPixels(b.pts);
         String[] lines = b.name.split("\n");
         int lineCount = lines.length;
@@ -309,8 +328,7 @@ public class CampusMapView extends View {
                 labelY = bottomEdge + pLabel.getTextSize() * 0.36f - fm.ascent;
                 break;
             case "COURT":
-                labelX = centerX - mapScale * 0.12f;
-                labelY = bottomEdge + pLabel.getTextSize() * 0.22f - fm.ascent;
+                labelY = bottomEdge + pLabel.getTextSize() * 0.24f - fm.ascent;
                 break;
             case "LIB":
                 labelY = bottomEdge + pLabel.getTextSize() * 0.28f - fm.ascent;
@@ -319,28 +337,66 @@ public class CampusMapView extends View {
                 labelY = topEdge + (bottomEdge - topEdge) * 0.52f - (fm.ascent + fm.descent) / 2f;
                 break;
             case "ENT":
-                drawVerticalLabel(canvas, "ENTRANCE", centerX - mapScale * 0.06f,
-                        topEdge + (bottomEdge - topEdge) * 0.66f);
-                return;
+                labelX = centerX - mapScale * 0.06f;
+                labelY = bottomEdge + pLabel.getTextSize() * 0.18f - fm.ascent;
+                break;
             default:
                 labelY = topEdge - pLabel.getTextSize() * 0.25f - fm.descent - lineHeight * (lineCount - 1);
                 break;
         }
 
         labelY = Math.max(mapOffY - fm.ascent, labelY);
-        drawLabel(canvas, b.name, labelX, labelY);
+        drawPinnedLabel(canvas, b.name, labelX, labelY);
+    }
+
+    private void drawPinnedLabel(Canvas canvas, String text, float centerX, float y) {
+        String[] lines = text.split("\n");
+        float lineHeight = pLabel.getTextSize() * 1.3f;
+        Paint.FontMetrics fm = pLabel.getFontMetrics();
+
+        float maxWidth = 0f;
+        for (String line : lines) {
+            maxWidth = Math.max(maxWidth, pLabel.measureText(line));
+        }
+
+        float startX = centerX - maxWidth / 2f + mapScale * 0.01f;
+        float topY = y + fm.ascent;
+        float bottomY = y + fm.descent + lineHeight * (lines.length - 1);
+        float centerY = (topY + bottomY) / 2f;
+
+        float r = mapScale * 0.011f;
+        float pinGap = mapScale * 0.008f;
+        float pinX = startX - pinGap - r;
+        float pinTipY = centerY + r * 0.9f;
+
+        drawPin(canvas, pinX, pinTipY, r);
+
+        Paint.Align prev = pLabel.getTextAlign();
+        pLabel.setTextAlign(Paint.Align.LEFT);
+        float textY = y;
+        for (String line : lines) {
+            canvas.drawText(line, startX, textY, pLabel);
+            textY += lineHeight;
+        }
+        pLabel.setTextAlign(prev);
+    }
+
+    private void drawPin(Canvas canvas, float x, float tipY, float r) {
+        float circleY = tipY - r * 1.4f;
+
+        Path tri = new Path();
+        tri.moveTo(x, tipY);
+        tri.lineTo(x - r * 0.9f, tipY - r * 0.8f);
+        tri.lineTo(x + r * 0.9f, tipY - r * 0.8f);
+        tri.close();
+
+        canvas.drawCircle(x, circleY, r, pPin);
+        canvas.drawPath(tri, pPin);
+        canvas.drawCircle(x, circleY, r * 0.45f, pPinInner);
     }
 
     private void drawUserMarker(Canvas canvas) {
-        float cx = mapOffX + mapScale * 0.24f;
-        float cy = mapOffY + mapScale * 0.56f;
-        float outer = mapScale * 0.040f;
-        float inner = outer * 0.74f;
-        float core = outer * 0.36f;
-
-        canvas.drawCircle(cx, cy, outer, pMarkerOuter);
-        canvas.drawCircle(cx, cy, inner, pMarkerInner);
-        canvas.drawCircle(cx, cy, core, pMarkerCore);
+        // Hidden for now per UI target
     }
 
     private void drawRegistrarShape(Canvas canvas, float[] p, int color) {

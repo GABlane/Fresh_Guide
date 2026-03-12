@@ -16,8 +16,29 @@
             android:id="@+id/action_home_to_roomList"
             app:destination="@id/roomListFragment" />
         <action
+            android:id="@+id/action_home_to_floorLayout"
+            app:destination="@id/floorLayoutFragment" />
+        <action
             android:id="@+id/action_home_to_profile"
             app:destination="@id/profileFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/floorLayoutFragment"
+        android:name="com.example.freshguide.ui.user.FloorLayoutFragment"
+        android:label="Floor Layout"
+        tools:layout="@layout/fragment_floor_layout">
+        <argument
+            android:name="buildingCode"
+            app:argType="string"
+            android:defaultValue="MAIN" />
+        <argument
+            android:name="buildingName"
+            app:argType="string"
+            android:defaultValue="Main Building" />
+        <action
+            android:id="@+id/action_floorLayout_to_roomDetail"
+            app:destination="@id/roomDetailFragment" />
     </fragment>
 
     <fragment

@@ -24,6 +24,9 @@ public interface BuildingDao {
     @Query("SELECT * FROM buildings WHERE id = :id")
     BuildingEntity getByIdSync(int id);
 
+    @Query("SELECT * FROM buildings WHERE code = :code LIMIT 1")
+    BuildingEntity getByCodeSync(String code);
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(BuildingEntity building);
 

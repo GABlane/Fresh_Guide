@@ -1,6 +1,6 @@
 # Tasks — FreshGuide
 
-> Last updated: 2026-03-10
+> Last updated: 2026-03-11
 
 ## In Progress
 
@@ -9,35 +9,44 @@
 - [ ] Phase 3: Exit route logic + directional arrows [medium]
 - [ ] Phase 4: Safety reminders + evacuation instructions [medium]
 - [ ] Phase 5: Location selection UI [medium]
+- [ ] Room info modal (floor layout) [medium]
 - [ ] Registration screen (Create New Account flow) [low]
 - [ ] Admin screen UI polish — layouts are functional stubs [medium]
 
 ## Before March 18 (backend integration)
 - [ ] Set real backend URL in `ApiClient.java` (currently `10.0.2.2:8000` — emulator localhost) [high]
-- [ ] Wire bottom nav items to correct fragment destinations (Schedule/Settings/Profile nav IDs must match `nav_graph.xml`) [high]
+- [ ] Wire Schedule + Settings to real screens in custom nav bar (currently "Coming soon") [high]
 - [ ] Test sync bootstrap end-to-end (student login → sync → room list loads) [high]
 
 ## Blocked
 
 ## Completed
-- [x] Home page campus map — 2026-03-10
-  - [x] `CampusMapView.java` — custom Canvas view, 6 building polygons (MAIN, COURT, LIB, REG, ENT, EXIT)
-  - [x] Isometric faceted style: each building split into 4 triangles (N/E/S/W shading) for 3-D diamond look
-  - [x] Dynamic sizing via `onSizeChanged` — square design space fitted to view width, centred vertically (works on any screen/aspect ratio)
-  - [x] Building tap → navigates to filtered room list for that building
-  - [x] Pinch-zoom + pan with clamp; compass FAB re-centres map
-  - [x] Orange accent bars (left edge pathway markers)
-  - [x] Labels below buildings; MAIN label above building, drawn in second pass so no shape overlays it
-  - [x] `fragment_home.xml` redesigned — full FreshGuide logo, search bar, floor chips, map + FAB overlay
-  - [x] Floor chips populated dynamically from Room DB (distinct floor numbers)
-  - [x] Chip style: outlined pill, green border, fills green on selection
+- [x] Custom bottom nav bar (pill) — 2026-03-11
+  - [x] Replaced BottomNavigationView with custom layout (icon + label stack)
+  - [x] Active pill background; Home/Profile wired; Schedule/Settings placeholders
+- [x] MAIN floor layout screen — 2026-03-11
+  - [x] FloorLayoutFragment + chips 1–4 + fixed 10 room slots
+  - [x] Guard desk shown only on 1st floor
+  - [x] MAIN tap → floor layout; room tap → RoomDetail
+- [x] Directions bottom sheet — 2026-03-11
+  - [x] Home FAB opens sheet; room list from local DB; Start Directions triggers route fetch; empty states
+- [x] Backend seed — campus buildings + MAIN floors 1–4 — 2026-03-11
+  - [x] 10 rooms per floor (Room 101..110, 201..210, 301..310, 401..410)
+  - [x] Route seed updated to Room 101
+- [x] Home page campus map — 2026-03-11
+  - [x] `CampusMapView.java` tuned to target composition (positions, gate lines, dashed entrance/exit)
+  - [x] Pinned labels; removed user marker
+  - [x] Building tap: MAIN → floor layout; others → room list
+  - [x] Directions FAB (long‑press re‑centre)
+  - [x] `fragment_home.xml` adjusted — logo/search/chips/map spacing + white FAB
+  - [x] Floor chips: 1st–4th, pill style with white fill when unselected
 - [x] Room integration — 2026-03-10
   - [x] `RoomDao.searchByBuilding(code, query)` — JOIN rooms/floors/buildings LiveData query
   - [x] `RoomRepository.searchRoomsByBuilding()` wrapper
   - [x] `RoomListViewModel` — MediatorLiveData combining query + buildingCode filters
   - [x] `RoomListFragment` — reads `buildingCode`/`buildingName` args, shows "Rooms in X" header
   - [x] `nav_graph.xml` — added `buildingCode` + `buildingName` args to `roomListFragment`
-- [x] Backend seed — 6 UCC campus buildings with Ground Floor each — 2026-03-10
+- [x] Backend seed — 6 UCC campus buildings + Ground Floor — 2026-03-10
   - [x] `CampusDataSeeder.php` — MAIN, COURT, LIB, REG, ENT, EXIT with descriptions
   - [x] `php artisan migrate:fresh --seed` verified clean
 - [x] Project initialized — CLAUDE.md, tasks.md, .gitignore, README.md — 2026-02-28

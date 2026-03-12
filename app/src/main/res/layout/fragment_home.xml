@@ -15,13 +15,12 @@
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingTop="10dp"
-        android:paddingBottom="8dp"
-        android:elevation="4dp">
+        android:paddingBottom="6dp">
 
         <!-- Full FreshGuide brand logo -->
         <ImageView
-            android:layout_width="80dp"
-            android:layout_height="64dp"
+            android:layout_width="68dp"
+            android:layout_height="52dp"
             android:layout_gravity="center_horizontal"
             android:src="@drawable/logo"
             android:scaleType="fitCenter"
@@ -31,18 +30,18 @@
         <LinearLayout
             android:id="@+id/layout_search"
             android:layout_width="match_parent"
-            android:layout_height="46dp"
-            android:layout_marginTop="8dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="6dp"
             android:background="@drawable/bg_search_bar"
             android:gravity="center_vertical"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
             android:clickable="true"
             android:focusable="true">
 
             <ImageView
-                android:layout_width="18dp"
-                android:layout_height="18dp"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
                 android:src="@drawable/ic_search"
                 android:contentDescription="Search" />
 
@@ -54,7 +53,7 @@
                 android:gravity="center_vertical"
                 android:text="Search Location"
                 android:textColor="@color/text_hint"
-                android:textSize="14sp" />
+                android:textSize="12sp" />
 
         </LinearLayout>
     </LinearLayout>
@@ -65,10 +64,10 @@
         android:layout_height="wrap_content"
         android:scrollbars="none"
         android:background="@android:color/white"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="8dp">
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="6dp">
 
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/chip_group_floors"
@@ -83,7 +82,11 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="8dp">
 
         <!-- Compass / re-centre FAB -->
         <com.example.freshguide.ui.view.CampusMapView
@@ -97,12 +100,12 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_margin="16dp"
-            android:contentDescription="Re-centre map"
+            android:contentDescription="Directions"
             app:srcCompat="@drawable/ic_find_room"
-            app:tint="@android:color/white"
-            app:backgroundTint="@color/green_primary"
+            app:tint="@color/text_hint"
+            app:backgroundTint="@android:color/white"
             app:fabSize="mini"
-            app:elevation="4dp" />
+            app:elevation="6dp" />
 
     </FrameLayout>
 

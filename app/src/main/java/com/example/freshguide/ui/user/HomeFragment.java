@@ -22,6 +22,9 @@ import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class HomeFragment extends Fragment {
@@ -64,14 +67,22 @@ public class HomeFragment extends Fragment {
         viewModel.getFloorNumbers().observe(getViewLifecycleOwner(), floors -> {
             chipGroup.removeAllViews();
 
-            Chip all = makeFilterChip("All");
-            all.setChecked(true);
-            chipGroup.addView(all);
-
+            List<Integer> numbers = new ArrayList<>();
             if (floors != null) {
-                for (Map.Entry<Integer, String> entry : floors.entrySet()) {
-                    chipGroup.addView(makeFilterChip(entry.getValue()));
+                for (Integer num : floors.keySet()) {
+                    if (num != null && num >= 1 && num <= 4) numbers.add(num);
                 }
+            }
+            if (numbers.isEmpty()) {
+                for (int i = 1; i <= 4; i++) numbers.add(i);
+            }
+            Collections.sort(numbers);
+
+            for (int i = 0; i < numbers.size(); i++) {
+                int floorNum = numbers.get(i);
+                Chip chip = makeFilterChip(floorLabel(floorNum));
+                chipGroup.addView(chip);
+                if (i == 0) chip.setChecked(true);
             }
         });
     }
@@ -84,16 +95,24 @@ public class HomeFragment extends Fragment {
         chip.setCheckable(true);
         chip.setCheckedIconVisible(false);
 
+        float density = getResources().getDisplayMetrics().density;
+        chip.setEnsureMinTouchTargetSize(false);
+        chip.setTextSize(11f);
+        chip.setChipMinHeight(28f * density);
+        chip.setChipStartPadding(12f * density);
+        chip.setChipEndPadding(12f * density);
+        chip.setEnsureMinTouchTargetSize(false);
+
         // Outline: green border, transparent fill when unchecked; filled when checked
         int green = requireContext().getColor(R.color.green_primary);
 
         chip.setChipStrokeColorResource(R.color.green_primary);
-        chip.setChipStrokeWidth(2f);
+        chip.setChipStrokeWidth(1.2f * density);
 
-        // Background state list: checked = green, unchecked = transparent
+        // Background state list: checked = green, unchecked = white
         ColorStateList bg = new ColorStateList(
                 new int[][]{ new int[]{ android.R.attr.state_checked }, new int[]{} },
-                new int[]{ green, Color.TRANSPARENT }
+                new int[]{ green, Color.WHITE }
         );
         chip.setChipBackgroundColor(bg);
 
@@ -107,19 +126,42 @@ public class HomeFragment extends Fragment {
         return chip;
     }
 
+    private String floorLabel(int number) {
+        return number + ordinalSuffix(number) + " Floor";
+    }
+
+    private String ordinalSuffix(int number) {
+        if (number >= 11 && number <= 13) return "th";
+        switch (number % 10) {
+            case 1: return "st";
+            case 2: return "nd";
+            case 3: return "rd";
+            default: return "th";
+        }
+    }
+
     private void setupCampusMap(NavController nav) {
         campusMap.setOnBuildingClickListener((code, name) -> {
             Bundle args = new Bundle();
             args.putString("buildingCode", code);
             args.putString("buildingName", name);
-            nav.navigate(R.id.action_home_to_roomList, args);
+            if ("MAIN".equalsIgnoreCase(code)) {
+                nav.navigate(R.id.action_home_to_floorLayout, args);
+            } else {
+                nav.navigate(R.id.action_home_to_roomList, args);
+            }
         });
     }
 
     /** Re-centres the map to its default zoom/pan. */
     private void setupFab(View view) {
         FloatingActionButton fab = view.findViewById(R.id.fab_compass);
-        fab.setOnClickListener(v -> campusMap.resetView());
+        fab.setOnClickListener(v ->
+                new DirectionsSheetFragment().show(getParentFragmentManager(), "directions_sheet"));
+        fab.setOnLongClickListener(v -> {
+            campusMap.resetView();
+            return true;
+        });
     }
 
     private void observeSync(View view) {

@@ -49,3 +49,7 @@ Admins manage buildings, floors, rooms, facilities, origins, routes, and publish
 - API_BASE_URL must be set before build — app throws at startup if blank
 - ngrok URL changes every session — rebuild required after URL change
 - EncryptedSharedPreferences — key rotation issues on device wipe
+
+## Agent Routing Defaults
+- Building agent: gpt-5.3-codex (high)
+- Planner agent: claude-sonnet-3-5v2
