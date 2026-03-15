@@ -51,23 +51,23 @@ public class HomeFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_home, container, false);
     }
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
-        campusMap = view.findViewById(R.id.campus_map);
-        floorChipContainer = view.findViewById(R.id.floor_chip_container);
+        @Override
+        public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+            super.onViewCreated(view, savedInstanceState);
+            viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+            // campusMap = view.findViewById(R.id.campus_map);
+            floorChipContainer = view.findViewById(R.id.floor_chip_container);
 
-        NavController nav = Navigation.findNavController(view);
+            NavController nav = Navigation.findNavController(view);
 
-        setupSearch(view, nav);
-        setupFloorChips(view);
-        setupCampusMap(nav);
-        setupFab(view);
-        observeSync(view);
+            setupSearch(view, nav);
+            setupFloorChips(view);
+            // setupCampusMap(nav);
+            setupFab(view);
+            observeSync(view);
 
-        viewModel.sync();
-    }
+            viewModel.sync();
+        }
 
     private void setupSearch(View view, NavController nav) {
         view.findViewById(R.id.layout_search).setOnClickListener(
