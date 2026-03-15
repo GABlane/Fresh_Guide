@@ -34,9 +34,6 @@
                 setContentView(R.layout.activity_main);
 
                 rootView = findViewById(R.id.main);
-                headerBack = findViewById(R.id.header_back);
-                headerTitle = findViewById(R.id.title_home);
-                headerBar = findViewById(R.id.header_bar);
 
                 NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                         .findFragmentById(R.id.nav_host_fragment);
