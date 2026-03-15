@@ -11,18 +11,32 @@
 
     <!-- Fixed Header -->
     <LinearLayout
+        android:id="@+id/header_bar"
         android:layout_width="match_parent"
         android:layout_height="38dp"
         android:orientation="horizontal"
-        android:paddingStart="16dp"
+        android:paddingStart="8dp"
         android:paddingEnd="16dp"
         android:gravity="center_vertical"
         android:background="@color/surface_white">
 
+        <ImageButton
+            android:id="@+id/header_back"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/action_back"
+            android:padding="4dp"
+            android:src="@drawable/ic_arrow_back_24"
+            android:tint="@color/text_primary"
+            android:visibility="gone" />
+
         <TextView
             android:id="@+id/title_home"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="@string/dashboard_header"
             android:gravity="center_vertical"
             android:textSize="11sp"

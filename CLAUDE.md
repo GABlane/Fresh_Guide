@@ -18,6 +18,7 @@ Admins manage buildings, floors, rooms, facilities, origins, routes, and publish
 - Laravel 11 + Sanctum API
 - Path: `/home/john/projects/AndroidStudioProjects/Fresh_Guide_BackEnd/laravel/`
 - API base URL: set `api.base.url` in `local.properties` (ngrok required — ApiClient enforces HTTPS)
+- Room images: POST/DELETE api/admin/rooms/{id}/image endpoints
 
 ## Auth Roles
 | Role | Login method |
@@ -35,6 +36,7 @@ Admins manage buildings, floors, rooms, facilities, origins, routes, and publish
 - DirectionsFragment — route steps RecyclerView
 - ProfileFragment — student info + sync version + logout
 - AdminDashboardFragment — counts + nav to CRUD screens
+- AdminRoomFormFragment — room CRUD with image upload/preview
 - Admin CRUD: Buildings, Floors, Rooms, Facilities, Origins, Routes, Publish
 
 ## Architecture Notes
@@ -44,6 +46,9 @@ Admins manage buildings, floors, rooms, facilities, origins, routes, and publish
 - Directions use RouteStepAdapter
 - Offline data lives in Room DB, synced via /api/sync/bootstrap
 - Admin actions are online-only (no offline admin)
+- Room images stored via multipart upload to Laravel backend
+- Gallery selection via ActivityResultContract with landscape validation
+- Image compression for optimal upload performance
 
 ## Risk Areas
 - API_BASE_URL must be set before build — app throws at startup if blank

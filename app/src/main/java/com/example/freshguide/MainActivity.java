@@ -6,9 +6,12 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
+import androidx.navigation.NavDestination;
+import androidx.navigation.NavOptions;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.annotation.IdRes;
 
@@ -20,6 +23,9 @@ public class MainActivity extends AppCompatActivity implements NetworkChangeRece
 
     private NavController navController;
     private View rootView;
+    private View headerBack;
+    private TextView headerTitle;
+    private boolean isAdmin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +33,8 @@ public class MainActivity extends AppCompatActivity implements NetworkChangeRece
         setContentView(R.layout.activity_main);
 
         rootView = findViewById(R.id.main);
+        headerBack = findViewById(R.id.header_back);
+        headerTitle = findViewById(R.id.title_home);
 
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment);
@@ -40,18 +48,72 @@ public class MainActivity extends AppCompatActivity implements NetworkChangeRece
 
         // Route to correct start destination based on role
         SessionManager session = SessionManager.getInstance(this);
-        if (session.isAdmin()) {
+        isAdmin = session.isAdmin();
+
+        if (isAdmin) {
             if (navContainer != null) navContainer.setVisibility(View.GONE);
-            navController.navigate(R.id.adminDashboardFragment);
+            if (savedInstanceState == null) {
+                NavOptions options = new NavOptions.Builder()
+                        .setPopUpTo(R.id.homeFragment, true)
+                        .setLaunchSingleTop(true)
+                        .build();
+                navController.navigate(R.id.adminDashboardFragment, null, options);
+            }
         } else {
             setupCustomNav(navHome, navSchedule, navSettings, navProfile);
             updateNavSelection(R.id.homeFragment);
-            navController.addOnDestinationChangedListener((controller, destination, arguments) ->
-                    updateNavSelection(destination.getId()));
         }
+
+        if (headerBack != null) {
+            headerBack.setOnClickListener(v -> handleBackTap());
+        }
+
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            if (!isAdmin) {
+                updateNavSelection(destination.getId());
+            }
+            updateHeader(destination);
+        });
+        updateHeader(navController.getCurrentDestination());
 
         // Network change receiver (checklist 3.2)
         NetworkChangeReceiver.setListener(this);
+    }
+
+    private void handleBackTap() {
+        if (navController == null || navController.getCurrentDestination() == null) return;
+        if (navController.popBackStack()) return;
+
+        if (isAdmin) {
+            navigateTo(R.id.adminDashboardFragment);
+        } else {
+            navigateTo(R.id.homeFragment);
+        }
+    }
+
+    private void updateHeader(NavDestination destination) {
+        if (destination == null) return;
+
+        if (headerTitle != null) {
+            if (destination.getId() == R.id.homeFragment) {
+                headerTitle.setText(R.string.dashboard_header);
+            } else if (destination.getLabel() != null && destination.getLabel().length() > 0) {
+                headerTitle.setText(destination.getLabel());
+            } else {
+                headerTitle.setText(R.string.app_name);
+            }
+        }
+
+        if (headerBack != null) {
+            headerBack.setVisibility(isTopLevelDestination(destination.getId()) ? View.GONE : View.VISIBLE);
+        }
+    }
+
+    private boolean isTopLevelDestination(@IdRes int destinationId) {
+        if (isAdmin) {
+            return destinationId == R.id.adminDashboardFragment;
+        }
+        return destinationId == R.id.homeFragment;
     }
 
     private void setupCustomNav(View navHome, View navSchedule, View navSettings, View navProfile) {

@@ -63,6 +63,7 @@ public class HomeFragment extends Fragment {
 
     private void setupFloorChips(View view) {
         ChipGroup chipGroup = view.findViewById(R.id.chip_group_floors);
+        NavController nav = Navigation.findNavController(view);
 
         viewModel.getFloorNumbers().observe(getViewLifecycleOwner(), floors -> {
             chipGroup.removeAllViews();
@@ -70,19 +71,28 @@ public class HomeFragment extends Fragment {
             List<Integer> numbers = new ArrayList<>();
             if (floors != null) {
                 for (Integer num : floors.keySet()) {
-                    if (num != null && num >= 1 && num <= 4) numbers.add(num);
+                    if (num != null && num >= 1) numbers.add(num);
                 }
             }
             if (numbers.isEmpty()) {
-                for (int i = 1; i <= 4; i++) numbers.add(i);
+                for (int i = 1; i <= 5; i++) numbers.add(i);
             }
             Collections.sort(numbers);
 
             for (int i = 0; i < numbers.size(); i++) {
                 int floorNum = numbers.get(i);
                 Chip chip = makeFilterChip(floorLabel(floorNum));
+                
+                // Add click handler for navigation to floor
+                chip.setOnClickListener(v -> {
+                    Bundle args = new Bundle();
+                    args.putString("buildingCode", "MAIN");
+                    args.putString("buildingName", "Main Building");
+                    args.putInt("selectedFloor", floorNum);
+                    nav.navigate(R.id.action_home_to_floorLayout, args);
+                });
+                
                 chipGroup.addView(chip);
-                if (i == 0) chip.setChecked(true);
             }
         });
     }

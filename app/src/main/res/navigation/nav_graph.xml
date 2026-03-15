@@ -36,6 +36,10 @@
             android:name="buildingName"
             app:argType="string"
             android:defaultValue="Main Building" />
+        <argument
+            android:name="selectedFloor"
+            app:argType="integer"
+            android:defaultValue="1" />
         <action
             android:id="@+id/action_floorLayout_to_roomDetail"
             app:destination="@id/roomDetailFragment" />

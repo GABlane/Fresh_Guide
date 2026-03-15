@@ -17,6 +17,8 @@ import com.example.freshguide.R;
 import com.example.freshguide.viewmodel.AdminViewModel;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.Locale;
+
 public class AdminBuildingFormFragment extends Fragment {
 
     private AdminViewModel viewModel;
@@ -49,7 +51,7 @@ public class AdminBuildingFormFragment extends Fragment {
 
         btnSave.setOnClickListener(v -> {
             String name = etName.getText().toString().trim();
-            String code = etCode.getText().toString().trim();
+            String code = etCode.getText().toString().trim().toUpperCase(Locale.ROOT);
             String desc = etDescription.getText().toString().trim();
 
             if (name.isEmpty()) {

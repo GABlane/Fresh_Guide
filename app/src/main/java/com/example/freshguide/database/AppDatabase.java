@@ -5,6 +5,8 @@ import android.content.Context;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.example.freshguide.database.dao.BuildingDao;
 import com.example.freshguide.database.dao.FacilityDao;
@@ -35,13 +37,21 @@ import com.example.freshguide.model.entity.SyncMetaEntity;
         RouteStepEntity.class,
         SyncMetaEntity.class
     },
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
 
     private static final String DB_NAME = "fresh_guide_db";
     private static volatile AppDatabase instance;
+
+    private static final Migration MIGRATION_1_2 = new Migration(1, 2) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE rooms ADD COLUMN image_url TEXT");
+            database.execSQL("ALTER TABLE rooms ADD COLUMN location TEXT");
+        }
+    };
 
     public abstract BuildingDao buildingDao();
     public abstract FloorDao floorDao();
@@ -57,7 +67,8 @@ public abstract class AppDatabase extends RoomDatabase {
                     context.getApplicationContext(),
                     AppDatabase.class,
                     DB_NAME
-            ).build();
+            ).addMigrations(MIGRATION_1_2)
+             .build();
         }
         return instance;
     }

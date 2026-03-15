@@ -14,11 +14,14 @@ import com.example.freshguide.model.dto.SyncVersionResponse;
 import java.util.List;
 import java.util.Map;
 
+import okhttp3.MultipartBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.DELETE;
 import retrofit2.http.GET;
+import retrofit2.http.Multipart;
 import retrofit2.http.POST;
+import retrofit2.http.Part;
 import retrofit2.http.PUT;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
@@ -93,6 +96,16 @@ public interface ApiService {
 
     @DELETE("admin/rooms/{id}")
     Call<ApiResponse<Void>> adminDeleteRoom(@Path("id") int id);
+
+    @Multipart
+    @POST("admin/rooms/{id}/image")
+    Call<ApiResponse<RoomDto>> adminUploadRoomImage(
+            @Path("id") int id,
+            @Part MultipartBody.Part image
+    );
+
+    @DELETE("admin/rooms/{id}/image")
+    Call<ApiResponse<RoomDto>> adminDeleteRoomImage(@Path("id") int id);
 
     // ── Admin — Facilities ────────────────────────────────────────────────────
 

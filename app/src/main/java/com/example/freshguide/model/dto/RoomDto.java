@@ -10,5 +10,8 @@ public class RoomDto {
     @SerializedName("code") public String code;
     @SerializedName("type") public String type;
     @SerializedName("description") public String description;
+    @SerializedName("image_url") public String imageUrl;
+    @SerializedName("location") public String location;
+    @SerializedName("image_full_url") public String imageFullUrl;
     @SerializedName("facilities") public List<FacilityDto> facilities;
 }

@@ -63,7 +63,7 @@
             android:id="@+id/et_room_description"
             android:layout_width="match_parent"
             android:layout_height="80dp"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="16dp"
             android:background="@drawable/bg_search_bar"
             android:paddingStart="14dp"
             android:paddingEnd="14dp"
@@ -72,6 +72,68 @@
             android:textColor="@color/text_primary"
             android:inputType="textMultiLine"
             android:gravity="top" />
+
+        <!-- Image Upload Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:orientation="vertical">
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Room Image"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="8dp" />
+                
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_search_bar">
+                
+                <ImageView
+                    android:id="@+id/iv_room_preview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone"
+                    android:contentDescription="Room image preview" />
+                    
+                <TextView
+                    android:id="@+id/tv_image_placeholder"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="No image selected\nTap button below to add landscape image"
+                    android:gravity="center"
+                    android:textColor="@color/text_hint"
+                    android:textSize="12sp" />
+                    
+                <Button
+                    android:id="@+id/btn_remove_image"
+                    style="@style/Widget.Material3.Button.IconButton"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="8dp"
+                    android:text="×"
+                    android:textColor="@color/surface_white"
+                    android:backgroundTint="@color/green_primary"
+                    android:visibility="gone" />
+            </FrameLayout>
+            
+            <Button
+                android:id="@+id/btn_select_image"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Select Landscape Image"
+                android:textColor="@color/green_primary" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/btn_save"

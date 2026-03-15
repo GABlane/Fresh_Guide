@@ -137,7 +137,19 @@ public class SyncRepository {
 
                         if (f.rooms != null) {
                             for (RoomDto r : f.rooms) {
-                                rooms.add(new RoomEntity(r.id, f.id, r.name, r.code, r.type, r.description));
+                                String roomImage = (r.imageFullUrl != null && !r.imageFullUrl.isEmpty())
+                                        ? r.imageFullUrl
+                                        : r.imageUrl;
+                                rooms.add(new RoomEntity(
+                                        r.id,
+                                        f.id,
+                                        r.name,
+                                        r.code,
+                                        r.type,
+                                        r.description,
+                                        roomImage,
+                                        r.location
+                                ));
                                 if (r.facilities != null) {
                                     for (FacilityDto fac : r.facilities) {
                                         crossRefs.add(new RoomFacilityCrossRef(r.id, fac.id));

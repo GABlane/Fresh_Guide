@@ -36,12 +36,20 @@ public class RoomEntity {
     @ColumnInfo(name = "description")
     public String description;
 
-    public RoomEntity(int id, int floorId, String name, String code, String type, String description) {
+    @ColumnInfo(name = "image_url")
+    public String imageUrl;
+
+    @ColumnInfo(name = "location")
+    public String location;
+
+    public RoomEntity(int id, int floorId, String name, String code, String type, String description, String imageUrl, String location) {
         this.id = id;
         this.floorId = floorId;
         this.name = name;
         this.code = code;
         this.type = type;
         this.description = description;
+        this.imageUrl = imageUrl;
+        this.location = location;
     }
 }
