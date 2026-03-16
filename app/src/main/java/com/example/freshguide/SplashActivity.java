@@ -12,6 +12,8 @@ import android.widget.ProgressBar;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.freshguide.ui.user.HomeFragment;
+
 public class SplashActivity extends AppCompatActivity {
 
     private static final int STEP1_DURATION_MS  = 1000; // mark only
@@ -62,7 +64,7 @@ public class SplashActivity extends AppCompatActivity {
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
 //                        startActivity(new Intent(SplashActivity.this, LoginActivity.class));
 //                        NOTE : tanggalin ito kapag need na ng login (para makapag skip sa login)
-                        startActivity(new Intent(SplashActivity.this, MainActivity.class));
+                        startActivity(new Intent(SplashActivity.this, HomeFragment.class));
                         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                         finish();
                     }, LOADING_HOLD_MS);
