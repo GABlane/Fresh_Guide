@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -12,15 +13,12 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="@android:color/white"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="10dp"
-        android:paddingBottom="6dp">
+        android:paddingTop="5dp">
 
         <!-- Full FreshGuide brand logo -->
         <ImageView
-            android:layout_width="68dp"
-            android:layout_height="52dp"
+            android:layout_width="85dp"
+            android:layout_height="90dp"
             android:layout_gravity="center_horizontal"
             android:src="@drawable/logo"
             android:scaleType="fitCenter"
@@ -31,83 +29,401 @@
             android:id="@+id/layout_search"
             android:layout_width="match_parent"
             android:layout_height="44dp"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="12dp"
             android:background="@drawable/bg_search_bar"
             android:gravity="center_vertical"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
+            android:paddingStart="18dp"
+            android:paddingEnd="18dp"
             android:clickable="true"
             android:focusable="true">
 
             <ImageView
-                android:layout_width="16dp"
-                android:layout_height="16dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:src="@drawable/ic_search"
                 android:contentDescription="Search" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
                 android:layout_marginStart="8dp"
+                android:layout_weight="1"
                 android:gravity="center_vertical"
                 android:text="Search Location"
                 android:textColor="@color/text_hint"
-                android:textSize="12sp" />
-
+                android:textSize="14sp"
+                android:fontFamily="@font/instrument_regular" />
         </LinearLayout>
+
+        <!-- Floor filter chips -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="5dp">
+
+            <HorizontalScrollView
+                android:id="@+id/floor_chip_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fillViewport="false"
+                android:overScrollMode="never"
+                android:scrollbars="none">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chip_group_floors"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:selectionRequired="false"
+                    app:singleLine="true"
+                    app:singleSelection="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_floor_1"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="85dp"
+                        android:layout_height="48dp"
+                        android:checkable="true"
+                        android:fontFamily="@font/instrument_regular"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:text="1st Floor"
+                        android:textAlignment="center"
+                        android:textSize="14sp"
+                        app:checkedIconVisible="false"
+                        app:chipCornerRadius="24dp"
+                        app:chipStrokeColor="@color/green"
+                        app:chipStrokeWidth="0.8dp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_floor_2"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="85dp"
+                        android:layout_height="48dp"
+                        android:checkable="true"
+                        android:fontFamily="@font/instrument_regular"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:text="2nd Floor"
+                        android:textAlignment="center"
+                        android:textSize="14sp"
+                        app:checkedIconVisible="false"
+                        app:chipCornerRadius="24dp"
+                        app:chipStrokeColor="@color/green"
+                        app:chipStrokeWidth="0.8dp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_floor_3"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="85dp"
+                        android:layout_height="48dp"
+                        android:checkable="true"
+                        android:fontFamily="@font/instrument_regular"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:text="3rd Floor"
+                        android:textAlignment="center"
+                        android:textSize="14sp"
+                        app:checkedIconVisible="false"
+                        app:chipCornerRadius="24dp"
+                        app:chipStrokeColor="@color/green"
+                        app:chipStrokeWidth="0.8dp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_floor_4"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="85dp"
+                        android:layout_height="48dp"
+                        android:checkable="true"
+                        android:fontFamily="@font/instrument_regular"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:text="4th Floor"
+                        android:textAlignment="center"
+                        android:textSize="14sp"
+                        app:checkedIconVisible="false"
+                        app:chipCornerRadius="24dp"
+                        app:chipStrokeColor="@color/green"
+                        app:chipStrokeWidth="0.8dp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chip_floor_5"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="85dp"
+                        android:layout_height="48dp"
+                        android:checkable="true"
+                        android:fontFamily="@font/instrument_regular"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:text="5th Floor"
+                        android:textAlignment="center"
+                        android:textSize="14sp"
+                        app:checkedIconVisible="false"
+                        app:chipCornerRadius="24dp"
+                        app:chipStrokeColor="@color/green"
+                        app:chipStrokeWidth="1dp" />
+                </com.google.android.material.chip.ChipGroup>
+            </HorizontalScrollView>
+
+            <View
+                android:id="@+id/leftFade"
+                android:layout_width="28dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="start"
+                android:background="@drawable/bg_fade_left"
+                android:visibility="gone" />
+
+            <View
+                android:id="@+id/rightFade"
+                android:layout_width="28dp"
+                android:layout_height="50dp"
+                android:layout_gravity="end"
+                android:background="@drawable/bg_fade_right"
+                android:visibility="visible" />
+        </FrameLayout>
     </LinearLayout>
 
-    <!-- Floor filter chips — scrollable pill outline style -->
-    <HorizontalScrollView
-        android:id="@+id/floor_chip_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:scrollbars="none"
-        android:background="@android:color/white"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="6dp"
-        android:visibility="gone">
+    <!-- MAP AREA -->
 
-        <com.google.android.material.chip.ChipGroup
-            android:id="@+id/chip_group_floors"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:singleSelection="true"
-            app:selectionRequired="true" />
-
-    </HorizontalScrollView>
-
-    <!-- Campus map + compass FAB overlay -->
     <FrameLayout
+        android:id="@+id/map_container"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginTop="2dp"
-        android:layout_marginBottom="8dp">
+        android:layout_height="512dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="8dp"
+        android:layout_weight="1">
 
-        <!-- Compass / re-centre FAB -->
-        <com.example.freshguide.ui.view.CampusMapView
-            android:id="@+id/campus_map"
+        <!-- OVERALL MAP -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/overall_map_container"
+            android:layout_width="338dp"
+            android:layout_height="match_parent"
+            android:visibility="visible">
+
+            <TextView
+                android:id="@+id/txt_registrar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="REGISTRAR"
+                android:textColor="@android:color/black"
+                android:textSize="12sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.587"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/img_registrar"
+                android:layout_width="50dp"
+                android:layout_height="32dp"
+                android:layout_marginTop="4dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/registrar"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.572"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/txt_registrar" />
+
+            <ImageView
+                android:id="@+id/img_registrar2"
+                android:layout_width="50dp"
+                android:layout_height="32dp"
+                android:layout_marginTop="4dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/registrar"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.368"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/txt_registrar" />
+
+            <ImageView
+                android:id="@+id/img_main_building"
+                android:layout_width="156dp"
+                android:layout_height="251dp"
+                android:layout_marginTop="68dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/main_building"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/img_registrar" />
+
+            <ImageView
+                android:id="@+id/img_court"
+                android:layout_width="153dp"
+                android:layout_height="172dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/court"
+                app:layout_constraintStart_toEndOf="@id/img_main_building"
+                app:layout_constraintTop_toBottomOf="@id/img_registrar" />
+
+            <ImageView
+                android:id="@+id/img_car_1"
+                android:layout_width="50dp"
+                android:layout_height="26dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="8dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/car"
+                app:layout_constraintEnd_toStartOf="@id/img_court"
+                app:layout_constraintTop_toTopOf="@id/img_court"
+                app:layout_constraintVertical_bias="0.0" />
+
+            <TextView
+                android:id="@+id/txt_court"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="COURT"
+                android:textColor="@android:color/black"
+                android:textSize="12sp"
+                app:layout_constraintStart_toStartOf="@id/img_court"
+                app:layout_constraintTop_toBottomOf="@id/img_court" />
+
+            <ImageView
+                android:id="@+id/img_library"
+                android:layout_width="50dp"
+                android:layout_height="70dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/library"
+                app:layout_constraintEnd_toEndOf="@id/img_court"
+                app:layout_constraintTop_toBottomOf="@id/txt_court" />
+
+            <ImageView
+                android:id="@+id/img_car_1"
+                android:layout_width="50dp"
+                android:layout_height="26dp"
+                android:layout_marginEnd="52dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/car"
+                app:layout_constraintBottom_toBottomOf="@id/img_library"
+                app:layout_constraintEnd_toStartOf="@id/img_library"
+                app:layout_constraintTop_toTopOf="@id/img_library"
+                app:layout_constraintVertical_bias="0.0" />
+
+            <ImageView
+                android:id="@+id/img_car_2"
+                android:layout_width="50dp"
+                android:layout_height="26dp"
+                android:layout_marginEnd="52dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/car"
+                app:layout_constraintBottom_toBottomOf="@id/img_library"
+                app:layout_constraintEnd_toStartOf="@id/img_library"
+                app:layout_constraintTop_toTopOf="@id/img_library"
+                app:layout_constraintVertical_bias="0.59" />
+
+            <TextView
+                android:id="@+id/txt_library"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="LIBRARY"
+                android:textColor="@android:color/black"
+                android:textSize="12sp"
+                app:layout_constraintEnd_toEndOf="@id/img_library"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@id/img_library"
+                app:layout_constraintTop_toBottomOf="@id/img_library" />
+
+            <ImageView
+                android:id="@+id/img_entrance"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginTop="4dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/entrance"
+                app:layout_constraintEnd_toEndOf="@id/img_main_building"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="@id/img_main_building"
+                app:layout_constraintTop_toBottomOf="@id/img_main_building" />
+
+            <ImageView
+                android:id="@+id/img_exit"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:layout_marginTop="56dp"
+                android:layout_marginEnd="16dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/exit"
+                app:layout_constraintEnd_toEndOf="@id/img_court"
+                app:layout_constraintTop_toBottomOf="@id/img_library" />
+
+            <TextView
+                android:id="@+id/txt_main_building"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:text="UCC - SOUTH MAIN\nBUILDING"
+                android:textColor="@android:color/black"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="@id/img_main_building"
+                app:layout_constraintStart_toStartOf="@id/img_main_building"
+                app:layout_constraintTop_toBottomOf="@id/img_entrance" />
+
+            <View
+                android:id="@+id/line_left_bottom"
+                android:layout_width="4dp"
+                android:layout_height="70dp"
+                android:layout_marginTop="4dp"
+                android:background="@color/map_orange"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/img_main_building" />
+
+
+            <View
+                android:id="@+id/line_bottom_center"
+                android:layout_width="160dp"
+                android:layout_height="4dp"
+                android:layout_marginTop="48dp"
+                android:background="@color/map_orange"
+                app:layout_constraintStart_toStartOf="@id/img_court"
+                app:layout_constraintTop_toBottomOf="@id/img_library" />
+
+            <ImageView
+                android:id="@+id/img_overall_map_bg"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:src="@drawable/main_building" />
+
+            <View
+                android:id="@+id/line_left_top"
+                android:layout_width="4dp"
+                android:layout_height="110dp"
+                android:background="@color/map_orange"
+                tools:layout_editor_absoluteX="0dp"
+                tools:layout_editor_absoluteY="3dp" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <FrameLayout
+            android:id="@+id/floor_map_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:visibility="gone" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_compass"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
             android:layout_gravity="bottom|end"
-            android:layout_margin="16dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="5dp"
             android:contentDescription="Directions"
-            app:srcCompat="@drawable/ic_find_room"
-            app:tint="@color/text_hint"
+            android:src="@drawable/direction"
             app:backgroundTint="@android:color/white"
-            app:fabSize="mini"
-            app:elevation="6dp" />
+            app:borderWidth="0dp"
+            app:elevation="2dp"
+            app:ensureMinTouchTargetSize="false"
+            app:fabCustomSize="64dp"
+            app:maxImageSize="22dp"
+            app:tint="@null"
+            app:useCompatPadding="false" />
 
     </FrameLayout>
 

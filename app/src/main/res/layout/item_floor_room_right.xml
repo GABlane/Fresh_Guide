@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="98dp"
+    android:layout_height="64dp"
+    android:background="@drawable/bg_room_classroom_left_door">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:tag="room_label"
+        android:text="Room"
+        android:textColor="#8F8F8F"
+        android:textSize="11sp" />
+</FrameLayout>

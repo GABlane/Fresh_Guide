@@ -13,4 +13,6 @@
     <color name="text_hint">#9E9E9E</color>
     <color name="chip_border">#29A829</color>
     <color name="input_background">#F0F0F0</color>
+    <color name="green">#1AA514</color>
+    <color name="map_orange">#F4A340</color>
 </resources>

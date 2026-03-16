@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/white">
+
+    <!-- Fixed legend -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="7dp">
+
+        <View
+            android:id="@+id/legend_classroom_dot"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:background="@drawable/bg_circle_classroom"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/legend_classroom_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Classroom"
+            android:textColor="#8F8F8F"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@id/legend_classroom_dot"
+            app:layout_constraintStart_toEndOf="@id/legend_classroom_dot"
+            app:layout_constraintTop_toTopOf="@id/legend_classroom_dot" />
+
+        <View
+            android:id="@+id/legend_door_dot"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_marginStart="28dp"
+            android:background="@drawable/bg_circle_door"
+            app:layout_constraintBottom_toBottomOf="@id/legend_classroom_dot"
+            app:layout_constraintStart_toEndOf="@id/legend_classroom_text"
+            app:layout_constraintTop_toTopOf="@id/legend_classroom_dot" />
+
+        <TextView
+            android:id="@+id/legend_door_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Door / Entrance"
+            android:textColor="#8F8F8F"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@id/legend_door_dot"
+            app:layout_constraintStart_toEndOf="@id/legend_door_dot"
+            app:layout_constraintTop_toTopOf="@id/legend_door_dot" />
+
+        <View
+            android:id="@+id/legend_faculty_dot"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_marginStart="28dp"
+            android:background="@drawable/bg_circle_faculty"
+            app:layout_constraintBottom_toBottomOf="@id/legend_classroom_dot"
+            app:layout_constraintStart_toEndOf="@id/legend_door_text"
+            app:layout_constraintTop_toTopOf="@id/legend_classroom_dot" />
+
+        <TextView
+            android:id="@+id/legend_faculty_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Faculty"
+            android:textColor="#8F8F8F"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@id/legend_faculty_dot"
+            app:layout_constraintStart_toEndOf="@id/legend_faculty_dot"
+            app:layout_constraintTop_toTopOf="@id/legend_faculty_dot" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Scrollable floor map -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:scrollbars="none"
+        android:background="@android:color/white">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="760dp"
+            android:layout_margin="16dp"
+            android:background="@android:color/white"
+            android:paddingBottom="24dp">
+
+            <View
+                android:id="@+id/top_left_small_room"
+                android:layout_width="48dp"
+                android:layout_height="32dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_room_outline_gray"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/guards_desk"
+                android:layout_width="52dp"
+                android:layout_height="32dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_room_outline_gray"
+                android:gravity="center"
+                android:text="Guard's&#10;Desk"
+                android:textColor="#8F8F8F"
+                android:textSize="10sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.43"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/boys_restroom"
+                android:layout_width="82dp"
+                android:layout_height="26dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_room_outline_gray"
+                android:gravity="center"
+                android:text="Boy's Restroom"
+                android:textColor="#8F8F8F"
+                android:textSize="10sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/girls_restroom"
+                android:layout_width="64dp"
+                android:layout_height="26dp"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_room_outline_gray"
+                android:gravity="center"
+                android:text="Girl's&#10;Restroom"
+                android:textColor="#8F8F8F"
+                android:textSize="10sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/boys_restroom" />
+
+            <ImageView
+                android:id="@+id/stairs_top"
+                android:layout_width="98dp"
+                android:layout_height="30dp"
+                android:layout_marginTop="8dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/stairs"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/top_left_small_room" />
+
+            <include
+                android:id="@+id/room_left_1"
+                layout="@layout/item_floor_room_left"
+                android:layout_width="98dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="4dp"
+                android:tag="room_box_1"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/stairs_top" />
+
+            <include
+                android:id="@+id/room_left_2"
+                layout="@layout/item_floor_room_left"
+                android:layout_width="98dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:tag="room_box_2"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_left_1" />
+
+            <include
+                android:id="@+id/room_left_3"
+                layout="@layout/item_floor_room_left"
+                android:layout_width="98dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:tag="room_box_3"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_left_2" />
+
+            <include
+                android:id="@+id/room_left_4"
+                layout="@layout/item_floor_room_left"
+                android:layout_width="98dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:tag="room_box_4"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_left_3" />
+
+            <include
+                android:id="@+id/room_left_5"
+                layout="@layout/item_floor_room_left"
+                android:layout_width="98dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:tag="room_box_5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_left_4" />
+
+            <include
+                android:id="@+id/room_right_1"
+                layout="@layout/item_floor_room_right"
+                android:layout_width="98dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="6dp"
+                android:tag="room_box_6"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/girls_restroom" />
+
+            <include
+                android:id="@+id/room_right_2"
+                layout="@layout/item_floor_room_right"
+                android:layout_width="98dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:tag="room_box_7"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_right_1" />
+
+            <include
+                android:id="@+id/room_right_3"
+                layout="@layout/item_floor_room_right"
+                android:layout_width="98dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:tag="room_box_8"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_right_2" />
+
+            <include
+                android:id="@+id/room_right_4"
+                layout="@layout/item_floor_room_right"
+                android:layout_width="98dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:tag="room_box_9"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_right_3" />
+
+            <include
+                android:id="@+id/room_right_5"
+                layout="@layout/item_floor_room_right"
+                android:layout_width="98dp"
+                android:layout_height="64dp"
+                android:layout_marginTop="8dp"
+                android:tag="room_box_10"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_right_4" />
+
+            <ImageView
+                android:id="@+id/stairs_bottom"
+                android:layout_width="98dp"
+                android:layout_height="30dp"
+                android:layout_marginTop="6dp"
+                android:scaleType="fitXY"
+                android:src="@drawable/stairs"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_left_5" />
+
+            <TextView
+                android:id="@+id/elevator"
+                android:layout_width="56dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_room_outline_gray"
+                android:gravity="center"
+                android:text="Elevator"
+                android:textColor="#8F8F8F"
+                android:textSize="10sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_right_5" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+</LinearLayout>
