@@ -8,10 +8,10 @@ val localProperties = Properties().apply {
 }
 
 val configuredApiBaseUrl = (
-    localProperties.getProperty("api.base.url")
-        ?: providers.gradleProperty("apiBaseUrl").orNull
-        ?: "https://YOUR_NGROK_SUBDOMAIN.ngrok-free.app/api/"
-    )
+        localProperties.getProperty("api.base.url")
+            ?: providers.gradleProperty("apiBaseUrl").orNull
+            ?: "https://YOUR_NGROK_SUBDOMAIN.ngrok-free.app/api/"
+        )
     .trim()
     .let { if (it.endsWith("/")) it else "$it/" }
 

@@ -26,19 +26,19 @@ import com.example.freshguide.model.entity.RouteStepEntity;
 import com.example.freshguide.model.entity.SyncMetaEntity;
 
 @Database(
-    entities = {
-        BuildingEntity.class,
-        FloorEntity.class,
-        RoomEntity.class,
-        FacilityEntity.class,
-        RoomFacilityCrossRef.class,
-        OriginEntity.class,
-        RouteEntity.class,
-        RouteStepEntity.class,
-        SyncMetaEntity.class
-    },
-    version = 2,
-    exportSchema = false
+        entities = {
+                BuildingEntity.class,
+                FloorEntity.class,
+                RoomEntity.class,
+                FacilityEntity.class,
+                RoomFacilityCrossRef.class,
+                OriginEntity.class,
+                RouteEntity.class,
+                RouteStepEntity.class,
+                SyncMetaEntity.class
+        },
+        version = 2,
+        exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
 
@@ -64,11 +64,11 @@ public abstract class AppDatabase extends RoomDatabase {
     public static synchronized AppDatabase getInstance(Context context) {
         if (instance == null) {
             instance = Room.databaseBuilder(
-                    context.getApplicationContext(),
-                    AppDatabase.class,
-                    DB_NAME
-            ).addMigrations(MIGRATION_1_2)
-             .build();
+                            context.getApplicationContext(),
+                            AppDatabase.class,
+                            DB_NAME
+                    ).addMigrations(MIGRATION_1_2)
+                    .build();
         }
         return instance;
     }

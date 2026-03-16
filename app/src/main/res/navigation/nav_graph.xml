@@ -123,6 +123,16 @@
         android:label="Profile"
         tools:layout="@layout/fragment_profile" />
 
+    <fragment
+        android:id="@+id/scheduleFragment"
+        android:name="com.example.freshguide.ui.user.ScheduleFragment"
+        android:label="Schedule"
+        tools:layout="@layout/fragment_schedule">
+        <action
+            android:id="@+id/action_schedule_to_roomDetail"
+            app:destination="@id/roomDetailFragment" />
+    </fragment>
+
     <!-- ── Admin Flow ─────────────────────────────────────────────────── -->
 
     <fragment

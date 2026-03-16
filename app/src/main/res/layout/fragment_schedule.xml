@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@android:color/white">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="60dp"
+        android:paddingBottom="12dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Class Schedule"
+                android:textSize="25sp"
+                android:textStyle="bold"
+                android:textColor="@color/green_primary"
+                android:fontFamily="@font/instrument_bold" />
+
+            <TextView
+                android:id="@+id/tv_date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:textSize="11sp"
+                android:textColor="#B8B8B8"
+                android:fontFamily="@font/inter_bold" />
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/btn_add_icon"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/add"
+            android:contentDescription="Add schedule"
+            android:scaleType="fitCenter"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
+
+    <!-- Today card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_today"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="0dp"
+        app:strokeWidth="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="14dp"
+            android:paddingBottom="14dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="YOU HAVE CLASS SCHEDULE TODAY"
+                android:textSize="9sp"
+                android:textColor="#BBBBBB"
+                android:gravity="center"
+                android:fontFamily="@font/inter_medium"
+                android:letterSpacing="0.08"
+                android:paddingBottom="14dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:id="@+id/img_today_logo"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:src="@drawable/ucc_logo"
+                    android:scaleType="fitCenter"
+                    android:layout_marginEnd="18dp"
+                    android:contentDescription="logo" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tv_today_code"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="12sp"
+                        android:textColor="#888888"
+                        android:fontFamily="@font/inter_medium"
+                        android:paddingBottom="2dp" />
+
+                    <TextView
+                        android:id="@+id/tv_today_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="#E05555"
+                        android:fontFamily="@font/instrument_bold"
+                        android:lineSpacingExtra="2dp"
+                        android:paddingBottom="6dp" />
+
+                    <TextView
+                        android:id="@+id/tv_today_prof"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="11sp"
+                        android:textColor="#888888"
+                        android:fontFamily="@font/inter_medium"
+                        android:paddingBottom="2dp" />
+
+                    <TextView
+                        android:id="@+id/tv_today_time"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="11sp"
+                        android:textColor="#888888"
+                        android:fontFamily="@font/inter_medium" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Placeholder card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_today_placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:visibility="visible"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="#E8E8E8"
+        app:strokeWidth="0dp" />
+
+    <!-- Day pills — NO horizontal padding so grid aligns perfectly -->
+    <LinearLayout
+        android:id="@+id/pills_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="0dp"
+        android:paddingEnd="0dp"
+        android:paddingBottom="4dp">
+
+        <TextView
+            android:id="@+id/pill_mon"
+            android:layout_width="0dp"
+            android:layout_height="34dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Mon"
+            android:textSize="12sp"
+            android:textColor="#2D2D2D"
+            android:fontFamily="@font/inter_regular" />
+
+        <TextView
+            android:id="@+id/pill_tue"
+            android:layout_width="0dp"
+            android:layout_height="34dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Tue"
+            android:textSize="12sp"
+            android:textColor="#2D2D2D"
+            android:fontFamily="@font/inter_regular" />
+
+        <TextView
+            android:id="@+id/pill_wed"
+            android:layout_width="0dp"
+            android:layout_height="34dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Wed"
+            android:textSize="12sp"
+            android:textColor="#2D2D2D"
+            android:fontFamily="@font/inter_regular" />
+
+        <TextView
+            android:id="@+id/pill_thu"
+            android:layout_width="0dp"
+            android:layout_height="34dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Thu"
+            android:textSize="12sp"
+            android:textColor="#2D2D2D"
+            android:fontFamily="@font/inter_regular" />
+
+        <TextView
+            android:id="@+id/pill_fri"
+            android:layout_width="0dp"
+            android:layout_height="34dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Fri"
+            android:textSize="12sp"
+            android:textColor="#2D2D2D"
+            android:fontFamily="@font/inter_regular" />
+
+        <TextView
+            android:id="@+id/pill_sat"
+            android:layout_width="0dp"
+            android:layout_height="34dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Sat"
+            android:textSize="12sp"
+            android:textColor="#2D2D2D"
+            android:fontFamily="@font/inter_regular" />
+
+    </LinearLayout>
+
+    <!-- Main content -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- Empty state -->
+        <LinearLayout
+            android:id="@+id/empty_state"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingBottom="60dp"
+            android:visibility="visible">
+
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/schedule"
+                android:contentDescription="No schedule"
+                android:scaleType="fitCenter" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No schedules found."
+                android:textSize="13sp"
+                android:textColor="#D9D9D9"
+                android:fontFamily="@font/instrument_medium" />
+
+            <LinearLayout
+                android:id="@+id/btn_add_schedule"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:background="@drawable/bg_schedule_button"
+                android:paddingStart="28dp"
+                android:paddingEnd="28dp"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="+"
+                    android:textSize="16sp"
+                    android:textColor="#1AA514"
+                    android:fontFamily="@font/instrument_medium"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Schedule"
+                    android:textSize="13sp"
+                    android:textColor="#1AA514"
+                    android:fontFamily="@font/instrument_medium" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Schedule grid -->
+        <ScrollView
+            android:id="@+id/h_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="none"
+            android:paddingBottom="80dp"
+            android:clipToPadding="false"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:id="@+id/schedule_list_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingTop="8dp"
+                android:paddingStart="0dp"
+                android:paddingEnd="0dp" />
+
+        </ScrollView>
+
+    </FrameLayout>
+
+</LinearLayout>

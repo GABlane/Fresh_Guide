@@ -47,6 +47,8 @@ public interface ApiService {
     @GET("sync/bootstrap")
     Call<BootstrapResponse> getBootstrap();
 
+    // ── Schedule (student) ───────────────────────────────────────────────────
+
     // ── Rooms (user) ─────────────────────────────────────────────────────────
 
     @GET("rooms/{id}")

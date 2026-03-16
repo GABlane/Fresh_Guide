@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/bg_new_schedule_sheet">
+
+    <!-- FIXED drag handle — stays when scrolling -->
+    <View
+        android:id="@+id/drag_handle"
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="8dp"
+        android:background="#E0E0E0" />
+
+    <!-- SCROLLABLE content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="40dp">
+
+            <!-- Title -->
+            <TextView
+                android:id="@+id/tv_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="New Schedule"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#4B8546"
+                android:fontFamily="@font/instrument_bold"
+                android:gravity="center"
+                android:paddingTop="8dp"
+                android:paddingBottom="20dp" />
+
+            <!-- Color label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Color"
+                android:textSize="13sp"
+                android:textColor="#4B8546"
+                android:fontFamily="@font/instrument_semibold"
+                android:paddingBottom="10dp" />
+
+            <!-- Color circles -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingBottom="18dp">
+
+                <FrameLayout
+                    android:id="@+id/ring_gray"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/bg_color_ring">
+                    <View
+                        android:id="@+id/color_gray"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_color_circle_gray"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/ring_pink"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/bg_color_ring">
+                    <View
+                        android:id="@+id/color_pink"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_color_circle_pink"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/ring_blue"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/bg_color_ring">
+                    <View
+                        android:id="@+id/color_blue"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_color_circle_blue"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/ring_purple"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/bg_color_ring">
+                    <View
+                        android:id="@+id/color_purple"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_color_circle_purple"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/ring_green"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginEnd="10dp"
+                    android:background="@drawable/bg_color_ring">
+                    <View
+                        android:id="@+id/color_green"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_color_circle_green"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/ring_yellow"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_color_ring">
+                    <View
+                        android:id="@+id/color_yellow"
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_color_circle_yellow"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </FrameLayout>
+
+            </LinearLayout>
+
+            <!-- Subject Name -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Subject Name"
+                android:textSize="13sp"
+                android:textColor="#4B8546"
+                android:fontFamily="@font/instrument_semibold"
+                android:paddingBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_subject_name"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_input_field"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:textSize="13sp"
+                android:textColor="#000000"
+                android:fontFamily="@font/inter_medium"
+                android:inputType="text"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Subject Code -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Subject Code"
+                android:textSize="13sp"
+                android:textColor="#4B8546"
+                android:fontFamily="@font/instrument_semibold"
+                android:paddingBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_subject_code"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_input_field"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:textSize="13sp"
+                android:textColor="#000000"
+                android:fontFamily="@font/inter_medium"
+                android:inputType="text"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Professor -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Professor"
+                android:textSize="13sp"
+                android:textColor="#4B8546"
+                android:fontFamily="@font/instrument_semibold"
+                android:paddingBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_professor"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_input_field"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:textSize="13sp"
+                android:textColor="#000000"
+                android:fontFamily="@font/inter_medium"
+                android:inputType="text"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Room Location -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Room Location"
+                android:textSize="13sp"
+                android:textColor="#4B8546"
+                android:fontFamily="@font/instrument_semibold"
+                android:paddingBottom="8dp" />
+
+            <EditText
+                android:id="@+id/et_room"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/bg_input_field"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:hint="Choose your room"
+                android:textColorHint="#CCCCCC"
+                android:textSize="13sp"
+                android:textColor="#000000"
+                android:fontFamily="@font/inter_medium"
+                android:inputType="text"
+                android:layout_marginBottom="20dp" />
+
+            <!-- Schedule slots container -->
+            <LinearLayout
+                android:id="@+id/schedule_slots_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <!-- Add slot button -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:paddingTop="8dp"
+                android:paddingBottom="20dp">
+
+                <TextView
+                    android:id="@+id/btn_add_slot"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:gravity="center"
+                    android:text="+"
+                    android:textSize="20sp"
+                    android:textColor="#1AA514"
+                    android:background="@drawable/bg_add_slot_button"
+                    android:fontFamily="@font/instrument_medium"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+            </LinearLayout>
+
+            <!-- CREATE SCHEDULE button -->
+            <TextView
+                android:id="@+id/btn_create_schedule"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:gravity="center"
+                android:text="CREATE SCHEDULE"
+                android:textSize="14sp"
+                android:textColor="#1AA514"
+                android:fontFamily="@font/instrument_semibold"
+                android:background="@drawable/bg_create_schedule_btn"
+                android:letterSpacing="0.05"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>
