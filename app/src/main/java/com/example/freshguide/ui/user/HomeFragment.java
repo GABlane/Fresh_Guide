@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.HorizontalScrollView;
 import android.widget.Toast;
 
@@ -38,10 +39,14 @@ public class HomeFragment extends Fragment {
     private static final String CODE_COURT = "COURT";
     private static final String CODE_ENT = "ENT";
     private static final String CODE_EXIT = "EXIT";
+    private Integer selectedFloor = null;
+
 
     private HomeViewModel viewModel;
     private CampusMapView campusMap;
     private HorizontalScrollView floorChipContainer;
+    private View leftFade;
+    private View rightFade;
     private String selectedBuildingCode;
 
     @Nullable
@@ -51,23 +56,28 @@ public class HomeFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_home, container, false);
     }
 
-        @Override
-        public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-            super.onViewCreated(view, savedInstanceState);
-            viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
-            // campusMap = view.findViewById(R.id.campus_map);
-            floorChipContainer = view.findViewById(R.id.floor_chip_container);
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
-            NavController nav = Navigation.findNavController(view);
+        viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        // campusMap = view.findViewById(R.id.campus_map);
 
-            setupSearch(view, nav);
-            setupFloorChips(view);
-            // setupCampusMap(nav);
-            setupFab(view);
-            observeSync(view);
+        floorChipContainer = view.findViewById(R.id.floor_chip_container);
+        leftFade = view.findViewById(R.id.leftFade);
+        rightFade = view.findViewById(R.id.rightFade);
 
-            viewModel.sync();
-        }
+        NavController nav = Navigation.findNavController(view);
+
+        setupSearch(view, nav);
+        setupFloorChips(view);
+        setupChipFade();
+        // setupCampusMap(nav);
+        setupFab(view);
+        observeSync(view);
+
+        viewModel.sync();
+    }
 
     private void setupSearch(View view, NavController nav) {
         view.findViewById(R.id.layout_search).setOnClickListener(
@@ -75,95 +85,211 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupFloorChips(View view) {
-        ChipGroup chipGroup = view.findViewById(R.id.chip_group_floors);
-        NavController nav = Navigation.findNavController(view);
+        Chip chip1 = view.findViewById(R.id.chip_floor_1);
+        Chip chip2 = view.findViewById(R.id.chip_floor_2);
+        Chip chip3 = view.findViewById(R.id.chip_floor_3);
+        Chip chip4 = view.findViewById(R.id.chip_floor_4);
+        Chip chip5 = view.findViewById(R.id.chip_floor_5);
 
-        viewModel.getFloorNumbers().observe(getViewLifecycleOwner(), floors -> {
-            chipGroup.removeAllViews();
+        Chip[] chips = {chip1, chip2, chip3, chip4, chip5};
 
-            List<Integer> numbers = new ArrayList<>();
-            if (floors != null) {
-                for (Integer num : floors.keySet()) {
-                    if (num != null && num >= 1) numbers.add(num);
+        int green = requireContext().getColor(R.color.green);
+
+        ColorStateList bgColors = new ColorStateList(
+                new int[][]{
+                        new int[]{android.R.attr.state_checked},
+                        new int[]{}
+                },
+                new int[]{
+                        green,
+                        Color.WHITE
                 }
-            }
-            if (numbers.isEmpty()) {
-                for (int i = 1; i <= 5; i++) numbers.add(i);
-            }
-            Collections.sort(numbers);
+        );
 
-            for (int i = 0; i < numbers.size(); i++) {
-                int floorNum = numbers.get(i);
-                Chip chip = makeFilterChip(floorLabel(floorNum));
-                
-                chip.setOnClickListener(v -> {
-                    if (!CODE_MAIN.equalsIgnoreCase(selectedBuildingCode)) {
-                        return;
+        ColorStateList textColors = new ColorStateList(
+                new int[][]{
+                        new int[]{android.R.attr.state_checked},
+                        new int[]{}
+                },
+                new int[]{
+                        Color.WHITE,
+                        green
+                }
+        );
+
+        for (Chip chip : chips) {
+            chip.setCheckable(true);
+            chip.setCheckedIconVisible(false);
+            chip.setChipBackgroundColor(bgColors);
+            chip.setTextColor(textColors);
+            chip.setChipStrokeColor(ColorStateList.valueOf(green));
+//            chip.setChipStrokeWidth(dpToPx(1.5f));
+        }
+
+        chip1.setOnClickListener(v -> handleFloorChipClick(chip1, 1, chips));
+        chip2.setOnClickListener(v -> handleFloorChipClick(chip2, 2, chips));
+        chip3.setOnClickListener(v -> handleFloorChipClick(chip3, 3, chips));
+        chip4.setOnClickListener(v -> handleFloorChipClick(chip4, 4, chips));
+        chip5.setOnClickListener(v -> handleFloorChipClick(chip5, 5, chips));
+
+        showOverallMap();
+        updateFade();
+    }
+
+    private void handleFloorChipClick(Chip clickedChip, int floor, Chip[] allChips) {
+        if (selectedFloor != null && selectedFloor == floor) {
+            clickedChip.setChecked(false);
+            selectedFloor = null;
+            showOverallMap();
+            return;
+        }
+
+        for (Chip chip : allChips) {
+            chip.setChecked(false);
+        }
+
+        clickedChip.setChecked(true);
+        selectedFloor = floor;
+        showFloorMap(floor);
+    }
+
+    private void showOverallMap() {
+        // default campus map here
+    }
+
+    private void showFloorMap(int floor) {
+        switch (floor) {
+            case 1:
+                // show 1st floor map
+                break;
+            case 2:
+                // show 2nd floor map
+                break;
+            case 3:
+                // show 3rd floor map
+                break;
+            case 4:
+                // show 4th floor map
+                break;
+            case 5:
+                // show 5th floor map
+                break;
+        }
+    }
+
+    private void openFloor(NavController nav, int floorNum) {
+        if (!CODE_MAIN.equalsIgnoreCase(selectedBuildingCode)) {
+            return;
+        }
+
+        Bundle args = new Bundle();
+        args.putString("buildingCode", CODE_MAIN);
+        args.putString("buildingName", "Main Building");
+        args.putInt("selectedFloor", floorNum);
+        nav.navigate(R.id.action_home_to_floorLayout, args);
+    }
+
+//    private Chip makeFilterChip(String label) {
+//        Chip chip = new Chip(requireContext(),
+//                null, com.google.android.material.R.attr.chipStyle);
+//
+//        chip.setText(label);
+//        chip.setCheckable(true);
+//        chip.setCheckedIconVisible(false);
+//
+//        float density = getResources().getDisplayMetrics().density;
+//
+//        chip.setEnsureMinTouchTargetSize(false);
+//        chip.setTextSize(11f);
+//        chip.setChipMinHeight(48f * density);
+//        chip.setChipStartPadding(18f * density);
+//        chip.setChipEndPadding(18f * density);
+//
+//        int green = requireContext().getColor(R.color.green_primary);
+//
+//        chip.setChipStrokeColorResource(R.color.green_primary);
+//        chip.setChipStrokeWidth(1.2f * density);
+//        chip.setChipCornerRadius(24f * density);
+//
+//        ColorStateList bg = new ColorStateList(
+//                new int[][]{
+//                        new int[]{android.R.attr.state_checked},
+//                        new int[]{}
+//                },
+//                new int[]{
+//                        green,
+//                        Color.WHITE
+//                }
+//        );
+//        chip.setChipBackgroundColor(bg);
+//
+//        ColorStateList tc = new ColorStateList(
+//                new int[][]{
+//                        new int[]{android.R.attr.state_checked},
+//                        new int[]{}
+//                },
+//                new int[]{
+//                        Color.WHITE,
+//                        green
+//                }
+//        );
+//        chip.setTextColor(tc);
+//
+//        return chip;
+//    }
+
+    private void setupChipFade() {
+        if (floorChipContainer == null) return;
+
+        floorChipContainer.getViewTreeObserver().addOnGlobalLayoutListener(
+                new ViewTreeObserver.OnGlobalLayoutListener() {
+                    @Override
+                    public void onGlobalLayout() {
+                        updateFade();
                     }
-                    Bundle args = new Bundle();
-                    args.putString("buildingCode", CODE_MAIN);
-                    args.putString("buildingName", "Main Building");
-                    args.putInt("selectedFloor", floorNum);
-                    nav.navigate(R.id.action_home_to_floorLayout, args);
-                });
-                
-                chipGroup.addView(chip);
+                }
+        );
+
+        floorChipContainer.setOnScrollChangeListener(new View.OnScrollChangeListener() {
+            @Override
+            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+                updateFade();
             }
         });
     }
 
-    /** Outlined pill-style chip matching the design. */
-    private Chip makeFilterChip(String label) {
-        Chip chip = new Chip(requireContext(),
-                null, com.google.android.material.R.attr.chipStyle);
-        chip.setText(label);
-        chip.setCheckable(true);
-        chip.setCheckedIconVisible(false);
+    private void updateFade() {
+        if (floorChipContainer == null || leftFade == null || rightFade == null) return;
 
-        float density = getResources().getDisplayMetrics().density;
-        chip.setEnsureMinTouchTargetSize(false);
-        chip.setTextSize(11f);
-        chip.setChipMinHeight(28f * density);
-        chip.setChipStartPadding(12f * density);
-        chip.setChipEndPadding(12f * density);
-        chip.setEnsureMinTouchTargetSize(false);
+        View child = floorChipContainer.getChildAt(0);
+        if (child == null) return;
 
-        // Outline: green border, transparent fill when unchecked; filled when checked
-        int green = requireContext().getColor(R.color.green_primary);
+        int maxScroll = child.getWidth() - floorChipContainer.getWidth();
+        int scrollX = floorChipContainer.getScrollX();
 
-        chip.setChipStrokeColorResource(R.color.green_primary);
-        chip.setChipStrokeWidth(1.2f * density);
-
-        // Background state list: checked = green, unchecked = white
-        ColorStateList bg = new ColorStateList(
-                new int[][]{ new int[]{ android.R.attr.state_checked }, new int[]{} },
-                new int[]{ green, Color.WHITE }
-        );
-        chip.setChipBackgroundColor(bg);
-
-        // Text color: checked = white, unchecked = green
-        ColorStateList tc = new ColorStateList(
-                new int[][]{ new int[]{ android.R.attr.state_checked }, new int[]{} },
-                new int[]{ Color.WHITE, green }
-        );
-        chip.setTextColor(tc);
-
-        return chip;
-    }
-
-    private String floorLabel(int number) {
-        return number + ordinalSuffix(number) + " Floor";
-    }
-
-    private String ordinalSuffix(int number) {
-        if (number >= 11 && number <= 13) return "th";
-        switch (number % 10) {
-            case 1: return "st";
-            case 2: return "nd";
-            case 3: return "rd";
-            default: return "th";
+        if (maxScroll <= 0) {
+            leftFade.setVisibility(View.GONE);
+            rightFade.setVisibility(View.GONE);
+            return;
         }
+
+        leftFade.setVisibility(scrollX > 0 ? View.VISIBLE : View.GONE);
+        rightFade.setVisibility(scrollX < maxScroll ? View.VISIBLE : View.GONE);
     }
+
+//    private String floorLabel(int number) {
+//        return number + ordinalSuffix(number) + " Floor";
+//    }
+
+//    private String ordinalSuffix(int number) {
+//        if (number >= 11 && number <= 13) return "th";
+//        switch (number % 10) {
+//            case 1: return "st";
+//            case 2: return "nd";
+//            case 3: return "rd";
+//            default: return "th";
+//        }
+//    }
 
     private void setupCampusMap(NavController nav) {
         campusMap.setOnBuildingClickListener((code, name) -> {
@@ -225,6 +351,8 @@ public class HomeFragment extends Fragment {
                 .translationY(0f)
                 .setDuration(CHIP_ANIM_DURATION_MS)
                 .start();
+
+        updateFade();
     }
 
     private void hideFloorChipsAnimated() {
@@ -239,21 +367,27 @@ public class HomeFragment extends Fragment {
                     floorChipContainer.setVisibility(View.GONE);
                     floorChipContainer.setAlpha(1f);
                     floorChipContainer.setTranslationY(0f);
+
+                    if (leftFade != null) leftFade.setVisibility(View.GONE);
+                    if (rightFade != null) rightFade.setVisibility(View.GONE);
                 })
                 .start();
     }
 
-    private float dpToPx(int dp) {
+    private float dpToPx(float dp) {
         return dp * getResources().getDisplayMetrics().density;
     }
 
-    /** Re-centres the map to its default zoom/pan. */
     private void setupFab(View view) {
         FloatingActionButton fab = view.findViewById(R.id.fab_compass);
+
         fab.setOnClickListener(v ->
                 new DirectionsSheetFragment().show(getParentFragmentManager(), "directions_sheet"));
+
         fab.setOnLongClickListener(v -> {
-            campusMap.resetView();
+            if (campusMap != null) {
+                campusMap.resetView();
+            }
             return true;
         });
     }
