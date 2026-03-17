@@ -2,10 +2,13 @@ package com.example.freshguide.ui.user;
 
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.util.Log;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
@@ -24,41 +27,51 @@ import com.example.freshguide.database.AppDatabase;
 import com.example.freshguide.model.entity.BuildingEntity;
 import com.example.freshguide.model.entity.FloorEntity;
 import com.example.freshguide.model.entity.RoomEntity;
-import com.example.freshguide.ui.view.CampusMapView;
 import com.example.freshguide.viewmodel.HomeViewModel;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.List;
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class HomeFragment extends Fragment {
 
-    private static final long CHIP_ANIM_DURATION_MS = 300L;
     private static final String CODE_MAIN = "MAIN";
     private static final String CODE_REG = "REG";
     private static final String CODE_LIB = "LIB";
     private static final String CODE_COURT = "COURT";
     private static final String CODE_ENT = "ENT";
     private static final String CODE_EXIT = "EXIT";
+    private static final String TAG = "HomeFragment";
+    private static final int[] ROOM_BOX_IDS = {
+            R.id.room_left_1,
+            R.id.room_left_2,
+            R.id.room_left_3,
+            R.id.room_left_4,
+            R.id.room_left_5,
+            R.id.room_right_1,
+            R.id.room_right_2,
+            R.id.room_right_3,
+            R.id.room_right_4,
+            R.id.room_right_5
+    };
 
     private final Executor ioExecutor = Executors.newSingleThreadExecutor();
 
     private Integer selectedFloor = null;
 
     private HomeViewModel viewModel;
-    private CampusMapView campusMap;
 
+    private Chip[] floorChips;
     private HorizontalScrollView floorChipContainer;
     private FrameLayout floorMapContainer;
     private View leftFade;
     private View rightFade;
     private View overallMapContainer;
-
-    private String selectedBuildingCode;
 
     @Nullable
     @Override
@@ -72,7 +85,6 @@ public class HomeFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
-        // campusMap = view.findViewById(R.id.campus_map);
 
         floorChipContainer = view.findViewById(R.id.floor_chip_container);
         floorMapContainer = view.findViewById(R.id.floor_map_container);
@@ -84,8 +96,8 @@ public class HomeFragment extends Fragment {
 
         setupSearch(view, nav);
         setupFloorChips(view);
+        setupOverallMapClicks(view, nav);
         setupChipFade();
-        // setupCampusMap(nav);
         setupFab(view);
         observeSync(view);
 
@@ -104,7 +116,7 @@ public class HomeFragment extends Fragment {
         Chip chip4 = view.findViewById(R.id.chip_floor_4);
         Chip chip5 = view.findViewById(R.id.chip_floor_5);
 
-        Chip[] chips = {chip1, chip2, chip3, chip4, chip5};
+        floorChips = new Chip[]{chip1, chip2, chip3, chip4, chip5};
 
         int green = requireContext().getColor(R.color.green);
 
@@ -130,7 +142,7 @@ public class HomeFragment extends Fragment {
                 }
         );
 
-        for (Chip chip : chips) {
+        for (Chip chip : floorChips) {
             chip.setCheckable(true);
             chip.setCheckedIconVisible(false);
             chip.setChipBackgroundColor(bgColors);
@@ -138,11 +150,11 @@ public class HomeFragment extends Fragment {
             chip.setChipStrokeColor(ColorStateList.valueOf(green));
         }
 
-        chip1.setOnClickListener(v -> handleFloorChipClick(chip1, 1, chips));
-        chip2.setOnClickListener(v -> handleFloorChipClick(chip2, 2, chips));
-        chip3.setOnClickListener(v -> handleFloorChipClick(chip3, 3, chips));
-        chip4.setOnClickListener(v -> handleFloorChipClick(chip4, 4, chips));
-        chip5.setOnClickListener(v -> handleFloorChipClick(chip5, 5, chips));
+        chip1.setOnClickListener(v -> handleFloorChipClick(chip1, 1, floorChips));
+        chip2.setOnClickListener(v -> handleFloorChipClick(chip2, 2, floorChips));
+        chip3.setOnClickListener(v -> handleFloorChipClick(chip3, 3, floorChips));
+        chip4.setOnClickListener(v -> handleFloorChipClick(chip4, 4, floorChips));
+        chip5.setOnClickListener(v -> handleFloorChipClick(chip5, 5, floorChips));
 
         showOverallMap();
         updateFade();
@@ -212,6 +224,47 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    private void setupOverallMapClicks(View view, NavController nav) {
+        setClick(view, R.id.img_main_building, () -> openMainBuildingFloor());
+        setClick(view, R.id.txt_main_building, () -> openMainBuildingFloor());
+
+        setClick(view, R.id.img_library, () -> navigateToBuildingRoomList(nav, CODE_LIB, "LIBRARY"));
+        setClick(view, R.id.txt_library, () -> navigateToBuildingRoomList(nav, CODE_LIB, "LIBRARY"));
+
+        setClick(view, R.id.img_registrar, () -> navigateToBuildingRoomList(nav, CODE_REG, "REGISTRAR"));
+        setClick(view, R.id.img_registrar2, () -> navigateToBuildingRoomList(nav, CODE_REG, "REGISTRAR"));
+        setClick(view, R.id.txt_registrar, () -> navigateToBuildingRoomList(nav, CODE_REG, "REGISTRAR"));
+
+        setClick(view, R.id.img_court, () -> navigateToCampusAreaRoom(nav, CODE_COURT, "COURT"));
+        setClick(view, R.id.txt_court, () -> navigateToCampusAreaRoom(nav, CODE_COURT, "COURT"));
+        setClick(view, R.id.img_entrance, () -> navigateToCampusAreaRoom(nav, CODE_ENT, "ENTRANCE"));
+        setClick(view, R.id.img_exit, () -> navigateToCampusAreaRoom(nav, CODE_EXIT, "EXIT"));
+    }
+
+    private void setClick(View root, int viewId, Runnable action) {
+        View target = root.findViewById(viewId);
+        if (target != null) {
+            target.setOnClickListener(v -> action.run());
+        }
+    }
+
+    private void openMainBuildingFloor() {
+        selectedFloor = 1;
+        if (floorChips != null) {
+            for (int i = 0; i < floorChips.length; i++) {
+                floorChips[i].setChecked(i == 0);
+            }
+        }
+        showFloorMap(1);
+    }
+
+    private void navigateToBuildingRoomList(NavController nav, String buildingCode, String buildingName) {
+        Bundle args = new Bundle();
+        args.putString("buildingCode", buildingCode);
+        args.putString("buildingName", buildingName);
+        nav.navigate(R.id.action_home_to_roomList, args);
+    }
+
     private void bindFloorData(int floorNumber) {
         ioExecutor.execute(() -> {
             try {
@@ -219,6 +272,7 @@ public class HomeFragment extends Fragment {
                 BuildingEntity building = db.buildingDao().getByCodeSync(CODE_MAIN);
 
                 if (building == null) {
+                    Log.w(TAG, "Building with code MAIN not found");
                     runOnUiThreadSafely(() -> {
                         if (isAdded()) {
                             Toast.makeText(requireContext(), "Main building not found in database", Toast.LENGTH_SHORT).show();
@@ -238,15 +292,21 @@ public class HomeFragment extends Fragment {
                 }
 
                 if (targetFloor == null) {
+                    Log.w(TAG, "No floor entity found for floorNumber=" + floorNumber);
                     runOnUiThreadSafely(() -> clearFloorRoomViews());
                     return;
                 }
 
                 List<RoomEntity> rooms = db.roomDao().getByFloorSync(targetFloor.id);
+                if (rooms != null) {
+                    rooms.sort(Comparator.comparingInt(r -> r.id));
+                }
+                Log.d(TAG, "Binding floor=" + floorNumber + " with rooms=" + (rooms == null ? 0 : rooms.size()));
 
                 runOnUiThreadSafely(() -> applyRoomsToCurrentFloorLayout(rooms));
 
             } catch (Exception e) {
+                Log.e(TAG, "Failed loading floor data", e);
                 runOnUiThreadSafely(() -> {
                     if (isAdded()) {
                         Toast.makeText(requireContext(), "Failed to load floor data", Toast.LENGTH_SHORT).show();
@@ -262,6 +322,19 @@ public class HomeFragment extends Fragment {
         clearFloorRoomViews();
 
         if (rooms == null || rooms.isEmpty()) {
+            Log.w(TAG, "No rooms to bind for current floor layout");
+            return;
+        }
+
+        List<RoomEntity> floorRooms = new ArrayList<>();
+        for (RoomEntity room : rooms) {
+            if (room == null) continue;
+            if (isCampusAreaCode(room.code)) continue;
+            floorRooms.add(room);
+        }
+
+        if (floorRooms.isEmpty()) {
+            Log.w(TAG, "Only campus-area rooms found for current floor; nothing to bind");
             return;
         }
 
@@ -270,25 +343,52 @@ public class HomeFragment extends Fragment {
 
         final NavController navController = Navigation.findNavController(root);
 
-        for (int i = 0; i < rooms.size(); i++) {
-            int index = i + 1;
-            RoomEntity room = rooms.get(i);
+        int max = Math.min(floorRooms.size(), ROOM_BOX_IDS.length);
+        for (int i = 0; i < max; i++) {
+            RoomEntity room = floorRooms.get(i);
 
-            View roomBox = floorMapContainer.findViewWithTag("room_box_" + index);
+            View roomBox = floorMapContainer.findViewById(ROOM_BOX_IDS[i]);
 
             if (roomBox != null) {
-                TextView roomLabel = roomBox.findViewWithTag("room_label");
+                TextView roomLabel = roomBox.findViewById(R.id.room_label);
 
                 if (roomLabel != null) {
                     roomLabel.setText(getRoomDisplayName(room));
                 }
 
+                roomBox.setClickable(true);
+                roomBox.setFocusable(false);
+                roomBox.setOnTouchListener((v, event) -> {
+                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                        ViewParent parent = v.getParent();
+                        if (parent != null) {
+                            parent.requestDisallowInterceptTouchEvent(true);
+                        }
+                    } else if (event.getAction() == MotionEvent.ACTION_UP
+                            || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                        ViewParent parent = v.getParent();
+                        if (parent != null) {
+                            parent.requestDisallowInterceptTouchEvent(false);
+                        }
+                    }
+                    return false;
+                });
                 roomBox.setOnClickListener(v -> {
+                    Log.d(TAG, "Room clicked id=" + room.id + " code=" + room.code + " name=" + room.name);
                     Bundle args = new Bundle();
                     args.putInt("roomId", room.id);
                     args.putString("roomName", getRoomDisplayName(room));
-                    navController.navigate(R.id.roomDetailFragment, args);
+                    try {
+                        navController.navigate(R.id.action_home_to_roomDetail, args);
+                    } catch (Exception e) {
+                        Log.e(TAG, "Failed to open room detail", e);
+                        if (isAdded()) {
+                            Toast.makeText(requireContext(), "Unable to open room details", Toast.LENGTH_SHORT).show();
+                        }
+                    }
                 });
+            } else {
+                Log.w(TAG, "Room view not found for index=" + i);
             }
         }
     }
@@ -296,15 +396,18 @@ public class HomeFragment extends Fragment {
     private void clearFloorRoomViews() {
         if (floorMapContainer == null) return;
 
-        for (int i = 1; i <= 30; i++) {
-            View roomBox = floorMapContainer.findViewWithTag("room_box_" + i);
+        for (int roomBoxId : ROOM_BOX_IDS) {
+            View roomBox = floorMapContainer.findViewById(roomBoxId);
 
             if (roomBox != null) {
-                TextView roomLabel = roomBox.findViewWithTag("room_label");
+                TextView roomLabel = roomBox.findViewById(R.id.room_label);
                 if (roomLabel != null) {
                     roomLabel.setText("Room");
                 }
                 roomBox.setOnClickListener(null);
+                roomBox.setClickable(false);
+                roomBox.setFocusable(false);
+                roomBox.setOnTouchListener(null);
             }
         }
     }
@@ -314,6 +417,12 @@ public class HomeFragment extends Fragment {
         if (room.name != null && !room.name.trim().isEmpty()) return room.name;
         if (room.code != null && !room.code.trim().isEmpty()) return room.code;
         return "Room";
+    }
+
+    private boolean isCampusAreaCode(String code) {
+        if (code == null) return false;
+        String c = code.trim().toUpperCase();
+        return CODE_COURT.equals(c) || CODE_ENT.equals(c) || CODE_EXIT.equals(c);
     }
 
     private void setupChipFade() {
@@ -355,34 +464,6 @@ public class HomeFragment extends Fragment {
         rightFade.setVisibility(scrollX < maxScroll ? View.VISIBLE : View.GONE);
     }
 
-    private void setupCampusMap(NavController nav) {
-        campusMap.setOnBuildingClickListener((code, name) -> {
-            selectedBuildingCode = code != null ? code.toUpperCase(Locale.ROOT) : null;
-
-            if (CODE_MAIN.equals(selectedBuildingCode)) {
-                showFloorChipsAnimated();
-                return;
-            }
-
-            hideFloorChipsAnimated();
-
-            Bundle args = new Bundle();
-            args.putString("buildingCode", code);
-            args.putString("buildingName", name);
-
-            if (CODE_LIB.equals(selectedBuildingCode) || CODE_REG.equals(selectedBuildingCode)) {
-                nav.navigate(R.id.action_home_to_roomList, args);
-                return;
-            }
-
-            if (CODE_COURT.equals(selectedBuildingCode)
-                    || CODE_ENT.equals(selectedBuildingCode)
-                    || CODE_EXIT.equals(selectedBuildingCode)) {
-                navigateToCampusAreaRoom(nav, selectedBuildingCode, name);
-            }
-        });
-    }
-
     private void navigateToCampusAreaRoom(NavController nav, String areaCode, String areaName) {
         viewModel.findRoomIdByCode(areaCode, roomId -> {
             if (!isAdded()) {
@@ -391,7 +472,6 @@ public class HomeFragment extends Fragment {
 
             if (roomId == null || roomId <= 0) {
                 Toast.makeText(requireContext(), "Campus area not available yet", Toast.LENGTH_SHORT).show();
-                nav.navigate(R.id.homeFragment);
                 return;
             }
 
@@ -403,45 +483,6 @@ public class HomeFragment extends Fragment {
         });
     }
 
-    private void showFloorChipsAnimated() {
-        if (floorChipContainer == null) return;
-        if (floorChipContainer.getVisibility() == View.VISIBLE) return;
-
-        floorChipContainer.setVisibility(View.VISIBLE);
-        floorChipContainer.setAlpha(0f);
-        floorChipContainer.setTranslationY(-dpToPx(14));
-        floorChipContainer.animate()
-                .alpha(1f)
-                .translationY(0f)
-                .setDuration(CHIP_ANIM_DURATION_MS)
-                .start();
-
-        updateFade();
-    }
-
-    private void hideFloorChipsAnimated() {
-        if (floorChipContainer == null) return;
-        if (floorChipContainer.getVisibility() != View.VISIBLE) return;
-
-        floorChipContainer.animate()
-                .alpha(0f)
-                .translationY(-dpToPx(14))
-                .setDuration(CHIP_ANIM_DURATION_MS)
-                .withEndAction(() -> {
-                    floorChipContainer.setVisibility(View.GONE);
-                    floorChipContainer.setAlpha(1f);
-                    floorChipContainer.setTranslationY(0f);
-
-                    if (leftFade != null) leftFade.setVisibility(View.GONE);
-                    if (rightFade != null) rightFade.setVisibility(View.GONE);
-                })
-                .start();
-    }
-
-    private float dpToPx(float dp) {
-        return dp * getResources().getDisplayMetrics().density;
-    }
-
     private void setupFab(View view) {
         FloatingActionButton fab = view.findViewById(R.id.fab_compass);
 
@@ -449,9 +490,15 @@ public class HomeFragment extends Fragment {
                 new DirectionsSheetFragment().show(getParentFragmentManager(), "directions_sheet"));
 
         fab.setOnLongClickListener(v -> {
-            if (campusMap != null) {
-                campusMap.resetView();
+            if (selectedFloor != null) {
+                selectedFloor = null;
             }
+            if (floorChips != null) {
+                for (Chip chip : floorChips) {
+                    chip.setChecked(false);
+                }
+            }
+            showOverallMap();
             return true;
         });
     }

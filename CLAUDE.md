@@ -54,6 +54,12 @@ Admins manage buildings, floors, rooms, facilities, origins, routes, and publish
 - API_BASE_URL must be set before build — app throws at startup if blank
 - ngrok URL changes every session — rebuild required after URL change
 - EncryptedSharedPreferences — key rotation issues on device wipe
+- NavComponent calls should use action IDs (for example `action_home_to_roomDetail`) instead of direct fragment IDs to avoid silent navigation failures
+
+## Recent Updates
+- Home map + floor map integration lives in `HomeFragment` with custom `map_floor_1..5` layouts
+- Admin dashboard now has a dedicated logout button (`btn_admin_logout`)
+- Room card click regression fixed by restoring `action_home_to_roomDetail` navigation from Home floor layouts
 
 ## Agent Routing Defaults
 - Building agent: gpt-5.3-codex (high)

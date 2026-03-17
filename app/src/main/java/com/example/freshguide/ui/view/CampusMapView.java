@@ -60,7 +60,6 @@ public class CampusMapView extends View {
 
     private final Paint pFill   = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint pStroke = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint pSelect = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint pLabel  = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint pAccent = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint pMarkerOuter = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -71,7 +70,6 @@ public class CampusMapView extends View {
     private final Paint pPinInner = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint pBg     = new Paint();
 
-    private String selectedCode = null;
     private OnBuildingClickListener clickListener;
 
     private float panX = 0f, panY = 0f, zoom = 1f;
@@ -178,10 +176,6 @@ public class CampusMapView extends View {
         pStroke.setColor(Color.WHITE);
         pStroke.setStrokeWidth(2.0f);
 
-        pSelect.setStyle(Paint.Style.STROKE);
-        pSelect.setColor(Color.parseColor("#1E88E5"));
-        pSelect.setStrokeWidth(6f);
-
         pLabel.setStyle(Paint.Style.FILL);
         pLabel.setTextAlign(Paint.Align.CENTER);
         pLabel.setFakeBoldText(false);
@@ -230,7 +224,6 @@ public class CampusMapView extends View {
         pLabel.setTextSize(mapScale * 0.0205f);
         // Stroke widths scale with map size
         pStroke.setStrokeWidth(mapScale * 0.004f);
-        pSelect.setStrokeWidth(mapScale * 0.014f);
         pDashed.setStrokeWidth(mapScale * 0.0035f);
         pDashed.setPathEffect(new DashPathEffect(
                 new float[]{ mapScale * 0.012f, mapScale * 0.008f }, 0));
@@ -275,11 +268,6 @@ public class CampusMapView extends View {
         if ("ENT".equals(b.code) || "EXIT".equals(b.code)) {
             drawFlatQuad(canvas, p, b.baseColor);
             canvas.drawPath(quad(p), pDashed);
-            if (b.code.equals(selectedCode)) {
-                RectF bounds = new RectF();
-                quad(p).computeBounds(bounds, true);
-                canvas.drawRect(bounds, pSelect);
-            }
             return;
         }
 
@@ -295,15 +283,7 @@ public class CampusMapView extends View {
         drawTri(canvas, p[4],p[5], p[6],p[7], cx,cy, light);
         drawTri(canvas, p[6],p[7], p[0],p[1], cx,cy, dark);
 
-        if ("MAIN".equals(b.code) && b.code.equals(selectedCode)) {
-            RectF bounds = new RectF();
-            quad(p).computeBounds(bounds, true);
-            float inset = mapScale * 0.008f;
-            bounds.inset(-inset, -inset);
-            canvas.drawRect(bounds, pSelect);
-        } else {
-            canvas.drawPath(quad(p), b.code.equals(selectedCode) ? pSelect : pStroke);
-        }
+        canvas.drawPath(quad(p), pStroke);
     }
 
     /** Draws only the label — always on top of all shapes. */
@@ -416,11 +396,6 @@ public class CampusMapView extends View {
         };
         drawFacetedQuad(canvas, left, color);
         drawFacetedQuad(canvas, right, color);
-        if ("REG".equals(selectedCode)) {
-            RectF bounds = new RectF();
-            quad(p).computeBounds(bounds, true);
-            canvas.drawRect(bounds, pSelect);
-        }
     }
 
     private void drawFacetedQuad(Canvas canvas, float[] p, int baseColor) {
@@ -524,15 +499,11 @@ public class CampusMapView extends View {
                                        (int)bounds.right,(int)bounds.bottom);
             region.setPath(path, region);
             if (region.contains((int)worldX, (int)worldY)) {
-                selectedCode = b.code;
-                invalidate();
                 if (clickListener != null)
                     clickListener.onBuildingClick(b.code, b.name.replace("\n", " "));
                 return;
             }
         }
-        selectedCode = null;
-        invalidate();
     }
 
     private void clampPan() {
@@ -548,7 +519,6 @@ public class CampusMapView extends View {
 
     public void resetView() {
         panX = 0f; panY = 0f; zoom = 1f;
-        selectedCode = null;
         invalidate();
     }
 }

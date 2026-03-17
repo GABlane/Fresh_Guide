@@ -5,6 +5,7 @@
     android:background="@drawable/bg_room_classroom_right_door">
 
     <TextView
+        android:id="@+id/room_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"

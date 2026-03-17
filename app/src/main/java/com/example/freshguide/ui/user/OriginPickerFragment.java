@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -16,9 +15,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.freshguide.R;
 import com.example.freshguide.database.AppDatabase;
 import com.example.freshguide.model.entity.OriginEntity;
-import com.example.freshguide.ui.adapter.GenericListAdapter;
+import com.example.freshguide.ui.adapter.OriginPickerAdapter;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -30,8 +28,7 @@ public class OriginPickerFragment extends Fragment {
     public static final String RESULT_KEY = "origin_picker_result";
     public static final String KEY_ORIGIN_ID = "origin_id";
 
-    private GenericListAdapter adapter;
-    private List<OriginEntity> origins = new ArrayList<>();
+    private OriginPickerAdapter adapter;
 
     @Nullable
     @Override
@@ -44,34 +41,18 @@ public class OriginPickerFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        adapter = new GenericListAdapter();
+        adapter = new OriginPickerAdapter();
         RecyclerView recycler = view.findViewById(R.id.recycler_origins);
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         recycler.setAdapter(adapter);
 
         AppDatabase db = AppDatabase.getInstance(requireContext());
         Executors.newSingleThreadExecutor().execute(() -> {
-            origins = db.originDao().getAllSync();
-            List<GenericListAdapter.Item> items = new ArrayList<>();
-            for (OriginEntity o : origins) {
-                items.add(new GenericListAdapter.Item(o.id, o.name,
-                        o.code != null ? o.code : ""));
-            }
-            requireActivity().runOnUiThread(() -> adapter.setItems(items));
+            List<OriginEntity> origins = db.originDao().getAllSync();
+            requireActivity().runOnUiThread(() -> adapter.setItems(origins));
         });
 
-        adapter.setOnActionListener(new GenericListAdapter.OnActionListener() {
-            @Override
-            public void onEdit(int position, int id) {
-                // In origin picker, "edit" button acts as "select"
-                selectOrigin(id, view);
-            }
-
-            @Override
-            public void onDelete(int position, int id) {
-                selectOrigin(id, view);
-            }
-        });
+        adapter.setOnOriginClickListener(origin -> selectOrigin(origin.id, view));
     }
 
     private void selectOrigin(int originId, View view) {

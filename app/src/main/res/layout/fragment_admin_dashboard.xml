@@ -152,5 +152,11 @@
             android:text="Publish to Students"
             android:backgroundTint="@color/orange_accent" android:textColor="#FFFFFF"
             android:textStyle="bold" />
+
+        <Button android:id="@+id/btn_admin_logout"
+            android:layout_width="match_parent" android:layout_height="52dp"
+            android:layout_marginTop="10dp"
+            android:text="Logout"
+            android:backgroundTint="#C62828" android:textColor="#FFFFFF" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

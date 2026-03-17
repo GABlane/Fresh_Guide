@@ -1,10 +1,10 @@
 package com.example.freshguide.ui.admin;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -14,7 +14,9 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
+import com.example.freshguide.LoginActivity;
 import com.example.freshguide.R;
+import com.example.freshguide.repository.AuthRepository;
 import com.example.freshguide.viewmodel.AdminViewModel;
 
 public class AdminDashboardFragment extends Fragment {
@@ -58,5 +60,12 @@ public class AdminDashboardFragment extends Fragment {
                 nav.navigate(R.id.action_adminDashboard_to_adminRouteList));
         view.findViewById(R.id.btn_publish).setOnClickListener(v ->
                 nav.navigate(R.id.action_adminDashboard_to_adminPublish));
+        view.findViewById(R.id.btn_admin_logout).setOnClickListener(v -> {
+            new AuthRepository(requireContext()).logout();
+            Intent intent = new Intent(requireActivity(), LoginActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            requireActivity().finish();
+        });
     }
 }
