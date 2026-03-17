@@ -43,6 +43,10 @@ public class ScheduleViewModel extends AndroidViewModel {
         return db.scheduleDao().observeByDay(dayOfWeek);
     }
 
+    public LiveData<List<ScheduleEntryEntity>> getAllSchedules() {
+        return db.scheduleDao().observeAll();
+    }
+
     public LiveData<Integer> getTotalScheduleCount() {
         return db.scheduleDao().observeCount();
     }

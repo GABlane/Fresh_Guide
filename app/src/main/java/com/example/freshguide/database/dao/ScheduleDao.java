@@ -19,6 +19,9 @@ public interface ScheduleDao {
     LiveData<List<ScheduleEntryEntity>> observeByDay(int dayOfWeek);
 
     @Query("SELECT * FROM schedule_entries ORDER BY day_of_week ASC, start_minutes ASC")
+    LiveData<List<ScheduleEntryEntity>> observeAll();
+
+    @Query("SELECT * FROM schedule_entries ORDER BY day_of_week ASC, start_minutes ASC")
     List<ScheduleEntryEntity> getAllSync();
 
     @Query("SELECT * FROM schedule_entries WHERE id = :id LIMIT 1")

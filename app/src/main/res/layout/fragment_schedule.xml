@@ -113,92 +113,28 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:scrollbars="none">
-
-        <LinearLayout
-            android:id="@+id/day_selector"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp">
-
-            <TextView
-                android:id="@+id/day_mon"
-                android:layout_width="46dp"
-                android:layout_height="30dp"
-                android:gravity="center"
-                android:text="Mon"
-                android:textColor="#2F2F2F"
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/day_tue"
-                android:layout_width="46dp"
-                android:layout_height="30dp"
-                android:gravity="center"
-                android:text="Tue"
-                android:textColor="#2F2F2F"
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/day_wed"
-                android:layout_width="46dp"
-                android:layout_height="30dp"
-                android:gravity="center"
-                android:text="Wed"
-                android:textColor="#2F2F2F"
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/day_thu"
-                android:layout_width="46dp"
-                android:layout_height="30dp"
-                android:gravity="center"
-                android:text="Thu"
-                android:textColor="#2F2F2F"
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/day_fri"
-                android:layout_width="46dp"
-                android:layout_height="30dp"
-                android:gravity="center"
-                android:text="Fri"
-                android:textColor="#2F2F2F"
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/day_sat"
-                android:layout_width="46dp"
-                android:layout_height="30dp"
-                android:gravity="center"
-                android:text="Sat"
-                android:textColor="#2F2F2F"
-                android:textSize="13sp" />
-        </LinearLayout>
-    </HorizontalScrollView>
-
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:layout_marginTop="10dp"
         android:paddingStart="10dp"
         android:paddingEnd="10dp"
         android:paddingBottom="8dp">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_schedule"
+        <ScrollView
+            android:id="@+id/scroll_weekly_schedule"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingBottom="16dp"
-            android:scrollbars="none"
-            android:visibility="gone" />
+            android:fillViewport="true"
+            android:scrollbars="vertical"
+            android:visibility="gone">
+
+            <com.example.freshguide.ui.view.WeeklyScheduleGridView
+                android:id="@+id/weekly_schedule_grid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </ScrollView>
 
         <LinearLayout
             android:id="@+id/empty_state"

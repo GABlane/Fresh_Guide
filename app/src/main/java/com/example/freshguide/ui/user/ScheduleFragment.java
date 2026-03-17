@@ -13,6 +13,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -28,14 +29,12 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.appcompat.app.AlertDialog;
 
 import com.example.freshguide.R;
 import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.model.entity.ScheduleEntryEntity;
-import com.example.freshguide.ui.adapter.ScheduleEntryAdapter;
+import com.example.freshguide.ui.view.WeeklyScheduleGridView;
 import com.example.freshguide.util.ScheduleReminderHelper;
 import com.example.freshguide.viewmodel.ScheduleViewModel;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -51,14 +50,6 @@ import java.util.Map;
 public class ScheduleFragment extends Fragment {
 
     private static final String[] DAY_LABELS = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-    private static final int[] DAY_VIEW_IDS = {
-            R.id.day_mon,
-            R.id.day_tue,
-            R.id.day_wed,
-            R.id.day_thu,
-            R.id.day_fri,
-            R.id.day_sat
-    };
     private static final int[] FORM_DAY_VIEW_IDS = {
             R.id.form_day_mon,
             R.id.form_day_tue,
@@ -84,10 +75,10 @@ public class ScheduleFragment extends Fragment {
             });
 
     private ScheduleViewModel viewModel;
-    private ScheduleEntryAdapter adapter;
-    private LiveData<List<ScheduleEntryEntity>> dayLiveData;
+    private LiveData<List<ScheduleEntryEntity>> allSchedulesLiveData;
 
-    private RecyclerView recyclerSchedule;
+    private ScrollView weeklyScheduleScroll;
+    private WeeklyScheduleGridView weeklyScheduleGrid;
     private View emptyState;
     private View cardSummary;
     private TextView tvSummaryCode;
@@ -95,7 +86,6 @@ public class ScheduleFragment extends Fragment {
     private TextView tvSummaryProfessor;
     private TextView tvSummaryTime;
     private TextView tvDate;
-    private TextView[] dayViews;
 
     private final List<RoomEntity> allRooms = new ArrayList<>();
     private final List<RoomEntity> roomOptions = new ArrayList<>();
@@ -119,7 +109,8 @@ public class ScheduleFragment extends Fragment {
         ScheduleReminderHelper.ensureNotificationChannel(requireContext());
 
         tvDate = view.findViewById(R.id.tv_schedule_date);
-        recyclerSchedule = view.findViewById(R.id.recycler_schedule);
+        weeklyScheduleScroll = view.findViewById(R.id.scroll_weekly_schedule);
+        weeklyScheduleGrid = view.findViewById(R.id.weekly_schedule_grid);
         emptyState = view.findViewById(R.id.empty_state);
         cardSummary = view.findViewById(R.id.card_today_summary);
         tvSummaryCode = view.findViewById(R.id.tv_summary_course_code);
@@ -127,66 +118,30 @@ public class ScheduleFragment extends Fragment {
         tvSummaryProfessor = view.findViewById(R.id.tv_summary_professor);
         tvSummaryTime = view.findViewById(R.id.tv_summary_time);
 
-        dayViews = new TextView[]{
-                view.findViewById(R.id.day_mon),
-                view.findViewById(R.id.day_tue),
-                view.findViewById(R.id.day_wed),
-                view.findViewById(R.id.day_thu),
-                view.findViewById(R.id.day_fri),
-                view.findViewById(R.id.day_sat)
-        };
-
         tvDate.setText(new SimpleDateFormat("EEEE, MMMM d", Locale.getDefault()).format(Calendar.getInstance().getTime()));
-
-        adapter = new ScheduleEntryAdapter();
-        adapter.setOnScheduleClickListener(this::showScheduleDetailDialog);
-        recyclerSchedule.setLayoutManager(new LinearLayoutManager(requireContext()));
-        recyclerSchedule.setAdapter(adapter);
+        weeklyScheduleGrid.setOnScheduleClickListener(this::showScheduleDetailDialog);
 
         view.findViewById(R.id.btn_add_schedule).setOnClickListener(v -> showScheduleFormDialog(null));
         view.findViewById(R.id.btn_empty_add_schedule).setOnClickListener(v -> showScheduleFormDialog(null));
-
-        setupDaySelector();
         loadRoomOptions();
 
         selectedDay = getDefaultDay();
-        applyDaySelectionUi(selectedDay);
-        observeSelectedDaySchedules(selectedDay);
+        observeAllSchedules();
     }
 
-    private void setupDaySelector() {
-        for (int i = 0; i < dayViews.length; i++) {
-            int day = i + 1;
-            dayViews[i].setOnClickListener(v -> {
-                selectedDay = day;
-                applyDaySelectionUi(day);
-                observeSelectedDaySchedules(day);
-            });
+    private void observeAllSchedules() {
+        if (allSchedulesLiveData != null) {
+            allSchedulesLiveData.removeObservers(getViewLifecycleOwner());
         }
-    }
+        allSchedulesLiveData = viewModel.getAllSchedules();
+        allSchedulesLiveData.observe(getViewLifecycleOwner(), schedules -> {
+            List<ScheduleEntryEntity> safeList = schedules != null ? schedules : new ArrayList<>();
+            weeklyScheduleGrid.setSchedules(safeList);
 
-    private void applyDaySelectionUi(int day) {
-        for (int i = 0; i < dayViews.length; i++) {
-            TextView dayView = dayViews[i];
-            boolean selected = (i + 1) == day;
-            dayView.setBackgroundResource(selected ? R.drawable.bg_schedule_day_selected : R.drawable.bg_schedule_day_plain);
-            dayView.setTextColor(ContextCompat.getColor(requireContext(), selected ? R.color.green_primary : R.color.text_primary));
-        }
-    }
-
-    private void observeSelectedDaySchedules(int day) {
-        if (dayLiveData != null) {
-            dayLiveData.removeObservers(getViewLifecycleOwner());
-        }
-        dayLiveData = viewModel.getSchedulesByDay(day);
-        dayLiveData.observe(getViewLifecycleOwner(), schedules -> {
-            adapter.setItems(schedules);
-            adapter.setRoomNameMap(roomNameMap);
-
-            boolean hasSchedules = schedules != null && !schedules.isEmpty();
-            recyclerSchedule.setVisibility(hasSchedules ? View.VISIBLE : View.GONE);
+            boolean hasSchedules = !safeList.isEmpty();
+            weeklyScheduleScroll.setVisibility(hasSchedules ? View.VISIBLE : View.GONE);
             emptyState.setVisibility(hasSchedules ? View.GONE : View.VISIBLE);
-            updateSummaryCard(hasSchedules ? schedules.get(0) : null);
+            updateSummaryCard(findTodaySummaryEntry(safeList));
         });
     }
 
@@ -205,6 +160,35 @@ public class ScheduleFragment extends Fragment {
         tvSummaryTime.setText(formatMinutes(entry.startMinutes) + " - " + formatMinutes(entry.endMinutes));
     }
 
+    @Nullable
+    private ScheduleEntryEntity findTodaySummaryEntry(@Nullable List<ScheduleEntryEntity> schedules) {
+        if (schedules == null || schedules.isEmpty()) {
+            return null;
+        }
+
+        int today = getDefaultDay();
+        Calendar now = Calendar.getInstance();
+        int currentMinutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE);
+
+        ScheduleEntryEntity nextClass = null;
+        ScheduleEntryEntity fallback = null;
+
+        for (ScheduleEntryEntity entry : schedules) {
+            if (entry.dayOfWeek != today) {
+                continue;
+            }
+            if (fallback == null || entry.startMinutes < fallback.startMinutes) {
+                fallback = entry;
+            }
+            if (entry.startMinutes >= currentMinutes &&
+                    (nextClass == null || entry.startMinutes < nextClass.startMinutes)) {
+                nextClass = entry;
+            }
+        }
+
+        return nextClass != null ? nextClass : fallback;
+    }
+
     private void loadRoomOptions() {
         viewModel.loadRooms(rooms -> {
             if (!isAdded()) return;
@@ -221,7 +205,7 @@ public class ScheduleFragment extends Fragment {
                     roomOptions.add(room);
                     roomNameMap.put(room.id, buildRoomDisplay(room));
                 }
-                adapter.setRoomNameMap(roomNameMap);
+                weeklyScheduleGrid.setRoomNameMap(roomNameMap);
             });
         });
     }
