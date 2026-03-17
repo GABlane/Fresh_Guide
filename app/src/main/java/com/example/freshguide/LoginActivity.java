@@ -1,47 +1,77 @@
 package com.example.freshguide;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.text.method.PasswordTransformationMethod;
 import android.text.method.SingleLineTransformationMethod;
+import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AlertDialog;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.freshguide.viewmodel.LoginViewModel;
 
+import java.util.regex.Pattern;
+
 public class LoginActivity extends AppCompatActivity {
 
+    private static final Pattern STUDENT_ID_PATTERN = Pattern.compile("^\\d{8}-(S|N|C)$");
+
     private boolean passwordVisible = false;
+    private boolean adminMode = false;
     private LoginViewModel viewModel;
-    private AlertDialog registerDialog;
-    private EditText registerStudentIdInput;
-    private boolean registerFlowActive = false;
+
+    private EditText inputUsername;
+    private EditText inputPassword;
+    private ImageButton btnTogglePassword;
+    private Button btnSignIn;
+    private Button btnCreateAccount;
+    private ProgressBar progressBar;
+    private android.widget.TextView tvLoginHint;
+    private View labelUsername;
+    private View labelPassword;
+    private FrameLayout passwordRow;
+
+    private final ActivityResultLauncher<Intent> qrScannerLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+                if (result.getResultCode() != RESULT_OK || result.getData() == null) {
+                    return;
+                }
+
+                String studentId = result.getData().getStringExtra(QrScannerActivity.EXTRA_STUDENT_ID);
+                if (studentId == null || !STUDENT_ID_PATTERN.matcher(studentId).matches()) {
+                    Toast.makeText(this, R.string.error_student_id_format, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                viewModel.loginStudent(studentId);
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        EditText inputUsername = findViewById(R.id.inputUsername);
-        EditText inputPassword = findViewById(R.id.inputPassword);
-        ImageButton btnTogglePassword = findViewById(R.id.btnTogglePassword);
-        Button btnSignIn = findViewById(R.id.btnSignIn);
-        Button btnCreateAccount = findViewById(R.id.btnCreateAccount);
-        ProgressBar progressBar = findViewById(R.id.progress_bar);
-        TextView tvLoginHint = findViewById(R.id.tv_login_hint);
+        inputUsername = findViewById(R.id.inputUsername);
+        inputPassword = findViewById(R.id.inputPassword);
+        btnTogglePassword = findViewById(R.id.btnTogglePassword);
+        btnSignIn = findViewById(R.id.btnSignIn);
+        btnCreateAccount = findViewById(R.id.btnCreateAccount);
+        progressBar = findViewById(R.id.progress_bar);
+        tvLoginHint = findViewById(R.id.tv_login_hint);
+        labelUsername = findViewById(R.id.labelUsername);
+        labelPassword = findViewById(R.id.labelPassword);
+        passwordRow = findViewById(R.id.passwordRow);
 
         viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
-        // Password visibility toggle
         btnTogglePassword.setOnClickListener(v -> {
             passwordVisible = !passwordVisible;
             if (passwordVisible) {
@@ -52,50 +82,29 @@ public class LoginActivity extends AppCompatActivity {
             inputPassword.setSelection(inputPassword.getText().length());
         });
 
-        // Detect mode from username field: "@" = admin, otherwise student
-        inputUsername.setOnFocusChangeListener((v, hasFocus) -> {
-            if (!hasFocus) {
-                boolean isAdminMode = inputUsername.getText().toString().contains("@");
-                inputPassword.setVisibility(isAdminMode ? View.VISIBLE : View.GONE);
-                btnTogglePassword.setVisibility(isAdminMode ? View.VISIBLE : View.GONE);
-                tvLoginHint.setText(isAdminMode ? "Admin login" : "Student ID login");
-            }
-        });
-
-        // Sign in
         btnSignIn.setOnClickListener(v -> {
-            registerFlowActive = false;
             inputUsername.setError(null);
-            String username = inputUsername.getText().toString().trim();
-            boolean isAdmin = username.contains("@");
 
-            if (isAdmin) {
+            if (adminMode) {
+                String email = inputUsername.getText().toString().trim();
                 String password = inputPassword.getText().toString().trim();
-                viewModel.loginAdmin(username, password);
-            } else {
-                viewModel.loginStudent(username);
+                viewModel.loginAdmin(email, password);
+                return;
             }
+
+            Intent scannerIntent = new Intent(this, QrScannerActivity.class);
+            qrScannerLauncher.launch(scannerIntent);
         });
 
-        btnCreateAccount.setOnClickListener(v -> showRegisterDialog(inputUsername.getText().toString().trim()));
+        btnCreateAccount.setOnClickListener(v -> setAdminMode(!adminMode));
 
-        // Observe login state
         viewModel.getState().observe(this, state -> {
             boolean loading = state == LoginViewModel.State.LOADING;
             progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
             btnSignIn.setEnabled(!loading);
             btnCreateAccount.setEnabled(!loading);
-            if (registerDialog != null && registerDialog.isShowing()) {
-                Button positive = registerDialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                Button negative = registerDialog.getButton(AlertDialog.BUTTON_NEGATIVE);
-                if (positive != null) positive.setEnabled(!loading);
-                if (negative != null) negative.setEnabled(!loading);
-            }
 
             if (state == LoginViewModel.State.SUCCESS_STUDENT || state == LoginViewModel.State.SUCCESS_ADMIN) {
-                if (registerDialog != null && registerDialog.isShowing()) {
-                    registerDialog.dismiss();
-                }
                 boolean onboardingDone = getSharedPreferences(
                         OnboardingActivity.PREFS_NAME, MODE_PRIVATE)
                         .getBoolean(OnboardingActivity.KEY_ONBOARDING_COMPLETE, false);
@@ -109,60 +118,43 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         viewModel.getErrorMessage().observe(this, err -> {
-            if (err != null && !err.isEmpty()) {
-                if (registerFlowActive && registerDialog != null && registerDialog.isShowing() && registerStudentIdInput != null) {
-                    registerStudentIdInput.setError(err);
-                    Toast.makeText(this, err, Toast.LENGTH_SHORT).show();
-                } else {
-                    inputUsername.setError(err);
-                }
+            if (err == null || err.isEmpty()) {
+                return;
+            }
+            if (adminMode) {
+                inputUsername.setError(err);
+            } else {
+                Toast.makeText(this, err, Toast.LENGTH_SHORT).show();
             }
         });
+
+        setAdminMode(false);
     }
 
-    private void showRegisterDialog(String initialStudentId) {
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_register, null);
-        EditText inputStudentId = dialogView.findViewById(R.id.inputRegisterStudentId);
+    private void setAdminMode(boolean enabled) {
+        adminMode = enabled;
 
-        if (initialStudentId != null && !initialStudentId.isBlank() && !initialStudentId.contains("@")) {
-            inputStudentId.setText(initialStudentId);
-            inputStudentId.setSelection(initialStudentId.length());
+        int visibility = enabled ? View.VISIBLE : View.GONE;
+        if (labelUsername != null) {
+            labelUsername.setVisibility(visibility);
         }
+        inputUsername.setVisibility(visibility);
+        if (labelPassword != null) {
+            labelPassword.setVisibility(visibility);
+        }
+        passwordRow.setVisibility(visibility);
 
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle(R.string.register_dialog_title)
-                .setView(dialogView)
-                .setNegativeButton(R.string.action_cancel, (d, which) -> d.dismiss())
-                .setPositiveButton(R.string.action_register, null)
-                .create();
-
-        dialog.setOnShowListener(d -> {
-            Button positive = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-            positive.setOnClickListener(v -> {
-                inputStudentId.setError(null);
-                String studentId = inputStudentId.getText().toString().trim();
-                if (studentId.isEmpty()) {
-                    inputStudentId.setError(getString(R.string.error_student_id_required));
-                    return;
-                }
-                if (studentId.contains("@")) {
-                    inputStudentId.setError(getString(R.string.error_student_id_format));
-                    return;
-                }
-
-                registerFlowActive = true;
-                registerDialog = dialog;
-                registerStudentIdInput = inputStudentId;
-                viewModel.registerStudent(studentId);
-            });
-        });
-
-        dialog.setOnDismissListener(d -> {
-            registerDialog = null;
-            registerStudentIdInput = null;
-            registerFlowActive = false;
-        });
-
-        dialog.show();
+        if (enabled) {
+            tvLoginHint.setText(R.string.login_hint_admin_mode);
+            inputUsername.setHint(R.string.hint_admin_email);
+            btnSignIn.setText(R.string.btn_sign_in_admin);
+            btnCreateAccount.setText(R.string.btn_switch_to_qr_login);
+        } else {
+            tvLoginHint.setText(R.string.login_hint_qr_mode);
+            inputUsername.setText("");
+            inputPassword.setText("");
+            btnSignIn.setText(R.string.btn_scan_qr_login);
+            btnCreateAccount.setText(R.string.btn_switch_to_admin_login);
+        }
     }
 }

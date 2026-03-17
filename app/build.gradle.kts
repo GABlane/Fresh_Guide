@@ -86,6 +86,13 @@ dependencies {
     // Secure storage
     implementation(libs.security.crypto)
 
+    // QR scanner (CameraX + ML Kit)
+    implementation(libs.camera.core)
+    implementation(libs.camera.camera2)
+    implementation(libs.camera.lifecycle)
+    implementation(libs.camera.view)
+    implementation(libs.mlkit.barcode.scanning)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

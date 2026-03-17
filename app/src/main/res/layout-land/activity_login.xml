@@ -54,7 +54,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:text="Student ID login"
+                android:text="@string/login_hint_qr_mode"
                 android:textSize="13sp"
                 android:textColor="@color/text_hint" />
 
@@ -71,6 +71,7 @@
                 android:inputType="text" />
 
             <FrameLayout
+                android:id="@+id/passwordRow"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginBottom="16dp">
@@ -93,7 +94,7 @@
                     android:layout_gravity="end|center_vertical"
                     android:src="@drawable/ic_eye"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Toggle password" />
+                    android:contentDescription="@string/toggle_password_visibility" />
             </FrameLayout>
 
             <ProgressBar

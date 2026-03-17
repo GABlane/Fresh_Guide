@@ -5,6 +5,7 @@
     <string name="btn_sign_in">SIGN IN</string>
     <string name="btn_create_account">CREATE NEW ACCOUNT</string>
     <string name="hint_username">Enter username</string>
+    <string name="hint_admin_email">Enter admin email</string>
     <string name="hint_password">Enter password</string>
     <string name="register_dialog_title">Create Student Account</string>
     <string name="register_dialog_message">Enter your Student ID to create or access your account.</string>
@@ -50,4 +51,16 @@
     <string name="hint_origin_missing">No origin data yet</string>
     <string name="error_origin_missing">Origin data not available yet</string>
     <string name="error_destination_missing">Please select a destination</string>
+
+    <!-- QR Login -->
+    <string name="login_hint_qr_mode">Student access requires ID QR scan</string>
+    <string name="login_hint_admin_mode">Admin login</string>
+    <string name="btn_scan_qr_login">SCAN ID QR</string>
+    <string name="btn_sign_in_admin">SIGN IN AS ADMIN</string>
+    <string name="btn_switch_to_admin_login">ADMIN LOGIN</string>
+    <string name="btn_switch_to_qr_login">USE QR LOGIN</string>
+    <string name="toggle_password_visibility">Toggle password visibility</string>
+    <string name="qr_scanner_title">Scan Student ID QR</string>
+    <string name="qr_scanner_hint">Align your school ID QR inside the camera</string>
+    <string name="qr_scanner_status_success">ID found. Signing in...</string>
 </resources>

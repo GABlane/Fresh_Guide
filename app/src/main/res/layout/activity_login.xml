@@ -57,7 +57,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:text="Student ID login"
+                android:text="@string/login_hint_qr_mode"
                 android:textSize="13sp"
                 android:textColor="@color/text_hint" />
 
@@ -99,6 +99,7 @@
 
             <!-- Password row (input + eye toggle) -->
             <FrameLayout
+                android:id="@+id/passwordRow"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginBottom="24dp">
@@ -125,7 +126,7 @@
                     android:layout_marginEnd="4dp"
                     android:src="@drawable/ic_eye"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Toggle password visibility" />
+                    android:contentDescription="@string/toggle_password_visibility" />
 
             </FrameLayout>
 

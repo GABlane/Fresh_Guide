@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.CAMERA" />
     
     <!-- Image Access Permissions for Admin Room Image Upload -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" 
@@ -39,6 +40,11 @@
             android:name=".LoginActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize" />
+
+        <activity
+            android:name=".QrScannerActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
 
         <!-- Onboarding — shown once after first login -->
         <activity
