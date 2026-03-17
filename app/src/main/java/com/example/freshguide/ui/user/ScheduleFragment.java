@@ -8,6 +8,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.net.ConnectivityManager;
 import android.net.Network;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -54,6 +55,8 @@ import java.util.Locale;
 import java.util.Map;
 
 public class ScheduleFragment extends Fragment {
+
+    private static final String TAG = "ScheduleFragment";
 
     private static final String[] DAY_LABELS = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
     private static final int[] FORM_DAY_VIEW_IDS = {
@@ -552,85 +555,100 @@ public class ScheduleFragment extends Fragment {
                 .create();
 
         dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            String title = etSubjectName.getText().toString().trim();
-            if (title.isEmpty()) {
-                etSubjectName.setError("Subject name is required");
-                return;
-            }
-            if (startMinutesHolder[0] < 0 || endMinutesHolder[0] < 0) {
-                Toast.makeText(requireContext(), "Please select start and end time", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            if (endMinutesHolder[0] <= startMinutesHolder[0]) {
-                Toast.makeText(requireContext(), "End time must be later than start time", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            boolean online = spinnerClassType.getSelectedItemPosition() == 1;
-            Integer roomId = null;
-            String platform = null;
-            if (online) {
-                platform = String.valueOf(spinnerPlatform.getSelectedItem());
-            } else {
-                int roomPosition = spinnerRoom.getSelectedItemPosition();
-                if (roomPosition <= 0 || roomOptions.isEmpty()) {
-                    Toast.makeText(requireContext(), "Please choose a room location", Toast.LENGTH_SHORT).show();
+            try {
+                String title = etSubjectName.getText().toString().trim();
+                if (title.isEmpty()) {
+                    etSubjectName.setError("Subject name is required");
                     return;
                 }
-                roomId = roomOptions.get(roomPosition - 1).id;
-            }
-
-            long now = System.currentTimeMillis();
-            int reminderMinutes = positionToReminder(spinnerReminder.getSelectedItemPosition());
-            if (!sessionManager.isScheduleNotificationsEnabled()) {
-                reminderMinutes = 0;
-            }
-
-            ScheduleEntryEntity entry = new ScheduleEntryEntity(
-                    title,
-                    normalize(etSubjectCode.getText().toString()),
-                    normalize(etProfessor.getText().toString()),
-                    normalize(etNotes.getText().toString()),
-                    COLOR_HEXES[selectedColorIndex[0]],
-                    selectedDayHolder[0],
-                    startMinutesHolder[0],
-                    endMinutesHolder[0],
-                    online ? 1 : 0,
-                    roomId,
-                    platform,
-                    reminderMinutes,
-                    existing != null ? existing.createdAt : now,
-                    now
-            );
-            if (existing != null) {
-                entry.id = existing.id;
-                entry.remoteId = existing.remoteId;
-                entry.clientUuid = existing.clientUuid;
-                entry.ownerStudentId = existing.ownerStudentId;
-                entry.syncState = existing.syncState;
-                entry.pendingDelete = existing.pendingDelete;
-            }
-
-            maybeRequestNotificationPermission(entry.reminderMinutes);
-
-            viewModel.saveSchedule(entry, new ScheduleViewModel.OperationCallback() {
-                @Override
-                public void onSuccess(ScheduleEntryEntity savedEntry) {
-                    if (!isAdded()) return;
-                    requireActivity().runOnUiThread(() -> {
-                        dialog.dismiss();
-                        Toast.makeText(requireContext(), "Schedule saved", Toast.LENGTH_SHORT).show();
-                    });
+                if (startMinutesHolder[0] < 0 || endMinutesHolder[0] < 0) {
+                    Toast.makeText(requireContext(), "Please select start and end time", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (endMinutesHolder[0] <= startMinutesHolder[0]) {
+                    Toast.makeText(requireContext(), "End time must be later than start time", Toast.LENGTH_SHORT).show();
+                    return;
                 }
 
-                @Override
-                public void onError(String message) {
-                    if (!isAdded()) return;
-                    requireActivity().runOnUiThread(() ->
-                            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
-                    );
+                boolean online = spinnerClassType.getSelectedItemPosition() == 1;
+                Integer roomId = null;
+                String platform = null;
+                if (online) {
+                    platform = spinnerPlatform.getSelectedItem() != null
+                            ? String.valueOf(spinnerPlatform.getSelectedItem())
+                            : null;
+                } else {
+                    int roomPosition = spinnerRoom.getSelectedItemPosition();
+                    if (roomPosition <= 0 || roomOptions.isEmpty() || roomPosition - 1 >= roomOptions.size()) {
+                        Toast.makeText(requireContext(), "Please choose a room location", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    roomId = roomOptions.get(roomPosition - 1).id;
                 }
-            });
+
+                long now = System.currentTimeMillis();
+                int reminderMinutes = positionToReminder(spinnerReminder.getSelectedItemPosition());
+                if (!sessionManager.isScheduleNotificationsEnabled()) {
+                    reminderMinutes = 0;
+                }
+
+                int colorIndex = selectedColorIndex[0];
+                if (colorIndex < 0 || colorIndex >= COLOR_HEXES.length) {
+                    colorIndex = 0;
+                }
+
+                ScheduleEntryEntity entry = new ScheduleEntryEntity(
+                        title,
+                        normalize(etSubjectCode.getText().toString()),
+                        normalize(etProfessor.getText().toString()),
+                        normalize(etNotes.getText().toString()),
+                        COLOR_HEXES[colorIndex],
+                        selectedDayHolder[0],
+                        startMinutesHolder[0],
+                        endMinutesHolder[0],
+                        online ? 1 : 0,
+                        roomId,
+                        platform,
+                        reminderMinutes,
+                        existing != null ? existing.createdAt : now,
+                        now
+                );
+                if (existing != null) {
+                    entry.id = existing.id;
+                    entry.remoteId = existing.remoteId;
+                    entry.clientUuid = existing.clientUuid;
+                    entry.ownerStudentId = existing.ownerStudentId;
+                    entry.syncState = existing.syncState;
+                    entry.pendingDelete = existing.pendingDelete;
+                }
+
+                maybeRequestNotificationPermission(entry.reminderMinutes);
+
+                viewModel.saveSchedule(entry, new ScheduleViewModel.OperationCallback() {
+                    @Override
+                    public void onSuccess(ScheduleEntryEntity savedEntry) {
+                        if (!isAdded() || getActivity() == null) return;
+                        getActivity().runOnUiThread(() -> {
+                            dialog.dismiss();
+                            Toast.makeText(requireContext(), "Schedule saved", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        Log.e(TAG, "saveSchedule failed: " + message);
+                        if (!isAdded() || getActivity() == null) return;
+                        getActivity().runOnUiThread(() ->
+                                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
+                        );
+                    }
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "Create/Save schedule flow crashed", e);
+                if (isAdded()) {
+                    Toast.makeText(requireContext(), "Unable to save schedule right now", Toast.LENGTH_SHORT).show();
+                }
+            }
         }));
 
         dialog.show();
