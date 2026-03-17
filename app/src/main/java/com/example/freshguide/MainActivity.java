@@ -3,15 +3,19 @@
         import android.content.Intent;
         import android.content.IntentFilter;
         import android.os.Bundle;
-        import android.view.Menu;
-        import android.view.MenuItem;
-        import android.view.View;
-        import android.widget.TextView;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 
-        import androidx.appcompat.app.AppCompatActivity;
-        import androidx.navigation.NavController;
-        import androidx.navigation.NavDestination;
-        import androidx.navigation.NavOptions;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.navigation.NavController;
+import androidx.navigation.NavDestination;
+import androidx.navigation.NavOptions;
         import androidx.navigation.fragment.NavHostFragment;
         import androidx.annotation.IdRes;
 
@@ -31,9 +35,11 @@
             @Override
             protected void onCreate(Bundle savedInstanceState) {
                 super.onCreate(savedInstanceState);
+                WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
                 setContentView(R.layout.activity_main);
 
                 rootView = findViewById(R.id.main);
+                View navHostView = findViewById(R.id.nav_host_fragment);
 
                 NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                         .findFragmentById(R.id.nav_host_fragment);
@@ -68,6 +74,8 @@
                         }
                     }
                 }
+
+                applySystemBarInsets(rootView, navHostView, navContainer);
 
                 if (headerBack != null) {
                     headerBack.setOnClickListener(v -> handleBackTap());
@@ -142,6 +150,64 @@
                 if (navSettings != null) {
                     navSettings.setOnClickListener(v -> navigateTo(R.id.settingsFragment));
                 }
+            }
+
+            private void applySystemBarInsets(View root, View navHostView, View navContainer) {
+                if (root == null) {
+                    return;
+                }
+
+                final int extraTopMargin = 0;
+
+                final int rootPaddingLeft = root.getPaddingLeft();
+                final int rootPaddingTop = root.getPaddingTop();
+                final int rootPaddingRight = root.getPaddingRight();
+                final int rootPaddingBottom = root.getPaddingBottom();
+
+                final int navHostPaddingLeft = navHostView != null ? navHostView.getPaddingLeft() : 0;
+                final int navHostPaddingTop = navHostView != null ? navHostView.getPaddingTop() : 0;
+                final int navHostPaddingRight = navHostView != null ? navHostView.getPaddingRight() : 0;
+                final int navHostPaddingBottom = navHostView != null ? navHostView.getPaddingBottom() : 0;
+
+                final int navContainerPaddingLeft = navContainer != null ? navContainer.getPaddingLeft() : 0;
+                final int navContainerPaddingTop = navContainer != null ? navContainer.getPaddingTop() : 0;
+                final int navContainerPaddingRight = navContainer != null ? navContainer.getPaddingRight() : 0;
+                final int navContainerPaddingBottom = navContainer != null ? navContainer.getPaddingBottom() : 0;
+
+                ViewCompat.setOnApplyWindowInsetsListener(root, (v, windowInsets) -> {
+                    Insets systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+                    v.setPadding(
+                            rootPaddingLeft,
+                            rootPaddingTop,
+                            rootPaddingRight,
+                            rootPaddingBottom
+                    );
+
+                    if (navHostView != null) {
+                        int hostTopInset = systemBars.top + extraTopMargin;
+                        int hostBottomInset = isAdmin ? systemBars.bottom : 0;
+                        navHostView.setPadding(
+                                navHostPaddingLeft,
+                                navHostPaddingTop + hostTopInset,
+                                navHostPaddingRight,
+                                navHostPaddingBottom + hostBottomInset
+                        );
+                    }
+
+                    if (navContainer != null) {
+                        navContainer.setPadding(
+                                navContainerPaddingLeft,
+                                navContainerPaddingTop,
+                                navContainerPaddingRight,
+                                navContainerPaddingBottom + systemBars.bottom
+                        );
+                    }
+
+                    return windowInsets;
+                });
+
+                ViewCompat.requestApplyInsets(root);
             }
 
             private void navigateTo(@IdRes int destinationId) {

@@ -17,6 +17,7 @@ import androidx.navigation.Navigation;
 import com.example.freshguide.LoginActivity;
 import com.example.freshguide.R;
 import com.example.freshguide.repository.AuthRepository;
+import com.example.freshguide.util.SessionManager;
 import com.example.freshguide.viewmodel.AdminViewModel;
 
 public class AdminDashboardFragment extends Fragment {
@@ -37,9 +38,20 @@ public class AdminDashboardFragment extends Fragment {
 
         TextView tvRooms = view.findViewById(R.id.tv_room_count);
         TextView tvBuildings = view.findViewById(R.id.tv_building_count);
+        TextView tvFloors = view.findViewById(R.id.tv_floor_count);
+        TextView tvRoutes = view.findViewById(R.id.tv_route_count);
+        TextView tvSyncVersion = view.findViewById(R.id.tv_admin_sync_version);
+
+        SessionManager sessionManager = SessionManager.getInstance(requireContext());
+        int syncVersion = sessionManager.getSyncVersion();
+        tvSyncVersion.setText(syncVersion >= 0
+                ? "Current data version: " + syncVersion
+                : "Current data version: Not synced");
 
         viewModel.getRoomCount().observe(getViewLifecycleOwner(), c -> tvRooms.setText(String.valueOf(c)));
         viewModel.getBuildingCount().observe(getViewLifecycleOwner(), c -> tvBuildings.setText(String.valueOf(c)));
+        viewModel.getFloorCount().observe(getViewLifecycleOwner(), c -> tvFloors.setText(String.valueOf(c)));
+        viewModel.getRouteCount().observe(getViewLifecycleOwner(), c -> tvRoutes.setText(String.valueOf(c)));
         viewModel.loadDashboardCounts();
 
         NavController nav = Navigation.findNavController(view);

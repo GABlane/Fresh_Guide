@@ -34,6 +34,8 @@ public class AdminViewModel extends AndroidViewModel {
 
     private final MutableLiveData<Integer> roomCount = new MutableLiveData<>(0);
     private final MutableLiveData<Integer> buildingCount = new MutableLiveData<>(0);
+    private final MutableLiveData<Integer> floorCount = new MutableLiveData<>(0);
+    private final MutableLiveData<Integer> routeCount = new MutableLiveData<>(0);
     private final MutableLiveData<List<BuildingDto>> buildings = new MutableLiveData<>();
     private final MutableLiveData<List<FloorDto>> floors = new MutableLiveData<>();
     private final MutableLiveData<List<FacilityDto>> facilities = new MutableLiveData<>();
@@ -58,6 +60,8 @@ public class AdminViewModel extends AndroidViewModel {
 
     public LiveData<Integer> getRoomCount() { return roomCount; }
     public LiveData<Integer> getBuildingCount() { return buildingCount; }
+    public LiveData<Integer> getFloorCount() { return floorCount; }
+    public LiveData<Integer> getRouteCount() { return routeCount; }
     public LiveData<List<BuildingDto>> getBuildings() { return buildings; }
     public LiveData<List<FloorDto>> getFloors() { return floors; }
     public LiveData<List<FacilityDto>> getFacilities() { return facilities; }
@@ -73,9 +77,13 @@ public class AdminViewModel extends AndroidViewModel {
         executor.execute(() -> {
             int rooms = db.roomDao().count();
             int bldgs = db.buildingDao().count();
+            int floorsLocal = db.floorDao().count();
+            int routesLocal = db.routeDao().count();
             mainHandler.post(() -> {
                 roomCount.setValue(rooms);
                 buildingCount.setValue(bldgs);
+                floorCount.setValue(floorsLocal);
+                routeCount.setValue(routesLocal);
             });
         });
     }

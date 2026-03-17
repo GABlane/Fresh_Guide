@@ -23,6 +23,9 @@ public interface FloorDao {
     @Query("SELECT * FROM floors WHERE id = :id")
     FloorEntity getByIdSync(int id);
 
+    @Query("SELECT COUNT(*) FROM floors")
+    int count();
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insert(FloorEntity floor);
 

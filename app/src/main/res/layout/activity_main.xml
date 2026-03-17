@@ -8,8 +8,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@android:color/white"
-    android:paddingLeft="30dp"
-    android:paddingRight="30dp"
     android:clipToPadding="false"
     android:clipChildren="false"
     tools:context=".MainActivity">
@@ -30,7 +28,8 @@
         android:id="@+id/nav_bar_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="18dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
         android:clipToPadding="false"

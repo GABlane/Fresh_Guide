@@ -24,6 +24,9 @@ public interface RouteDao {
     @Query("SELECT * FROM routes ORDER BY id ASC")
     List<RouteEntity> getAllRoutesSync();
 
+    @Query("SELECT COUNT(*) FROM routes")
+    int count();
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertRoute(RouteEntity route);
 

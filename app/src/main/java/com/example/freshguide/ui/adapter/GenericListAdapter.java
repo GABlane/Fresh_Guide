@@ -37,6 +37,7 @@ public class GenericListAdapter extends RecyclerView.Adapter<GenericListAdapter.
 
     private List<Item> items = new ArrayList<>();
     private OnActionListener listener;
+    private boolean actionsEnabled = true;
 
     public void setItems(List<Item> items) {
         this.items = items != null ? items : new ArrayList<>();
@@ -45,6 +46,11 @@ public class GenericListAdapter extends RecyclerView.Adapter<GenericListAdapter.
 
     public void setOnActionListener(OnActionListener l) {
         listener = l;
+    }
+
+    public void setActionsEnabled(boolean enabled) {
+        actionsEnabled = enabled;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -59,12 +65,22 @@ public class GenericListAdapter extends RecyclerView.Adapter<GenericListAdapter.
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Item item = items.get(position);
         holder.bind(item);
-        holder.btnEdit.setOnClickListener(v -> {
-            if (listener != null) listener.onEdit(position, item.id);
-        });
-        holder.btnDelete.setOnClickListener(v -> {
-            if (listener != null) listener.onDelete(position, item.id);
-        });
+
+        int actionVisibility = actionsEnabled ? View.VISIBLE : View.GONE;
+        holder.btnEdit.setVisibility(actionVisibility);
+        holder.btnDelete.setVisibility(actionVisibility);
+
+        if (actionsEnabled) {
+            holder.btnEdit.setOnClickListener(v -> {
+                if (listener != null) listener.onEdit(position, item.id);
+            });
+            holder.btnDelete.setOnClickListener(v -> {
+                if (listener != null) listener.onDelete(position, item.id);
+            });
+        } else {
+            holder.btnEdit.setOnClickListener(null);
+            holder.btnDelete.setOnClickListener(null);
+        }
     }
 
     @Override

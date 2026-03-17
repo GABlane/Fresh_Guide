@@ -7,10 +7,8 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -42,34 +40,15 @@ public class AdminBuildingListFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(AdminViewModel.class);
 
         adapter = new GenericListAdapter();
+        adapter.setActionsEnabled(false);
         RecyclerView recycler = view.findViewById(R.id.recycler_items);
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         recycler.setAdapter(adapter);
 
-        adapter.setOnActionListener(new GenericListAdapter.OnActionListener() {
-            @Override
-            public void onEdit(int position, int id) {
-                Bundle args = new Bundle();
-                args.putInt("buildingId", id);
-                Navigation.findNavController(view)
-                        .navigate(R.id.action_adminBuildingList_to_adminBuildingForm, args);
-            }
-
-            @Override
-            public void onDelete(int position, int id) {
-                new AlertDialog.Builder(requireContext())
-                        .setTitle("Delete Building")
-                        .setMessage("Are you sure?")
-                        .setPositiveButton("Delete", (d, w) -> viewModel.deleteBuilding(id))
-                        .setNegativeButton("Cancel", null)
-                        .show();
-            }
-        });
-
         FloatingActionButton fab = view.findViewById(R.id.fab_add);
-        fab.setOnClickListener(v ->
-                Navigation.findNavController(view)
-                        .navigate(R.id.action_adminBuildingList_to_adminBuildingForm));
+        fab.setVisibility(View.GONE);
+
+        Snackbar.make(view, "Building records are view-only to protect home visuals.", Snackbar.LENGTH_LONG).show();
 
         viewModel.getBuildings().observe(getViewLifecycleOwner(), buildings -> {
             if (buildings == null) return;
