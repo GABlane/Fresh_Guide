@@ -27,17 +27,17 @@ public class RouteEntity {
     @ColumnInfo(name = "destination_room_id")
     public int destinationRoomId;
 
-    @ColumnInfo(name = "name")
-    public String name;
-
     @ColumnInfo(name = "description")
     public String description;
 
-    public RouteEntity(int id, int originId, int destinationRoomId, String name, String description) {
+    @ColumnInfo(name = "instruction")
+    public String instruction;
+
+    public RouteEntity(int id, int originId, int destinationRoomId, String description, String instruction) {
         this.id = id;
         this.originId = originId;
         this.destinationRoomId = destinationRoomId;
-        this.name = name;
         this.description = description;
+        this.instruction = instruction;
     }
 }

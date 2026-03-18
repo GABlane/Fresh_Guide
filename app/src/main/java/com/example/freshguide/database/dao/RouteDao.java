@@ -24,6 +24,9 @@ public interface RouteDao {
     @Query("SELECT * FROM routes ORDER BY id ASC")
     List<RouteEntity> getAllRoutesSync();
 
+    @Query("SELECT * FROM routes WHERE destination_room_id = :roomId ORDER BY id ASC")
+    List<RouteEntity> getRoutesForRoomSync(int roomId);
+
     @Query("SELECT COUNT(*) FROM routes")
     int count();
 

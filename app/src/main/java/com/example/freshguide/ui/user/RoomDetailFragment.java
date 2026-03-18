@@ -139,25 +139,21 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
             Snackbar.make(view, err, Snackbar.LENGTH_LONG).show();
         });
 
-        // Checklist 5.3: navigate to origin picker, receive result back
+        // Open the directions modal first (same flow as compass FAB).
         btnDirections.setOnClickListener(v -> {
-            Bundle args = new Bundle();
-            args.putInt("roomId", roomId);
-            nav.navigate(R.id.action_roomDetail_to_originPicker, args);
-        });
+            if (roomId <= 0) {
+                Toast.makeText(requireContext(), "Invalid room", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-        // Listen for origin selection result (set by OriginPickerFragment)
-        getParentFragmentManager().setFragmentResultListener(
-                OriginPickerFragment.RESULT_KEY, getViewLifecycleOwner(),
-                (requestKey, result) -> {
-                    int originId = result.getInt(OriginPickerFragment.KEY_ORIGIN_ID, -1);
-                    if (originId != -1) {
-                        Bundle dirArgs = new Bundle();
-                        dirArgs.putInt("roomId", roomId);
-                        dirArgs.putInt("originId", originId);
-                        nav.navigate(R.id.action_roomDetail_to_directions, dirArgs);
-                    }
-                });
+            DirectionsSheetFragment sheet = new DirectionsSheetFragment();
+            Bundle sheetArgs = new Bundle();
+            sheetArgs.putInt(DirectionsSheetFragment.ARG_PRESELECTED_ROOM_ID, roomId);
+            sheetArgs.putString(DirectionsSheetFragment.ARG_PRESELECTED_ROOM_NAME, tvName.getText().toString());
+            sheet.setArguments(sheetArgs);
+            sheet.show(getParentFragmentManager(), "directions_sheet");
+            dismissAllowingStateLoss();
+        });
 
         if (roomId != -1) {
             viewModel.loadRoom(roomId);

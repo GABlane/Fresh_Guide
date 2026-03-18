@@ -15,9 +15,18 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.freshguide.R;
+import com.example.freshguide.database.AppDatabase;
+import com.example.freshguide.model.entity.OriginEntity;
+import com.example.freshguide.model.entity.RouteEntity;
 import com.example.freshguide.ui.adapter.RouteStepAdapter;
 import com.example.freshguide.viewmodel.DirectionsViewModel;
 import com.google.android.material.snackbar.Snackbar;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+import java.util.concurrent.Executors;
 
 public class DirectionsFragment extends Fragment {
 
@@ -54,8 +63,15 @@ public class DirectionsFragment extends Fragment {
 
         viewModel.getRoute().observe(getViewLifecycleOwner(), route -> {
             if (route == null) return;
-            tvRouteName.setText(route.name != null ? route.name : "Directions");
             adapter.setSteps(route.steps);
+        });
+
+        viewModel.getRouteTitle().observe(getViewLifecycleOwner(), title -> {
+            if (title != null && !title.trim().isEmpty()) {
+                tvRouteName.setText(title);
+            } else {
+                tvRouteName.setText("Directions");
+            }
         });
 
         viewModel.getError().observe(getViewLifecycleOwner(), err -> {
@@ -64,6 +80,108 @@ public class DirectionsFragment extends Fragment {
 
         if (roomId != -1 && originId != -1) {
             viewModel.loadRoute(roomId, originId);
+        } else if (roomId != -1) {
+            resolvePreferredOriginAndLoad(roomId, view);
         }
+    }
+
+    private void resolvePreferredOriginAndLoad(int roomId, @NonNull View view) {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            AppDatabase db = AppDatabase.getInstance(requireContext().getApplicationContext());
+            List<OriginEntity> origins = db.originDao().getAllSync();
+            List<RouteEntity> routesForRoom = db.routeDao().getRoutesForRoomSync(roomId);
+
+            OriginEntity chosen = null;
+            if (routesForRoom != null && !routesForRoom.isEmpty() && origins != null && !origins.isEmpty()) {
+                Set<Integer> routeOriginIds = new HashSet<>();
+                for (RouteEntity route : routesForRoom) {
+                    if (route != null) {
+                        routeOriginIds.add(route.originId);
+                    }
+                }
+
+                for (OriginEntity origin : origins) {
+                    if (origin == null || !routeOriginIds.contains(origin.id)) {
+                        continue;
+                    }
+                    String name = origin.name != null ? origin.name.toLowerCase(Locale.US) : "";
+                    String code = origin.code != null ? origin.code.toUpperCase(Locale.US) : "";
+                    if (name.contains("gate") || "GATE".equals(code)) {
+                        chosen = origin;
+                        break;
+                    }
+                }
+
+                if (chosen == null) {
+                    for (OriginEntity origin : origins) {
+                        if (origin == null || !routeOriginIds.contains(origin.id)) {
+                            continue;
+                        }
+                        String name = origin.name != null ? origin.name.toLowerCase(Locale.US) : "";
+                        String code = origin.code != null ? origin.code.toUpperCase(Locale.US) : "";
+                        if (name.contains("entrance") || "ENT".equals(code)) {
+                            chosen = origin;
+                            break;
+                        }
+                    }
+                }
+
+                if (chosen == null) {
+                    for (OriginEntity origin : origins) {
+                        if (origin != null && routeOriginIds.contains(origin.id)) {
+                            chosen = origin;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (chosen == null && origins != null && !origins.isEmpty()) {
+                for (OriginEntity origin : origins) {
+                    if (origin == null) {
+                        continue;
+                    }
+                    String name = origin.name != null ? origin.name.toLowerCase(Locale.US) : "";
+                    String code = origin.code != null ? origin.code.toUpperCase(Locale.US) : "";
+                    if (name.contains("gate") || "GATE".equals(code)) {
+                        chosen = origin;
+                        break;
+                    }
+                }
+            }
+
+            if (chosen == null && origins != null && !origins.isEmpty()) {
+                for (OriginEntity origin : origins) {
+                    if (origin == null) {
+                        continue;
+                    }
+                    String name = origin.name != null ? origin.name.toLowerCase(Locale.US) : "";
+                    String code = origin.code != null ? origin.code.toUpperCase(Locale.US) : "";
+                    if (name.contains("entrance") || "ENT".equals(code)) {
+                        chosen = origin;
+                        break;
+                    }
+                }
+            }
+
+            if (chosen == null && origins != null && !origins.isEmpty()) {
+                chosen = origins.get(0);
+            }
+
+            OriginEntity finalChosen = chosen;
+            if (!isAdded()) {
+                return;
+            }
+            requireActivity().runOnUiThread(() -> {
+                if (!isAdded()) {
+                    return;
+                }
+                if (finalChosen == null) {
+                    Snackbar.make(view, "No starting point available", Snackbar.LENGTH_LONG).show();
+                    return;
+                }
+                viewModel.loadRoute(roomId, finalChosen.id);
+            });
+        });
     }
 }

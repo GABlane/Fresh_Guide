@@ -155,6 +155,9 @@ public interface ApiService {
     @GET("admin/routes")
     Call<ApiResponse<List<RouteDto>>> adminGetRoutes();
 
+    @GET("admin/routes/{id}")
+    Call<ApiResponse<RouteDto>> adminGetRoute(@Path("id") int id);
+
     @POST("admin/routes")
     Call<ApiResponse<RouteDto>> adminCreateRoute(@Body Map<String, Object> body);
 

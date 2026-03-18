@@ -13,6 +13,7 @@ import com.example.freshguide.repository.RoomRepository;
 public class DirectionsViewModel extends AndroidViewModel {
 
     private final MutableLiveData<RouteDto> route = new MutableLiveData<>();
+    private final MutableLiveData<String> routeTitle = new MutableLiveData<>();
     private final MutableLiveData<Boolean> loading = new MutableLiveData<>(false);
     private final MutableLiveData<String> error = new MutableLiveData<>();
 
@@ -24,11 +25,13 @@ public class DirectionsViewModel extends AndroidViewModel {
     }
 
     public LiveData<RouteDto> getRoute() { return route; }
+    public LiveData<String> getRouteTitle() { return routeTitle; }
     public LiveData<Boolean> getLoading() { return loading; }
     public LiveData<String> getError() { return error; }
 
     public void loadRoute(int roomId, int originId) {
         loading.setValue(true);
+        repository.getRouteTitle(roomId, originId, routeTitle::setValue);
         repository.getRoute(roomId, originId, new RoomRepository.RouteCallback() {
             @Override
             public void onLoaded(RouteDto r) {

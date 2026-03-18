@@ -199,7 +199,7 @@ public class SyncRepository {
             List<RouteEntity> routeEntities = new ArrayList<>();
             List<RouteStepEntity> stepEntities = new ArrayList<>();
             for (RouteDto dto : data.routes) {
-                routeEntities.add(new RouteEntity(dto.id, dto.originId, dto.destinationRoomId, dto.name, dto.description));
+                routeEntities.add(new RouteEntity(dto.id, dto.originId, dto.destinationRoomId, dto.description, dto.instruction));
                 if (dto.steps != null) {
                     for (RouteStepDto s : dto.steps) {
                         stepEntities.add(new RouteStepEntity(s.id, s.routeId, s.orderNum, s.instruction, s.direction, s.landmark));

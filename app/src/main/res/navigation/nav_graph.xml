@@ -261,7 +261,7 @@
         android:id="@+id/adminRouteFormFragment"
         android:name="com.example.freshguide.ui.admin.AdminRouteFormFragment"
         android:label="Route Form"
-        tools:layout="@layout/fragment_admin_form">
+        tools:layout="@layout/fragment_admin_route_form">
         <argument
             android:name="routeId"
             app:argType="integer"

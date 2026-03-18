@@ -16,9 +16,12 @@ import com.example.freshguide.model.dto.FacilityDto;
 import com.example.freshguide.model.dto.FloorDto;
 import com.example.freshguide.model.dto.OriginDto;
 import com.example.freshguide.model.dto.RouteDto;
+import com.example.freshguide.model.entity.OriginEntity;
+import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.network.ApiClient;
 import com.example.freshguide.network.ApiService;
 import com.example.freshguide.repository.BuildingRepository;
+import com.example.freshguide.repository.RouteRepository;
 
 import java.util.HashMap;
 import java.util.List;
@@ -41,12 +44,16 @@ public class AdminViewModel extends AndroidViewModel {
     private final MutableLiveData<List<FacilityDto>> facilities = new MutableLiveData<>();
     private final MutableLiveData<List<OriginDto>> origins = new MutableLiveData<>();
     private final MutableLiveData<List<RouteDto>> routes = new MutableLiveData<>();
+    private final MutableLiveData<RouteDto> currentRoute = new MutableLiveData<>();
+    private final MutableLiveData<List<OriginEntity>> routeFormOrigins = new MutableLiveData<>();
+    private final MutableLiveData<List<RoomEntity>> routeFormRooms = new MutableLiveData<>();
     private final MutableLiveData<Boolean> loading = new MutableLiveData<>(false);
     private final MutableLiveData<String> error = new MutableLiveData<>();
     private final MutableLiveData<String> successMessage = new MutableLiveData<>();
 
     private final AppDatabase db;
     private final BuildingRepository buildingRepository;
+    private final RouteRepository routeRepository;
     private final ApiService apiService;
     private final Executor executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -55,6 +62,7 @@ public class AdminViewModel extends AndroidViewModel {
         super(application);
         db = AppDatabase.getInstance(application);
         buildingRepository = new BuildingRepository(application);
+        routeRepository = new RouteRepository(application);
         apiService = ApiClient.getInstance(application).getApiService();
     }
 
@@ -67,6 +75,9 @@ public class AdminViewModel extends AndroidViewModel {
     public LiveData<List<FacilityDto>> getFacilities() { return facilities; }
     public LiveData<List<OriginDto>> getOrigins() { return origins; }
     public LiveData<List<RouteDto>> getRoutes() { return routes; }
+    public LiveData<RouteDto> getCurrentRoute() { return currentRoute; }
+    public LiveData<List<OriginEntity>> getRouteFormOrigins() { return routeFormOrigins; }
+    public LiveData<List<RoomEntity>> getRouteFormRooms() { return routeFormRooms; }
     public LiveData<Boolean> getLoading() { return loading; }
     public LiveData<String> getError() { return error; }
     public LiveData<String> getSuccessMessage() { return successMessage; }
@@ -347,44 +358,113 @@ public class AdminViewModel extends AndroidViewModel {
 
     public void loadRoutes() {
         loading.setValue(true);
-        apiService.adminGetRoutes().enqueue(new Callback<ApiResponse<List<RouteDto>>>() {
+        routeRepository.getRoutes(new RouteRepository.RoutesCallback() {
             @Override
-            public void onResponse(Call<ApiResponse<List<RouteDto>>> call,
-                                   Response<ApiResponse<List<RouteDto>>> response) {
+            public void onSuccess(List<RouteDto> routeList) {
                 loading.setValue(false);
-                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    routes.setValue(response.body().getData());
-                } else {
-                    error.setValue("Failed to load routes");
-                }
+                routes.setValue(routeList);
             }
 
             @Override
-            public void onFailure(Call<ApiResponse<List<RouteDto>>> call, Throwable t) {
+            public void onError(String message) {
                 loading.setValue(false);
-                error.setValue("Network error: " + t.getMessage());
+                error.setValue(message);
+            }
+        });
+    }
+
+    public void loadSingleRoute(int id) {
+        loading.setValue(true);
+        routeRepository.getRoute(id, new RouteRepository.RouteCallback() {
+            @Override
+            public void onSuccess(RouteDto route) {
+                loading.setValue(false);
+                currentRoute.setValue(route);
+            }
+
+            @Override
+            public void onError(String message) {
+                loading.setValue(false);
+                error.setValue(message);
+            }
+        });
+    }
+
+    public void createRoute(RouteDto route) {
+        loading.setValue(true);
+        routeRepository.createRoute(route, new RouteRepository.RouteCallback() {
+            @Override
+            public void onSuccess(RouteDto savedRoute) {
+                loading.setValue(false);
+                successMessage.setValue("Route created");
+                loadRoutes();
+            }
+
+            @Override
+            public void onError(String message) {
+                loading.setValue(false);
+                error.setValue(message);
+            }
+        });
+    }
+
+    public void updateRoute(int id, RouteDto route) {
+        loading.setValue(true);
+        routeRepository.updateRoute(id, route, new RouteRepository.RouteCallback() {
+            @Override
+            public void onSuccess(RouteDto savedRoute) {
+                loading.setValue(false);
+                successMessage.setValue("Route updated");
+                loadRoutes();
+            }
+
+            @Override
+            public void onError(String message) {
+                loading.setValue(false);
+                error.setValue(message);
             }
         });
     }
 
     public void deleteRoute(int id) {
-        apiService.adminDeleteRoute(id).enqueue(new Callback<ApiResponse<Void>>() {
+        loading.setValue(true);
+        routeRepository.deleteRoute(id, new RouteRepository.DeleteCallback() {
             @Override
-            public void onResponse(Call<ApiResponse<Void>> call,
-                                   Response<ApiResponse<Void>> response) {
-                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    successMessage.setValue("Route deleted");
-                    loadRoutes();
-                } else {
-                    error.setValue("Delete failed");
-                }
+            public void onSuccess() {
+                loading.setValue(false);
+                successMessage.setValue("Route deleted");
+                loadRoutes();
             }
 
             @Override
-            public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
-                error.setValue("Network error: " + t.getMessage());
+            public void onError(String message) {
+                loading.setValue(false);
+                error.setValue(message);
             }
         });
+    }
+
+    public void loadRouteFormOptions() {
+        routeRepository.loadFormOptions(new RouteRepository.FormOptionsCallback() {
+            @Override
+            public void onSuccess(List<OriginEntity> originList, List<RoomEntity> roomList) {
+                routeFormOrigins.setValue(originList);
+                routeFormRooms.setValue(roomList);
+            }
+
+            @Override
+            public void onError(String message) {
+                error.setValue(message);
+            }
+        });
+    }
+
+    public void validateOriginLocal(int originId, RouteRepository.ValidationCallback callback) {
+        routeRepository.validateOrigin(originId, callback);
+    }
+
+    public void validateRoomLocal(int roomId, RouteRepository.ValidationCallback callback) {
+        routeRepository.validateRoom(roomId, callback);
     }
 
     // ── Publish ───────────────────────────────────────────────────────────────

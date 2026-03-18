@@ -40,7 +40,7 @@ import com.example.freshguide.model.entity.SyncMetaEntity;
         ScheduleEntryEntity.class,
         SyncMetaEntity.class
     },
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -136,6 +136,29 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    private static final Migration MIGRATION_6_7 = new Migration(6, 7) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("PRAGMA foreign_keys=OFF");
+            database.execSQL("CREATE TABLE IF NOT EXISTS routes_new ("
+                    + "id INTEGER NOT NULL, "
+                    + "origin_id INTEGER NOT NULL, "
+                    + "destination_room_id INTEGER NOT NULL, "
+                    + "description TEXT, "
+                    + "instruction TEXT, "
+                    + "PRIMARY KEY(id), "
+                    + "FOREIGN KEY(origin_id) REFERENCES origins(id) ON DELETE CASCADE, "
+                    + "FOREIGN KEY(destination_room_id) REFERENCES rooms(id) ON DELETE CASCADE)");
+            database.execSQL("INSERT INTO routes_new (id, origin_id, destination_room_id, description, instruction) "
+                    + "SELECT id, origin_id, destination_room_id, description, NULL FROM routes");
+            database.execSQL("DROP TABLE routes");
+            database.execSQL("ALTER TABLE routes_new RENAME TO routes");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_routes_origin_id ON routes(origin_id)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_routes_destination_room_id ON routes(destination_room_id)");
+            database.execSQL("PRAGMA foreign_keys=ON");
+        }
+    };
+
     public abstract BuildingDao buildingDao();
     public abstract FloorDao floorDao();
     public abstract RoomDao roomDao();
@@ -151,7 +174,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     context.getApplicationContext(),
                     AppDatabase.class,
                     DB_NAME
-            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
              .build();
         }
         return instance;

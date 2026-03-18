@@ -75,8 +75,20 @@ public class AdminRouteListFragment extends Fragment {
             if (routeList == null) return;
             List<GenericListAdapter.Item> items = new ArrayList<>();
             for (RouteDto r : routeList) {
-                items.add(new GenericListAdapter.Item(r.id, r.name,
-                        "Origin " + r.originId + " → Room " + r.destinationRoomId));
+                String originName = (r.origin != null && r.origin.name != null && !r.origin.name.trim().isEmpty())
+                        ? r.origin.name.trim()
+                        : "Origin " + r.originId;
+                String roomName = (r.destinationRoom != null && r.destinationRoom.name != null
+                        && !r.destinationRoom.name.trim().isEmpty())
+                        ? r.destinationRoom.name.trim()
+                        : "Room " + r.destinationRoomId;
+                String displayName = originName + " → " + roomName;
+                String subtitle = (r.description != null && !r.description.trim().isEmpty())
+                        ? r.description.trim()
+                        : (r.instruction != null && !r.instruction.trim().isEmpty()
+                            ? r.instruction.trim()
+                            : "No description");
+                items.add(new GenericListAdapter.Item(r.id, displayName, subtitle));
             }
             adapter.setItems(items);
         });

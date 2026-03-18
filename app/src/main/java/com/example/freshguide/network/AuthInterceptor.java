@@ -21,15 +21,13 @@ public class AuthInterceptor implements Interceptor {
         Request original = chain.request();
         String token = sessionManager.getToken();
 
-        if (token == null) {
-            return chain.proceed(original);
+        Request.Builder builder = original.newBuilder()
+                .header("Accept", "application/json");
+
+        if (token != null && !token.trim().isEmpty()) {
+            builder.header("Authorization", "Bearer " + token.trim());
         }
 
-        Request authenticated = original.newBuilder()
-                .header("Authorization", "Bearer " + token)
-                .header("Accept", "application/json")
-                .build();
-
-        return chain.proceed(authenticated);
+        return chain.proceed(builder.build());
     }
 }
