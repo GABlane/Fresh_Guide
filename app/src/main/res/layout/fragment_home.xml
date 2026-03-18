@@ -236,6 +236,22 @@
                 app:layout_constraintTop_toBottomOf="@id/txt_registrar" />
 
             <ImageView
+                android:id="@+id/img_pin_registrar"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:background="@drawable/bg_pin_circle"
+                android:clipToOutline="true"
+                android:contentDescription="@null"
+                android:elevation="1dp"
+                android:padding="2dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/pin_placeholder"
+                app:layout_constraintBottom_toBottomOf="@id/img_registrar"
+                app:layout_constraintEnd_toEndOf="@id/img_registrar"
+                app:layout_constraintStart_toStartOf="@id/img_registrar2"
+                app:layout_constraintTop_toTopOf="@id/img_registrar" />
+
+            <ImageView
                 android:id="@+id/img_main_building"
                 android:layout_width="156dp"
                 android:layout_height="251dp"
@@ -244,6 +260,22 @@
                 android:src="@drawable/main_building"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/img_registrar" />
+
+            <ImageView
+                android:id="@+id/img_pin_main"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/bg_pin_circle"
+                android:clipToOutline="true"
+                android:contentDescription="@null"
+                android:elevation="1dp"
+                android:layout_marginTop="18dp"
+                android:padding="3dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/pin_placeholder"
+                app:layout_constraintEnd_toEndOf="@id/img_main_building"
+                app:layout_constraintStart_toStartOf="@id/img_main_building"
+                app:layout_constraintTop_toTopOf="@id/img_main_building" />
 
             <ImageView
                 android:id="@+id/img_court"
@@ -287,6 +319,22 @@
                 android:src="@drawable/library"
                 app:layout_constraintEnd_toEndOf="@id/img_court"
                 app:layout_constraintTop_toBottomOf="@id/txt_court" />
+
+            <ImageView
+                android:id="@+id/img_pin_library"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_pin_circle"
+                android:clipToOutline="true"
+                android:contentDescription="@null"
+                android:elevation="1dp"
+                android:padding="2dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/pin_placeholder"
+                app:layout_constraintEnd_toEndOf="@id/img_library"
+                app:layout_constraintStart_toStartOf="@id/img_library"
+                app:layout_constraintTop_toTopOf="@id/img_library" />
 
             <ImageView
                 android:id="@+id/img_car_3"

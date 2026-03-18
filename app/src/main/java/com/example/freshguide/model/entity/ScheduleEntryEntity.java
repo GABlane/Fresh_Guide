@@ -16,7 +16,10 @@ import androidx.room.PrimaryKey;
         ),
         indices = {
                 @Index("day_of_week"),
-                @Index("room_id")
+                @Index("room_id"),
+                @Index("client_uuid"),
+                @Index("remote_id"),
+                @Index("owner_student_id")
         }
 )
 public class ScheduleEntryEntity {
@@ -78,10 +81,10 @@ public class ScheduleEntryEntity {
     @ColumnInfo(name = "owner_student_id")
     public String ownerStudentId;
 
-    @ColumnInfo(name = "sync_state")
+    @ColumnInfo(name = "sync_state", defaultValue = "0")
     public int syncState;
 
-    @ColumnInfo(name = "pending_delete")
+    @ColumnInfo(name = "pending_delete", defaultValue = "0")
     public int pendingDelete;
 
     public ScheduleEntryEntity(String title,

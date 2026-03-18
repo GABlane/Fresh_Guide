@@ -12,6 +12,7 @@ import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -94,6 +95,7 @@ public class HomeFragment extends Fragment {
 
         NavController nav = Navigation.findNavController(view);
 
+        applyBuildingPinOverlays(view);
         setupSearch(view, nav);
         setupFloorChips(view);
         setupOverallMapClicks(view, nav);
@@ -226,19 +228,49 @@ public class HomeFragment extends Fragment {
 
     private void setupOverallMapClicks(View view, NavController nav) {
         setClick(view, R.id.img_main_building, () -> openMainBuildingFloor());
+        setClick(view, R.id.img_pin_main, () -> openMainBuildingFloor());
         setClick(view, R.id.txt_main_building, () -> openMainBuildingFloor());
 
         setClick(view, R.id.img_library, () -> navigateToBuildingRoomList(nav, CODE_LIB, "LIBRARY"));
+        setClick(view, R.id.img_pin_library, () -> navigateToBuildingRoomList(nav, CODE_LIB, "LIBRARY"));
         setClick(view, R.id.txt_library, () -> navigateToBuildingRoomList(nav, CODE_LIB, "LIBRARY"));
 
         setClick(view, R.id.img_registrar, () -> navigateToBuildingRoomList(nav, CODE_REG, "REGISTRAR"));
         setClick(view, R.id.img_registrar2, () -> navigateToBuildingRoomList(nav, CODE_REG, "REGISTRAR"));
+        setClick(view, R.id.img_pin_registrar, () -> navigateToBuildingRoomList(nav, CODE_REG, "REGISTRAR"));
         setClick(view, R.id.txt_registrar, () -> navigateToBuildingRoomList(nav, CODE_REG, "REGISTRAR"));
 
         setClick(view, R.id.img_court, () -> navigateToCampusAreaRoom(nav, CODE_COURT, "COURT"));
         setClick(view, R.id.txt_court, () -> navigateToCampusAreaRoom(nav, CODE_COURT, "COURT"));
         setClick(view, R.id.img_entrance, () -> navigateToCampusAreaRoom(nav, CODE_ENT, "ENTRANCE"));
         setClick(view, R.id.img_exit, () -> navigateToCampusAreaRoom(nav, CODE_EXIT, "EXIT"));
+    }
+
+    private void applyBuildingPinOverlays(View root) {
+        setOverlayPin(root, R.id.img_pin_main, resolvePinDrawable("pin_main", "main_pin", "main_building_pin"));
+        setOverlayPin(root, R.id.img_pin_library, resolvePinDrawable("pin_lib", "pin_library", "library_pin"));
+        setOverlayPin(root, R.id.img_pin_registrar, resolvePinDrawable("pin_reg", "pin_registrar", "registrar_pin"));
+    }
+
+    private void setOverlayPin(View root, int viewId, int drawableResId) {
+        View target = root.findViewById(viewId);
+        if (target instanceof ImageView) {
+            ((ImageView) target).setImageResource(drawableResId);
+        }
+    }
+
+    private int resolvePinDrawable(String... drawableNames) {
+        if (!isAdded()) {
+            return R.drawable.pin_placeholder;
+        }
+
+        for (String name : drawableNames) {
+            int id = requireContext().getResources().getIdentifier(name, "drawable", requireContext().getPackageName());
+            if (id != 0) {
+                return id;
+            }
+        }
+        return R.drawable.pin_placeholder;
     }
 
     private void setClick(View root, int viewId, Runnable action) {
