@@ -99,5 +99,5 @@ app/src/main/
 ---
 
 <p align="center">
-  University of the Cebu City — BSCS 3A, Group 2
+  University of Caloocan City — BSCS 3A, Group 2
 </p>
