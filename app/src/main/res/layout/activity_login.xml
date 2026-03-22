@@ -1,17 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
+    FrameLayout root with blurred background image + scrim + login card on top.
     ScrollView handles the keyboard pushing content up on small screens.
     Inner ConstraintLayout fills the screen and vertically centers the card.
     The card (LinearLayout) is 0dp width constrained to max 480dp — fills on
     phone, caps and centers on tablet/desktop. Nothing stretches.
 -->
-<ScrollView
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/surface_white"
-    android:fillViewport="true">
+    android:layout_height="match_parent">
+
+    <!-- Blurred background image -->
+    <ImageView
+        android:id="@+id/bg_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:contentDescription="@string/app_name" />
+
+    <!-- No global scrim - background fully visible -->
+
+    <!-- Login content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -31,6 +46,7 @@
             android:paddingEnd="32dp"
             android:paddingTop="48dp"
             android:paddingBottom="48dp"
+            android:background="@drawable/bg_login_card"
             app:layout_constraintWidth_max="480dp"
             app:layout_constraintWidth_default="spread"
             app:layout_constraintStart_toStartOf="parent"
@@ -169,7 +185,7 @@
                 android:textSize="12sp"
                 android:visibility="gone" />
 
-            <!-- Create Account button -->
+            <!-- Create Account button / Admin Login button -->
             <Button
                 android:id="@+id/btnCreateAccount"
                 android:layout_width="match_parent"
@@ -185,4 +201,6 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-</ScrollView>
+    </ScrollView>
+
+</FrameLayout>

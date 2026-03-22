@@ -64,3 +64,57 @@ Admins manage buildings, floors, rooms, facilities, origins, routes, and publish
 ## Agent Routing Defaults
 - Building agent: gpt-5.3-codex (high)
 - Planner agent: claude-sonnet-3-5v2
+
+## AI Workflow (Claude Code ↔ Codex Bridge)
+
+This project uses a two-agent system:
+- **Claude Code** — plans, delegates, synthesizes. Talks to the user.
+- **Codex** — executes. Writes code, runs commands, fixes builds.
+
+### Bridge Folder
+```
+~/ai-bridge/
+  inbox/    ← Claude drops TASK-*.md files here
+  outbox/   ← Codex writes TASK-*.result.md files here
+  archive/  ← Completed pairs (do not touch)
+  status.json
+```
+
+### How to delegate a task to Codex
+Claude Code writes a `TASK-NNN.md` file to `~/ai-bridge/inbox/` in this format:
+```
+---
+task_id: TASK-001
+created: <ISO timestamp>
+mode: L1 | L2 | L3
+priority: low | normal | high
+status: pending
+project: Fresh_Guide
+project_dir: /Users/gearworxdev/Projects/Fresh Guide/Fresh_Guide
+---
+
+## Context
+Why this task exists.
+
+## Steps
+1. Do this
+2. Then this
+
+## Files to Touch
+- path/to/file.java
+
+## Success Criteria
+- Build passes
+- Feature works as described
+```
+
+### Worker commands
+```bash
+bridge-launch    # start the worker (auto-picks up tasks)
+bridge-logs      # tail live logs
+bridge-stop      # stop the worker
+bridge-verify    # check status
+```
+
+### Task numbering
+Check `~/ai-bridge/inbox/` and `~/ai-bridge/archive/` for the latest TASK-NNN to determine the next number.

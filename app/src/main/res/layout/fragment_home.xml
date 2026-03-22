@@ -197,6 +197,9 @@
             android:id="@+id/overall_map_container"
             android:layout_width="338dp"
             android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp"
             android:visibility="visible">
 
             <TextView
