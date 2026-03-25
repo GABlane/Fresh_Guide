@@ -7,7 +7,7 @@
     android:paddingTop="40dp"
     android:paddingStart="24dp"
     android:paddingEnd="24dp"
-    android:background="@color/background_subtle">
+    android:background="@color/background_default">
 
     <ImageView
         android:layout_width="88dp"

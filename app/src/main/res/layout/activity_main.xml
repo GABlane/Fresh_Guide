@@ -8,6 +8,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/background_default"
+    android:layout_marginLeft="20dp"
+    android:layout_marginRight="20dp"
     android:clipToPadding="false"
     android:clipChildren="false"
     tools:context=".MainActivity">
@@ -40,8 +42,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardBackgroundColor="@color/background_card"
-            app:cardElevation="0.8dp"
-            app:strokeColor="#F3F3F3"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/border_subtle"
             app:strokeWidth="1dp"
             app:cardCornerRadius="32dp">
 

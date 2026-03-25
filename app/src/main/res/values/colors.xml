@@ -96,4 +96,14 @@
     <color name="schedule_detail_notes_label">#737373</color><!-- Notes label -->
     <color name="schedule_detail_notes">#4C4C4C</color>      <!-- Notes text -->
     <color name="dialog_drag_handle">#DADADA</color>         <!-- Drag handle -->
+
+
+    <color name="glass_card_fill">#8CFFFFFF</color>
+    <color name="glass_card_stroke">#CCFFFFFF</color>
+    <color name="btn_primary_start">#2DBF2D</color>
+    <color name="btn_primary_end">#1B9A1B</color>
+    <color name="btn_secondary_stroke">#6629A829</color>
+    <color name="btn_secondary_ripple">#1F29A829</color>
+    <color name="glass_highlight_top">#59FFFFFF</color>
+    <color name="glass_highlight_bottom">#00FFFFFF</color>
 </resources>

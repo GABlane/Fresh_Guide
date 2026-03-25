@@ -60,9 +60,9 @@ public class SplashActivity extends AppCompatActivity {
 
                     // Step 3: Hold the loading state, then go to log in
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
-//                        startActivity(new Intent(SplashActivity.this, LoginActivity.class));
+                        startActivity(new Intent(SplashActivity.this, LoginActivity.class));
 //                        NOTE : tanggalin ito kapag need na ng login (para makapag skip sa login)
-                        startActivity(new Intent(SplashActivity.this, MainActivity.class));
+//                        startActivity(new Intent(SplashActivity.this, MainActivity.class));
                         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                         finish();
                     }, LOADING_HOLD_MS);

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Secondary button: transparent fill, green border, 14dp corners.
+    Border color uses @color/btn_secondary_stroke which is:
+      Light: green_primary at 40% alpha
+      Dark:  green_light at 35% alpha
+    (defined in colors.xml / colors-night.xml)
+-->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/btn_secondary_ripple">
+
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+            <stroke
+                android:width="1.5dp"
+                android:color="@color/btn_secondary_stroke" />
+            <corners android:radius="14dp" />
+        </shape>
+    </item>
+
+</ripple>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Tiled pattern background using your transparent PNG (pattern_bg.png).
+    Place the file at:  res/drawable/pattern_bg.png
+
+    This BitmapDrawable tiles the PNG across the full screen.
+    The alpha (opacity) is controlled in code, not here, so it can
+    switch between light mode (30/255 ≈ 12%) and dark mode (18/255 ≈ 7%).
+
+    In LoginActivity.onCreate():
+
+        val patternView = findViewById<ImageView>(R.id.iv_pattern)
+        val isNightMode = (resources.configuration.uiMode
+            and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+        patternView.imageAlpha = if (isNightMode) 18 else 30
+-->
+<bitmap
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/pattern_bg"
+    />

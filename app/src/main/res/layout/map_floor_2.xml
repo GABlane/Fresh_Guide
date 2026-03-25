@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/map_background">
+    android:background="@color/background_default">
 
     <!-- Fixed legend -->
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -85,14 +85,14 @@
         android:layout_weight="1"
         android:fillViewport="true"
         android:scrollbars="none"
-        android:background="@color/map_background">
+        android:background="@color/background_default">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="760dp"
             android:layout_margin="16dp"
-            android:background="@color/map_background"
+            android:background="@color/background_default"
             android:paddingBottom="24dp">
 
             <View

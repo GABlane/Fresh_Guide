@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/schedule_bg"
+    android:background="@color/background_default"
     android:orientation="vertical"
     android:paddingTop="18dp"
     android:paddingBottom="8dp">
@@ -36,7 +36,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/instrument_regular"
-                android:textColor="@color/text_hint"
+                android:textColor="#9B9B9B"
                 android:textSize="14sp" />
         </LinearLayout>
 
@@ -60,7 +60,7 @@
         android:visibility="gone"
         app:cardCornerRadius="18dp"
         app:cardElevation="0dp"
-        app:strokeColor="@color/border_default"
+        app:strokeColor="#D5D5D5"
         app:strokeWidth="1dp">
 
         <LinearLayout
@@ -74,7 +74,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="YOU HAVE CLASS SCHEDULE TODAY"
-                android:textColor="@color/text_tertiary"
+                android:textColor="#7F7F7F"
                 android:textSize="10sp"
                 android:textStyle="bold" />
 
@@ -83,7 +83,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:textColor="@color/text_tertiary"
+                android:textColor="#6E6E6E"
                 android:textSize="12sp" />
 
             <TextView
@@ -99,7 +99,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:textColor="@color/text_secondary"
+                android:textColor="#5B5B5B"
                 android:textSize="12sp" />
 
             <TextView
@@ -107,7 +107,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:textColor="@color/text_tertiary"
+                android:textColor="#7A7A7A"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -127,7 +127,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Schedule view"
-            android:textColor="@color/text_secondary"
+            android:textColor="#757575"
             android:textSize="13sp" />
 
         <LinearLayout
@@ -151,7 +151,7 @@
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
                 android:text="Weekly"
-                android:textColor="@color/surface_white"
+                android:textColor="@android:color/white"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
@@ -165,7 +165,7 @@
                 android:paddingStart="12dp"
                 android:paddingEnd="12dp"
                 android:text="Daily"
-                android:textColor="@color/text_tertiary"
+                android:textColor="#7B7B7B"
                 android:textSize="12sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -192,7 +192,7 @@
                 android:layout_height="30dp"
                 android:gravity="center"
                 android:text="Mon"
-                android:textColor="@color/text_primary"
+                android:textColor="#2F2F2F"
                 android:textSize="13sp" />
 
             <TextView
@@ -201,7 +201,7 @@
                 android:layout_height="30dp"
                 android:gravity="center"
                 android:text="Tue"
-                android:textColor="@color/text_primary"
+                android:textColor="#2F2F2F"
                 android:textSize="13sp" />
 
             <TextView
@@ -210,7 +210,7 @@
                 android:layout_height="30dp"
                 android:gravity="center"
                 android:text="Wed"
-                android:textColor="@color/text_primary"
+                android:textColor="#2F2F2F"
                 android:textSize="13sp" />
 
             <TextView
@@ -219,7 +219,7 @@
                 android:layout_height="30dp"
                 android:gravity="center"
                 android:text="Thu"
-                android:textColor="@color/text_primary"
+                android:textColor="#2F2F2F"
                 android:textSize="13sp" />
 
             <TextView
@@ -228,7 +228,7 @@
                 android:layout_height="30dp"
                 android:gravity="center"
                 android:text="Fri"
-                android:textColor="@color/text_primary"
+                android:textColor="#2F2F2F"
                 android:textSize="13sp" />
 
             <TextView
@@ -237,7 +237,7 @@
                 android:layout_height="30dp"
                 android:gravity="center"
                 android:text="Sat"
-                android:textColor="@color/text_primary"
+                android:textColor="#2F2F2F"
                 android:textSize="13sp" />
         </LinearLayout>
     </HorizontalScrollView>
@@ -286,14 +286,14 @@
                 android:layout_width="72dp"
                 android:layout_height="72dp"
                 android:src="@drawable/ic_my_schedule"
-                android:tint="@color/text_hint" />
+                android:tint="#CFCFCF" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:text="No schedule found."
-                android:textColor="@color/text_hint"
+                android:textColor="#CCCCCC"
                 android:textSize="14sp" />
 
             <TextView

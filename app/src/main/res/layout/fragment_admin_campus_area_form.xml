@@ -2,7 +2,7 @@
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/admin_background"
+    android:background="@color/background_default"
     android:padding="16dp">
 
     <LinearLayout

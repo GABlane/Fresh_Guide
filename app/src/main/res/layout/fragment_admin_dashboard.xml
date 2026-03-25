@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#181A1B"
+    android:background="@color/background_default"
     android:clipToPadding="false">
 
     <LinearLayout
@@ -18,10 +18,10 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardBackgroundColor="#242729"
+            app:cardBackgroundColor="@color/admin_card_bg"
             app:cardCornerRadius="16dp"
             app:cardElevation="0dp"
-            app:strokeColor="#303436"
+            app:strokeColor="@color/admin_card_stroke"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -41,7 +41,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="Admin Dashboard"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/admin_text_primary"
                         android:textSize="22sp"
                         android:textStyle="bold" />
 
@@ -64,7 +64,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="Manage campus data and publish updates for students."
-                    android:textColor="#B7B7B7"
+                    android:textColor="@color/admin_text_secondary"
                     android:textSize="12sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -75,7 +75,7 @@
             android:layout_marginTop="16dp"
             android:layout_marginBottom="8dp"
             android:text="Overview"
-            android:textColor="#A8A8A8"
+            android:textColor="@color/admin_text_secondary"
             android:textSize="12sp"
             android:textStyle="bold" />
 
@@ -85,14 +85,18 @@
             android:orientation="horizontal">
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_rooms_overview"
                 android:layout_width="0dp"
                 android:layout_height="88dp"
                 android:layout_marginEnd="6dp"
                 android:layout_weight="1"
-                app:cardBackgroundColor="#232526"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/admin_card_secondary"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#2F3234"
+                app:strokeColor="@color/admin_card_stroke"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -114,20 +118,24 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Rooms"
-                        android:textColor="#949494"
+                        android:textColor="@color/admin_text_tertiary"
                         android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_buildings_overview"
                 android:layout_width="0dp"
                 android:layout_height="88dp"
                 android:layout_marginStart="6dp"
                 android:layout_weight="1"
-                app:cardBackgroundColor="#232526"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/admin_card_secondary"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#2F3234"
+                app:strokeColor="@color/admin_card_stroke"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -149,7 +157,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Buildings"
-                        android:textColor="#949494"
+                        android:textColor="@color/admin_text_tertiary"
                         android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -162,14 +170,18 @@
             android:orientation="horizontal">
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_floors_overview"
                 android:layout_width="0dp"
                 android:layout_height="88dp"
                 android:layout_marginEnd="6dp"
                 android:layout_weight="1"
-                app:cardBackgroundColor="#232526"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/admin_card_secondary"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#2F3234"
+                app:strokeColor="@color/admin_card_stroke"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -183,7 +195,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
-                        android:textColor="#6FD3A8"
+                        android:textColor="@color/admin_overview_teal"
                         android:textSize="24sp"
                         android:textStyle="bold" />
 
@@ -191,20 +203,24 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Floors"
-                        android:textColor="#949494"
+                        android:textColor="@color/admin_text_tertiary"
                         android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_routes_overview"
                 android:layout_width="0dp"
                 android:layout_height="88dp"
                 android:layout_marginStart="6dp"
                 android:layout_weight="1"
-                app:cardBackgroundColor="#232526"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@color/admin_card_secondary"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp"
-                app:strokeColor="#2F3234"
+                app:strokeColor="@color/admin_card_stroke"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
@@ -218,7 +234,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
-                        android:textColor="#89B9FF"
+                        android:textColor="@color/admin_overview_blue"
                         android:textSize="24sp"
                         android:textStyle="bold" />
 
@@ -226,7 +242,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Routes"
-                        android:textColor="#949494"
+                        android:textColor="@color/admin_text_tertiary"
                         android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -236,10 +252,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            app:cardBackgroundColor="#202224"
+            app:cardBackgroundColor="@color/admin_card_secondary"
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
-            app:strokeColor="#2F3234"
+            app:strokeColor="@color/admin_card_stroke"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -252,7 +268,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Campus"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/admin_text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -261,7 +277,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:text="Building and room structure"
-                    android:textColor="#A3A3A3"
+                    android:textColor="@color/admin_text_secondary"
                     android:textSize="11sp" />
 
                 <LinearLayout
@@ -276,9 +292,9 @@
                         android:layout_height="44dp"
                         android:layout_marginEnd="5dp"
                         android:layout_weight="1"
-                        android:backgroundTint="#2D3133"
+                        android:backgroundTint="@color/admin_button_bg"
                         android:text="Buildings"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/admin_text_primary"
                         android:textSize="12sp" />
 
                     <Button
@@ -287,9 +303,9 @@
                         android:layout_height="44dp"
                         android:layout_marginStart="5dp"
                         android:layout_weight="1"
-                        android:backgroundTint="#2D3133"
+                        android:backgroundTint="@color/admin_button_bg"
                         android:text="Floors"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/admin_text_primary"
                         android:textSize="12sp" />
                 </LinearLayout>
 
@@ -305,9 +321,9 @@
                         android:layout_height="44dp"
                         android:layout_marginEnd="5dp"
                         android:layout_weight="1"
-                        android:backgroundTint="#2D3133"
+                        android:backgroundTint="@color/admin_button_bg"
                         android:text="Rooms"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/admin_text_primary"
                         android:textSize="12sp" />
 
                     <Button
@@ -316,9 +332,9 @@
                         android:layout_height="44dp"
                         android:layout_marginStart="5dp"
                         android:layout_weight="1"
-                        android:backgroundTint="#2D3133"
+                        android:backgroundTint="@color/admin_button_bg"
                         android:text="Campus Areas"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/admin_text_primary"
                         android:textSize="12sp" />
                 </LinearLayout>
             </LinearLayout>
@@ -328,10 +344,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#202224"
+            app:cardBackgroundColor="@color/admin_card_secondary"
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
-            app:strokeColor="#2F3234"
+            app:strokeColor="@color/admin_card_stroke"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -344,7 +360,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Navigation"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/admin_text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -353,7 +369,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:text="Facilities and route guidance data"
-                    android:textColor="#A3A3A3"
+                    android:textColor="@color/admin_text_secondary"
                     android:textSize="11sp" />
 
                 <LinearLayout
@@ -368,9 +384,9 @@
                         android:layout_height="44dp"
                         android:layout_marginEnd="5dp"
                         android:layout_weight="1"
-                        android:backgroundTint="#2D3133"
+                        android:backgroundTint="@color/admin_button_bg"
                         android:text="Facilities"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/admin_text_primary"
                         android:textSize="12sp" />
 
                     <Button
@@ -379,9 +395,9 @@
                         android:layout_height="44dp"
                         android:layout_marginStart="5dp"
                         android:layout_weight="1"
-                        android:backgroundTint="#2D3133"
+                        android:backgroundTint="@color/admin_button_bg"
                         android:text="Origins"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/admin_text_primary"
                         android:textSize="12sp" />
                 </LinearLayout>
 
@@ -390,9 +406,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="44dp"
                     android:layout_marginTop="8dp"
-                    android:backgroundTint="#2D3133"
+                    android:backgroundTint="@color/admin_button_bg"
                     android:text="Routes"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/admin_text_primary"
                     android:textSize="12sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -401,10 +417,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            app:cardBackgroundColor="#202224"
+            app:cardBackgroundColor="@color/admin_card_secondary"
             app:cardCornerRadius="14dp"
             app:cardElevation="0dp"
-            app:strokeColor="#2F3234"
+            app:strokeColor="@color/admin_card_stroke"
             app:strokeWidth="1dp">
 
             <LinearLayout
@@ -417,7 +433,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Release"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/admin_text_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
@@ -427,7 +443,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="Current data version: Not synced"
-                    android:textColor="#A8A8A8"
+                    android:textColor="@color/admin_text_secondary"
                     android:textSize="12sp" />
 
                 <TextView
@@ -435,7 +451,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="3dp"
                     android:text="Publish latest local data so students can sync updates."
-                    android:textColor="#A3A3A3"
+                    android:textColor="@color/admin_text_secondary"
                     android:textSize="11sp" />
 
                 <Button
