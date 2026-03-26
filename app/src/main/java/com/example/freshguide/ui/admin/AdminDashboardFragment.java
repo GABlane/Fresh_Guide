@@ -56,6 +56,16 @@ public class AdminDashboardFragment extends Fragment {
 
         NavController nav = Navigation.findNavController(view);
 
+        // Overview cards click listeners
+        view.findViewById(R.id.card_rooms_overview).setOnClickListener(v ->
+                nav.navigate(R.id.action_adminDashboard_to_adminRoomList));
+        view.findViewById(R.id.card_buildings_overview).setOnClickListener(v ->
+                nav.navigate(R.id.action_adminDashboard_to_adminBuildingList));
+        view.findViewById(R.id.card_floors_overview).setOnClickListener(v ->
+                nav.navigate(R.id.action_adminDashboard_to_adminFloorList));
+        view.findViewById(R.id.card_routes_overview).setOnClickListener(v ->
+                nav.navigate(R.id.action_adminDashboard_to_adminRouteList));
+
         view.findViewById(R.id.btn_manage_buildings).setOnClickListener(v ->
                 nav.navigate(R.id.action_adminDashboard_to_adminBuildingList));
         view.findViewById(R.id.btn_manage_floors).setOnClickListener(v ->

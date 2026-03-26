@@ -231,19 +231,23 @@ public class WeeklyScheduleGridView extends ViewGroup {
         card.setStrokeColor(ContextCompat.getColor(context, R.color.schedule_card_stroke));
         card.setStrokeWidth(dp(1));
         int defaultBg = ContextCompat.getColor(context, R.color.schedule_card_bg);
-        card.setCardBackgroundColor(parseColorOrDefault(entry.colorHex, String.format("#%06X", (0xFFFFFF & defaultBg))));
+        int backgroundColor = parseColorOrDefault(entry.colorHex, String.format("#%06X", (0xFFFFFF & defaultBg)));
+        card.setCardBackgroundColor(backgroundColor);
         card.setClickable(true);
         card.setFocusable(true);
         card.setUseCompatPadding(false);
+
+        // Determine text color based on background brightness
+        int textColor = getContrastingTextColor(backgroundColor);
 
         LinearLayout container = new LinearLayout(context);
         container.setOrientation(LinearLayout.VERTICAL);
         container.setPadding(textInsetPx, textInsetPx, textInsetPx, textInsetPx);
 
-        TextView tvCode = buildBlockText(11, true);
-        TextView tvTitle = buildBlockText(12, true);
-        TextView tvTime = buildBlockText(10, false);
-        TextView tvLocation = buildBlockText(10, false);
+        TextView tvCode = buildBlockText(11, true, textColor);
+        TextView tvTitle = buildBlockText(12, true, textColor);
+        TextView tvTime = buildBlockText(10, false, textColor);
+        TextView tvLocation = buildBlockText(10, false, textColor);
 
         tvCode.setText(entry.courseCode != null && !entry.courseCode.isBlank() ? entry.courseCode : "No code");
         tvTitle.setText(entry.title != null && !entry.title.isBlank() ? entry.title : "Class");
@@ -264,16 +268,35 @@ public class WeeklyScheduleGridView extends ViewGroup {
         return card;
     }
 
-    private TextView buildBlockText(int textSizeSp, boolean bold) {
+    private TextView buildBlockText(int textSizeSp, boolean bold, int textColor) {
         Context context = getContext();
         TextView view = new TextView(context);
-        view.setTextColor(ContextCompat.getColor(context, R.color.text_primary));
+        view.setTextColor(textColor);
         view.setTextSize(TypedValue.COMPLEX_UNIT_SP, textSizeSp);
         view.setMaxLines(1);
         view.setEllipsize(TextUtils.TruncateAt.END);
         view.setIncludeFontPadding(false);
         view.setTypeface(view.getTypeface(), bold ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
         return view;
+    }
+
+    /**
+     * Calculate contrasting text color based on background brightness.
+     * Uses relative luminance formula from WCAG guidelines.
+     * @param backgroundColor The background color to contrast against
+     * @return Dark text for light backgrounds, light text for dark backgrounds
+     */
+    private int getContrastingTextColor(int backgroundColor) {
+        // Extract RGB components
+        int red = Color.red(backgroundColor);
+        int green = Color.green(backgroundColor);
+        int blue = Color.blue(backgroundColor);
+
+        // Calculate relative luminance using WCAG formula
+        double luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255.0;
+
+        // If background is light (luminance > 0.5), use dark text; otherwise use light text
+        return luminance > 0.5 ? Color.parseColor("#1C1B1F") : Color.parseColor("#E6E6E6");
     }
 
     private String resolveLocation(ScheduleEntryEntity entry) {

@@ -113,7 +113,55 @@ public class ScheduleEntryAdapter extends RecyclerView.Adapter<ScheduleEntryAdap
                 tvLocation.setText("Room not set");
             }
 
-            card.setCardBackgroundColor(parseColorOrDefault(entry.colorHex, "#F4F4F4"));
+            int backgroundColor = parseColorOrDefault(entry.colorHex, "#F4F4F4");
+            card.setCardBackgroundColor(backgroundColor);
+
+            // Set text colors based on background brightness for readability
+            int textColor = getContrastingTextColor(backgroundColor);
+            int secondaryTextColor = getSecondaryTextColor(backgroundColor);
+            tvStart.setTextColor(textColor);
+            tvEnd.setTextColor(secondaryTextColor);
+            tvCode.setTextColor(secondaryTextColor);
+            tvTitle.setTextColor(textColor);
+            tvProfessor.setTextColor(secondaryTextColor);
+            tvLocation.setTextColor(secondaryTextColor);
+        }
+
+        /**
+         * Calculate contrasting text color based on background brightness.
+         * Uses relative luminance formula from WCAG guidelines.
+         * @param backgroundColor The background color to contrast against
+         * @return Dark text for light backgrounds, light text for dark backgrounds
+         */
+        private int getContrastingTextColor(int backgroundColor) {
+            // Extract RGB components
+            int red = Color.red(backgroundColor);
+            int green = Color.green(backgroundColor);
+            int blue = Color.blue(backgroundColor);
+
+            // Calculate relative luminance using WCAG formula
+            double luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255.0;
+
+            // If background is light (luminance > 0.5), use dark text; otherwise use light text
+            return luminance > 0.5 ? Color.parseColor("#1C1B1F") : Color.parseColor("#E6E6E6");
+        }
+
+        /**
+         * Get secondary text color (slightly less prominent) based on background brightness.
+         * @param backgroundColor The background color to contrast against
+         * @return Secondary text color with appropriate contrast
+         */
+        private int getSecondaryTextColor(int backgroundColor) {
+            // Extract RGB components
+            int red = Color.red(backgroundColor);
+            int green = Color.green(backgroundColor);
+            int blue = Color.blue(backgroundColor);
+
+            // Calculate relative luminance using WCAG formula
+            double luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255.0;
+
+            // If background is light, use medium gray; if dark, use light gray
+            return luminance > 0.5 ? Color.parseColor("#5E5E5E") : Color.parseColor("#B8B8B8");
         }
 
         private int parseColorOrDefault(String input, String fallback) {

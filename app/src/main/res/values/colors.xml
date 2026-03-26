@@ -33,15 +33,17 @@
     <color name="divider">#E6E6E6</color>
     <color name="chip_border">#29A829</color>
 
-    <!-- Admin-Specific Colors (always dark - same in both modes) -->
-    <color name="admin_background">#181A1B</color>
-    <color name="admin_card_bg">#242729</color>
-    <color name="admin_card_secondary">#202224</color>
-    <color name="admin_card_stroke">#303436</color>
-    <color name="admin_button_bg">#2D3133</color>
-    <color name="admin_text_primary">#FFFFFF</color>
-    <color name="admin_text_secondary">#A8A8A8</color>
-    <color name="admin_text_tertiary">#949494</color>
+    <!-- Admin-Specific Colors (Light Mode) -->
+    <color name="admin_background">#F5F5F5</color>
+    <color name="admin_card_bg">#FFFFFF</color>
+    <color name="admin_card_secondary">#FFFFFF</color>
+    <color name="admin_card_stroke">#E0E0E0</color>
+    <color name="admin_button_bg">#29A829</color>
+    <color name="admin_text_primary">#1C1B1F</color>
+    <color name="admin_text_secondary">#5E5E5E</color>
+    <color name="admin_text_tertiary">#7A7A7A</color>
+    <color name="admin_overview_teal">#00897B</color>
+    <color name="admin_overview_blue">#1976D2</color>
 
     <!-- Map Colors (Light Mode) -->
     <color name="map_background">#FFFFFF</color>

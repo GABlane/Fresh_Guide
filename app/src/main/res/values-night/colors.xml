@@ -33,7 +33,7 @@
     <color name="divider">#2F2F2F</color>
     <color name="chip_border">#4CAF50</color>
 
-    <!-- Admin-Specific Colors (always dark - same as light mode) -->
+    <!-- Admin-Specific Colors (Dark Mode) -->
     <color name="admin_background">#181A1B</color>
     <color name="admin_card_bg">#242729</color>
     <color name="admin_card_secondary">#202224</color>
@@ -42,6 +42,8 @@
     <color name="admin_text_primary">#FFFFFF</color>
     <color name="admin_text_secondary">#A8A8A8</color>
     <color name="admin_text_tertiary">#949494</color>
+    <color name="admin_overview_teal">#6FD3A8</color>
+    <color name="admin_overview_blue">#89B9FF</color>
 
     <!-- Map Colors (Dark Mode) -->
     <color name="map_background">#1E1E1E</color>
