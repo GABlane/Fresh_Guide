@@ -15,7 +15,7 @@
             <stroke
                 android:width="1.5dp"
                 android:color="@color/btn_secondary_stroke" />
-            <corners android:radius="14dp" />
+            <corners android:radius="20dp" />
         </shape>
     </item>
 

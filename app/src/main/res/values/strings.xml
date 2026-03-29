@@ -54,10 +54,11 @@
 
     <!-- QR Login -->
     <string name="login_hint_qr_mode">Student access requires ID QR scan</string>
-    <string name="login_hint_admin_mode">Admin login</string>
+<!--    <string name="login_hint_admin_mode">Admin login</string>-->
     <string name="btn_scan_qr_login">SCAN ID QR</string>
     <string name="btn_sign_in_admin">SIGN IN AS ADMIN</string>
-    <string name="btn_switch_to_admin_login">ADMIN LOGIN</string>
+    <string name="btn_switch_to_admin_login">LOGIN AS ADMIN</string>
+    <string name="manual_login">Don’t have an ID? Enter Student ID</string>
     <string name="btn_switch_to_qr_login">USE QR LOGIN</string>
     <string name="btn_manual_student_input">Testing only: enter student ID manually</string>
     <string name="toggle_password_visibility">Toggle password visibility</string>
@@ -67,4 +68,8 @@
     <string name="manual_input_title">Testing Input</string>
     <string name="manual_input_subtitle">Use this only for emulator/testing.</string>
     <string name="manual_input_continue">Continue</string>
+
+    <string name="label_student_id">Enter Student ID</string>
+    <string name="hint_student_id_manual">e.g. 20230054-S</string>
+    <string name="btn_sign_in_student">SIGN IN</string>
 </resources>

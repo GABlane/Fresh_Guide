@@ -2,7 +2,7 @@
 <resources>
     <!-- Base Colors (unchanged in dark mode) -->
     <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="white">#E7FFE7</color>
 
     <!-- Surface & Background Colors (Dark Mode) -->
     <color name="surface_white">#1E1E1E</color>          <!-- Main surface -->
@@ -101,10 +101,12 @@
 
     <color name="glass_card_fill">#661E1E1E</color>
     <color name="glass_card_stroke">#33FFFFFF</color>
-    <color name="btn_primary_start">#4CAF50</color>
-    <color name="btn_primary_end">#2E7D32</color>
+    <color name="btn_primary_start">#146A12</color>
+    <color name="btn_primary_end">#146A12</color>
     <color name="btn_secondary_stroke">#664CAF50</color>
     <color name="btn_secondary_ripple">#1F4CAF50</color>
     <color name="glass_highlight_top">#26FFFFFF</color>
     <color name="glass_highlight_bottom">#00FFFFFF</color>
+
+    <color name="label">#D3F6D0</color>
 </resources>

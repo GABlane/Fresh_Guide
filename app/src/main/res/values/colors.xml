@@ -2,7 +2,7 @@
 <resources>
     <!-- Base Colors -->
     <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="white">#E7FFE7</color>
 
     <!-- Surface & Background Colors (Light Mode) -->
     <color name="surface_white">#FFFFFF</color>          <!-- Main surface -->
@@ -19,7 +19,7 @@
 
     <!-- Brand Colors (Light Mode) -->
     <color name="green_primary">#29A829</color>
-    <color name="green_dark">#1B5E20</color>
+    <color name="green_dark">#015B0B</color>
     <color name="green_light">#A5D6A7</color>
     <color name="green_pill">#DFF5DF</color>
     <color name="green">#1AA514</color>
@@ -102,10 +102,13 @@
 
     <color name="glass_card_fill">#8CFFFFFF</color>
     <color name="glass_card_stroke">#CCFFFFFF</color>
-    <color name="btn_primary_start">#2DBF2D</color>
-    <color name="btn_primary_end">#1B9A1B</color>
+    <color name="btn_primary_start">#188114</color>
+    <color name="btn_primary_end">#188114</color>
     <color name="btn_secondary_stroke">#6629A829</color>
     <color name="btn_secondary_ripple">#1F29A829</color>
     <color name="glass_highlight_top">#59FFFFFF</color>
     <color name="glass_highlight_bottom">#00FFFFFF</color>
+
+
+    <color name="label">#188114</color>
 </resources>
