@@ -101,8 +101,8 @@
 
     <color name="glass_card_fill">#661E1E1E</color>
     <color name="glass_card_stroke">#33FFFFFF</color>
-    <color name="btn_primary_start">#146A12</color>
-    <color name="btn_primary_end">#146A12</color>
+    <color name="btn_primary_start">#12770E</color>
+    <color name="btn_primary_end">#12770E</color>
     <color name="btn_secondary_stroke">#664CAF50</color>
     <color name="btn_secondary_ripple">#1F4CAF50</color>
     <color name="glass_highlight_top">#26FFFFFF</color>
