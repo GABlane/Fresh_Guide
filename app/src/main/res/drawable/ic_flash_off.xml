@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ic_flash_off.xml  –  lightning bolt with a slash (torch is OFF) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Dimmed bolt to show it is inactive -->
+    <path
+        android:fillColor="#88FFFFFF"
+        android:pathData="M 13.0,1.5
+                          L 5.0,13.5
+                          L 11.5,13.5
+                          L 10.5,22.5
+                          L 19.5,10.5
+                          L 13.0,10.5
+                          Z" />
+
+    <!-- Slash line (top-right to bottom-left) -->
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1"
+        android:strokeLineCap="round"
+        android:fillColor="@android:color/transparent"
+        android:pathData="M 19.5,3.5 L 4.5,20.5" />
+
+</vector>

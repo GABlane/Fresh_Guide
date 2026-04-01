@@ -62,9 +62,6 @@
     <string name="btn_switch_to_qr_login">USE QR LOGIN</string>
     <string name="btn_manual_student_input">Testing only: enter student ID manually</string>
     <string name="toggle_password_visibility">Toggle password visibility</string>
-    <string name="qr_scanner_title">Scan Student ID QR</string>
-    <string name="qr_scanner_hint">Align your school ID QR inside the camera</string>
-    <string name="qr_scanner_status_success">ID found. Signing in...</string>
     <string name="manual_input_title">Testing Input</string>
     <string name="manual_input_subtitle">Use this only for emulator/testing.</string>
     <string name="manual_input_continue">Continue</string>
@@ -72,4 +69,8 @@
     <string name="label_student_id">Enter Student ID</string>
     <string name="hint_student_id_manual">e.g. 20230054-S</string>
     <string name="btn_sign_in_student">SIGN IN</string>
+
+    <string name="qr_scanner_hint">Position school ID QR code within the frame</string>
+    <string name="qr_scanner_status_success">QR scanned successfully!</string>
+    <string name="qr_scanner_title">Scan Student ID</string>
 </resources>

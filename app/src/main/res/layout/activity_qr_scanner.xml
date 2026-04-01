@@ -1,66 +1,161 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#101010">
+    android:background="#0D0D0D">
 
+    <!-- ── Camera Preview ── -->
     <androidx.camera.view.PreviewView
         android:id="@+id/preview_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:scaleType="fillCenter" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="12dp"
-        android:paddingTop="12dp"
-        android:paddingEnd="12dp">
+    <!-- ── TOP gradient ── -->
+    <View
+        android:id="@+id/overlay_top"
+        android:layout_width="0dp"
+        android:layout_height="220dp"
+        android:background="@drawable/qr_overlay_gradient_top"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        <TextView
-            android:id="@+id/btn_close_scanner"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="@drawable/bg_schedule_view_toggle_container"
-            android:gravity="center"
-            android:text="X"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+    <!-- ── BOTTOM gradient ── -->
+    <View
+        android:id="@+id/overlay_bottom"
+        android:layout_width="0dp"
+        android:layout_height="240dp"
+        android:background="@drawable/qr_overlay_gradient_bottom"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="@string/qr_scanner_title"
-            android:textColor="@android:color/white"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+    <!-- scan frame -->
+    <FrameLayout
+        android:id="@+id/scan_frame_container"
+        android:layout_width="270dp"
+        android:layout_height="270dp"
+        android:layout_marginBottom="50dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_scan_frame"
+            android:contentDescription="Scan area" />
 
         <View
-            android:layout_width="36dp"
-            android:layout_height="36dp" />
-    </LinearLayout>
+            android:id="@+id/scan_line"
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:layout_marginStart="14dp"
+            android:layout_marginEnd="14dp"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_scan_line"
+            android:layout_gravity="top" />
 
-    <TextView
-        android:id="@+id/tv_scanner_status"
-        android:layout_width="match_parent"
+    </FrameLayout>
+
+
+    <ImageView
+        android:id="@+id/btn_close_scanner"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="30dp"
+        android:padding="8dp"
+        android:src="@drawable/ic_arrow_back_white"
+        android:contentDescription="Close scanner"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/iv_logo"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:layout_marginTop="20dp"
+        android:src="@drawable/logo_white"
+        android:scaleType="centerInside"
+        android:contentDescription="FreshGuide"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btn_close_scanner"
+        app:layout_constraintEnd_toStartOf="@id/btn_flash_toggle" />
+
+    <ImageView
+        android:id="@+id/btn_flash_toggle"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="30dp"
+        android:background="@drawable/bg_flash_btn_off"
+        android:padding="10dp"
+        android:src="@drawable/ic_flash_off"
+        android:contentDescription="Toggle flashlight"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
+    <ImageView
+        android:id="@+id/btn_gallery"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="22dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/bg_gallery_thumb"
+        android:padding="13dp"
+        android:src="@drawable/ic_photo_library"
+        android:contentDescription="Pick from gallery"
+        app:layout_constraintBottom_toTopOf="@id/status_pill"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/status_pill"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
         android:layout_marginStart="22dp"
         android:layout_marginEnd="22dp"
-        android:layout_marginBottom="34dp"
-        android:background="@drawable/bg_schedule_view_toggle_container"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/bg_glass_pill"
         android:gravity="center"
-        android:paddingStart="14dp"
-        android:paddingTop="10dp"
-        android:paddingEnd="14dp"
-        android:paddingBottom="10dp"
-        android:text="@string/qr_scanner_hint"
-        android:textColor="@color/text_primary"
-        android:textSize="13sp" />
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-</FrameLayout>
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_qr_code_small"
+            android:contentDescription="QR"
+            android:alpha="0.85" />
+
+        <TextView
+            android:id="@+id/tv_scanner_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/qr_scanner_hint"
+            android:textColor="#FFFFFFFF"
+            android:textSize="12.5sp"
+            android:letterSpacing="0.015"
+            android:gravity="center" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
