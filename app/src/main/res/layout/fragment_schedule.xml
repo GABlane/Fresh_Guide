@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingTop="15dp"
+        android:paddingTop="28dp"
         android:paddingBottom="15dp">
 
         <LinearLayout
@@ -25,7 +25,7 @@
                 android:id="@+id/tv_schedule_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/instrument_bold"
+                android:fontFamily="@font/inter_bold"
                 android:text="Class Schedule"
                 android:textColor="@color/green_dark"
                 android:textSize="28sp" />
@@ -55,8 +55,9 @@
         android:id="@+id/card_today_summary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
-        app:cardBackgroundColor="@color/media_placeholder_bg"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        app:cardBackgroundColor="@color/background_subtle"
         app:cardCornerRadius="24dp"
         app:cardElevation="0dp"
         app:strokeColor="@color/border_default"
@@ -69,7 +70,8 @@
             android:paddingStart="30dp"
             android:paddingTop="20dp"
             android:paddingEnd="30dp"
-            android:paddingBottom="18dp">
+            android:paddingBottom="18dp"
+            >
 
             <TextView
                 android:id="@+id/tv_summary_label"

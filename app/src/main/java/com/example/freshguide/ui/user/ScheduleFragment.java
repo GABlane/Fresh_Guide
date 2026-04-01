@@ -169,7 +169,8 @@ public class ScheduleFragment extends Fragment {
         view.findViewById(R.id.btn_add_schedule).setOnClickListener(v -> showScheduleFormDialog(null));
         view.findViewById(R.id.btn_empty_add_schedule).setOnClickListener(v -> showScheduleFormDialog(null));
 
-        selectedDay = normalizeDay(sessionManager.getSelectedScheduleDay(getDefaultDay()));
+        selectedDay = getDefaultDay();
+        applyDailyDaySelectionUi();
         setupDailyDaySelector();
         applyDailyDaySelectionUi();
 
@@ -201,9 +202,9 @@ public class ScheduleFragment extends Fragment {
         super.onResume();
         viewModel.syncSchedules();
 
-        int restoredDay = normalizeDay(sessionManager.getSelectedScheduleDay(getDefaultDay()));
-        if (selectedDay != restoredDay) {
-            selectedDay = restoredDay;
+        int today = getDefaultDay();
+        if (selectedDay != today) {
+            selectedDay = today;
             applyDailyDaySelectionUi();
             renderScheduleContent();
         }
@@ -263,16 +264,10 @@ public class ScheduleFragment extends Fragment {
     }
 
     private void setupDailyDaySelector() {
-        for (int i = 0; i < dailyDayViews.length; i++) {
-            TextView dayView = dailyDayViews[i];
-            int day = i + 1;
-
-            dayView.setOnClickListener(v -> {
-                selectedDay = day;
-                sessionManager.setSelectedScheduleDay(day);
-                applyDailyDaySelectionUi();
-                renderScheduleContent();
-            });
+        for (TextView dayView : dailyDayViews) {
+            dayView.setClickable(false);
+            dayView.setFocusable(false);
+            dayView.setEnabled(false);
         }
     }
 
@@ -312,7 +307,7 @@ public class ScheduleFragment extends Fragment {
 
         if (!hasSchedulesForSelectedDay) {
             if (!hasAnySchedules) {
-                tvEmptyStateMessage.setText("No schedules yet.");
+                tvEmptyStateMessage.setText("No schedule yet.");
             } else {
                 tvEmptyStateMessage.setText("No schedule found.");
             }
