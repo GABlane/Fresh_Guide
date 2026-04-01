@@ -17,7 +17,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -27,6 +26,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LiveData;
@@ -35,13 +35,11 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.appcompat.app.AlertDialog;
 
 import com.example.freshguide.R;
 import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.model.entity.ScheduleEntryEntity;
 import com.example.freshguide.ui.adapter.ScheduleEntryAdapter;
-import com.example.freshguide.ui.view.WeeklyScheduleGridView;
 import com.example.freshguide.util.ScheduleReminderHelper;
 import com.example.freshguide.util.SessionManager;
 import com.example.freshguide.viewmodel.ScheduleViewModel;
@@ -68,14 +66,7 @@ public class ScheduleFragment extends Fragment {
             R.id.form_day_fri,
             R.id.form_day_sat
     };
-    private static final int[] DAILY_DAY_VIEW_IDS = {
-            R.id.daily_day_mon,
-            R.id.daily_day_tue,
-            R.id.daily_day_wed,
-            R.id.daily_day_thu,
-            R.id.daily_day_fri,
-            R.id.daily_day_sat
-    };
+
     private String[] getScheduleColors() {
         boolean isDarkMode = (getResources().getConfiguration().uiMode
                 & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
@@ -97,31 +88,34 @@ public class ScheduleFragment extends Fragment {
     private ScheduleViewModel viewModel;
     private SessionManager sessionManager;
     private LiveData<List<ScheduleEntryEntity>> allSchedulesLiveData;
+
     private final List<ScheduleEntryEntity> allSchedules = new ArrayList<>();
     private final List<ScheduleEntryEntity> filteredDailySchedules = new ArrayList<>();
-    private ScheduleEntryAdapter dailyAdapter;
-    private boolean showWeeklyView = true;
 
-    private ScrollView weeklyScheduleScroll;
+    private ScheduleEntryAdapter dailyAdapter;
+
     private RecyclerView dailyScheduleRecycler;
-    private WeeklyScheduleGridView weeklyScheduleGrid;
     private View dailyDaySelectorContainer;
     private View emptyState;
     private View cardSummary;
-    private TextView btnViewWeekly;
-    private TextView btnViewDaily;
+
     private TextView[] dailyDayViews;
     private TextView tvSummaryCode;
     private TextView tvSummaryTitle;
     private TextView tvSummaryProfessor;
     private TextView tvSummaryTime;
     private TextView tvDate;
+    private TextView tvSummaryLabel;
+    private TextView tvEmptyStateMessage;
 
     private final List<RoomEntity> allRooms = new ArrayList<>();
     private final List<RoomEntity> roomOptions = new ArrayList<>();
     private final Map<Integer, String> roomNameMap = new HashMap<>();
-    @Nullable private ConnectivityManager connectivityManager;
-    @Nullable private ConnectivityManager.NetworkCallback scheduleNetworkCallback;
+
+    @Nullable
+    private ConnectivityManager connectivityManager;
+    @Nullable
+    private ConnectivityManager.NetworkCallback scheduleNetworkCallback;
     private boolean networkCallbackRegistered = false;
 
     private int selectedDay = 1;
@@ -143,18 +137,18 @@ public class ScheduleFragment extends Fragment {
         ScheduleReminderHelper.ensureNotificationChannel(requireContext());
 
         tvDate = view.findViewById(R.id.tv_schedule_date);
-        weeklyScheduleScroll = view.findViewById(R.id.scroll_weekly_schedule);
         dailyScheduleRecycler = view.findViewById(R.id.recycler_daily_schedule);
-        weeklyScheduleGrid = view.findViewById(R.id.weekly_schedule_grid);
         dailyDaySelectorContainer = view.findViewById(R.id.daily_day_selector_container);
-        btnViewWeekly = view.findViewById(R.id.btn_view_weekly);
-        btnViewDaily = view.findViewById(R.id.btn_view_daily);
         emptyState = view.findViewById(R.id.empty_state);
         cardSummary = view.findViewById(R.id.card_today_summary);
+
         tvSummaryCode = view.findViewById(R.id.tv_summary_course_code);
         tvSummaryTitle = view.findViewById(R.id.tv_summary_title);
         tvSummaryProfessor = view.findViewById(R.id.tv_summary_professor);
         tvSummaryTime = view.findViewById(R.id.tv_summary_time);
+        tvSummaryLabel = view.findViewById(R.id.tv_summary_label);
+        tvEmptyStateMessage = view.findViewById(R.id.tv_empty_state_message);
+
         dailyDayViews = new TextView[]{
                 view.findViewById(R.id.daily_day_mon),
                 view.findViewById(R.id.daily_day_tue),
@@ -164,8 +158,8 @@ public class ScheduleFragment extends Fragment {
                 view.findViewById(R.id.daily_day_sat)
         };
 
-        tvDate.setText(new SimpleDateFormat("EEEE, MMMM d", Locale.getDefault()).format(Calendar.getInstance().getTime()));
-        weeklyScheduleGrid.setOnScheduleClickListener(this::showScheduleDetailDialog);
+        tvDate.setText(new SimpleDateFormat("EEEE, MMMM d", Locale.getDefault())
+                .format(Calendar.getInstance().getTime()));
 
         dailyAdapter = new ScheduleEntryAdapter();
         dailyAdapter.setOnScheduleClickListener(this::showScheduleDetailDialog);
@@ -175,11 +169,8 @@ public class ScheduleFragment extends Fragment {
         view.findViewById(R.id.btn_add_schedule).setOnClickListener(v -> showScheduleFormDialog(null));
         view.findViewById(R.id.btn_empty_add_schedule).setOnClickListener(v -> showScheduleFormDialog(null));
 
-        showWeeklyView = !SessionManager.VIEW_MODE_DAILY.equals(sessionManager.getScheduleViewMode());
         selectedDay = normalizeDay(sessionManager.getSelectedScheduleDay(getDefaultDay()));
-        setupViewToggle();
         setupDailyDaySelector();
-        applyViewToggleUi();
         applyDailyDaySelectionUi();
 
         loadRoomOptions();
@@ -191,15 +182,16 @@ public class ScheduleFragment extends Fragment {
         if (allSchedulesLiveData != null) {
             allSchedulesLiveData.removeObservers(getViewLifecycleOwner());
         }
+
         allSchedulesLiveData = viewModel.getAllSchedules();
         allSchedulesLiveData.observe(getViewLifecycleOwner(), schedules -> {
             allSchedules.clear();
             if (schedules != null) {
                 allSchedules.addAll(schedules);
             }
-            weeklyScheduleGrid.setSchedules(allSchedules);
+
             dailyAdapter.setRoomNameMap(roomNameMap);
-            updateSummaryCard(findTodaySummaryEntry(allSchedules));
+            updateSummaryCard(allSchedules);
             renderScheduleContent();
         });
     }
@@ -209,21 +201,9 @@ public class ScheduleFragment extends Fragment {
         super.onResume();
         viewModel.syncSchedules();
 
-        boolean shouldShowWeekly = !SessionManager.VIEW_MODE_DAILY.equals(sessionManager.getScheduleViewMode());
         int restoredDay = normalizeDay(sessionManager.getSelectedScheduleDay(getDefaultDay()));
-        boolean changed = false;
-
-        if (showWeeklyView != shouldShowWeekly) {
-            showWeeklyView = shouldShowWeekly;
-            changed = true;
-        }
         if (selectedDay != restoredDay) {
             selectedDay = restoredDay;
-            changed = true;
-        }
-
-        if (changed) {
-            applyViewToggleUi();
             applyDailyDaySelectionUi();
             renderScheduleContent();
         }
@@ -246,7 +226,8 @@ public class ScheduleFragment extends Fragment {
             return;
         }
 
-        connectivityManager = (ConnectivityManager) requireContext().getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
+        connectivityManager = (ConnectivityManager) requireContext()
+                .getSystemService(android.content.Context.CONNECTIVITY_SERVICE);
         if (connectivityManager == null) {
             return;
         }
@@ -274,7 +255,6 @@ public class ScheduleFragment extends Fragment {
         try {
             connectivityManager.unregisterNetworkCallback(scheduleNetworkCallback);
         } catch (Exception ignored) {
-            // no-op
         }
 
         networkCallbackRegistered = false;
@@ -282,106 +262,104 @@ public class ScheduleFragment extends Fragment {
         connectivityManager = null;
     }
 
-    private void setupViewToggle() {
-        btnViewWeekly.setOnClickListener(v -> {
-            if (showWeeklyView) return;
-            showWeeklyView = true;
-            sessionManager.setScheduleViewMode(SessionManager.VIEW_MODE_WEEKLY);
-            applyViewToggleUi();
-            renderScheduleContent();
-        });
-
-        btnViewDaily.setOnClickListener(v -> {
-            if (!showWeeklyView) return;
-            showWeeklyView = false;
-            sessionManager.setScheduleViewMode(SessionManager.VIEW_MODE_DAILY);
-            applyViewToggleUi();
-            renderScheduleContent();
-        });
-    }
-
     private void setupDailyDaySelector() {
         for (int i = 0; i < dailyDayViews.length; i++) {
             TextView dayView = dailyDayViews[i];
             int day = i + 1;
+
             dayView.setOnClickListener(v -> {
                 selectedDay = day;
                 sessionManager.setSelectedScheduleDay(day);
                 applyDailyDaySelectionUi();
-                if (!showWeeklyView) {
-                    renderScheduleContent();
-                }
+                renderScheduleContent();
             });
         }
-    }
-
-    private void applyViewToggleUi() {
-        btnViewWeekly.setBackgroundResource(showWeeklyView
-                ? R.drawable.bg_schedule_view_toggle_selected
-                : R.drawable.bg_schedule_view_toggle_plain);
-        btnViewDaily.setBackgroundResource(showWeeklyView
-                ? R.drawable.bg_schedule_view_toggle_plain
-                : R.drawable.bg_schedule_view_toggle_selected);
-        btnViewWeekly.setTextColor(ContextCompat.getColor(requireContext(), showWeeklyView
-                ? android.R.color.white
-                : R.color.text_hint));
-        btnViewDaily.setTextColor(ContextCompat.getColor(requireContext(), showWeeklyView
-                ? R.color.text_hint
-                : android.R.color.white));
     }
 
     private void applyDailyDaySelectionUi() {
         for (int i = 0; i < dailyDayViews.length; i++) {
             TextView dayView = dailyDayViews[i];
             boolean selected = (i + 1) == selectedDay;
-            dayView.setBackgroundResource(selected ? R.drawable.bg_schedule_day_selected : R.drawable.bg_schedule_day_plain);
-            dayView.setTextColor(ContextCompat.getColor(requireContext(), selected ? R.color.green_primary : R.color.text_primary));
+
+            dayView.setBackgroundResource(
+                    selected ? R.drawable.bg_schedule_day_selected : R.drawable.bg_schedule_day_plain
+            );
+            dayView.setTextColor(ContextCompat.getColor(
+                    requireContext(),
+                    selected ? R.color.green_primary : R.color.text_primary
+            ));
         }
     }
 
     private void renderScheduleContent() {
-        dailyAdapter.setRoomNameMap(roomNameMap);
-
-        if (showWeeklyView) {
-            filteredDailySchedules.clear();
-            dailyAdapter.setItems(filteredDailySchedules);
-
-            boolean hasSchedules = !allSchedules.isEmpty();
-            weeklyScheduleScroll.setVisibility(hasSchedules ? View.VISIBLE : View.GONE);
-            dailyScheduleRecycler.setVisibility(View.GONE);
-            dailyDaySelectorContainer.setVisibility(View.GONE);
-            emptyState.setVisibility(hasSchedules ? View.GONE : View.VISIBLE);
-            return;
-        }
-
         filteredDailySchedules.clear();
+
         for (ScheduleEntryEntity entry : allSchedules) {
             if (entry.dayOfWeek == selectedDay) {
                 filteredDailySchedules.add(entry);
             }
         }
+
+        dailyAdapter.setRoomNameMap(roomNameMap);
         dailyAdapter.setItems(filteredDailySchedules);
 
-        boolean hasSchedules = !filteredDailySchedules.isEmpty();
-        weeklyScheduleScroll.setVisibility(View.GONE);
-        dailyScheduleRecycler.setVisibility(hasSchedules ? View.VISIBLE : View.GONE);
+        boolean hasSchedulesForSelectedDay = !filteredDailySchedules.isEmpty();
+        boolean hasAnySchedules = !allSchedules.isEmpty();
+
+        dailyScheduleRecycler.setVisibility(hasSchedulesForSelectedDay ? View.VISIBLE : View.GONE);
         dailyDaySelectorContainer.setVisibility(View.VISIBLE);
-        emptyState.setVisibility(hasSchedules ? View.GONE : View.VISIBLE);
+        emptyState.setVisibility(hasSchedulesForSelectedDay ? View.GONE : View.VISIBLE);
+
+        if (!hasSchedulesForSelectedDay) {
+            if (!hasAnySchedules) {
+                tvEmptyStateMessage.setText("No schedules yet.");
+            } else {
+                tvEmptyStateMessage.setText("No schedule found.");
+            }
+        }
     }
 
-    private void updateSummaryCard(@Nullable ScheduleEntryEntity entry) {
-        if (entry == null) {
-            cardSummary.setVisibility(View.GONE);
+    private void updateSummaryCard(@Nullable List<ScheduleEntryEntity> schedules) {
+        cardSummary.setVisibility(View.VISIBLE);
+
+        if (schedules == null || schedules.isEmpty()) {
+            tvSummaryLabel.setText("NO SCHEDULE YET");
+            tvSummaryTitle.setText("GET STARTED");
+            tvSummaryProfessor.setText("ADD YOUR FIRST CLASS TO BUILD YOUR SCHEDULE.");
+            tvSummaryTime.setText("YOUR CLASSES WILL APPEAR HERE.");
+            tvSummaryCode.setText("");
             return;
         }
 
-        cardSummary.setVisibility(View.VISIBLE);
-        tvSummaryCode.setText(entry.courseCode != null ? entry.courseCode : "");
-        tvSummaryTitle.setText(entry.title != null ? entry.title : "Class");
-        tvSummaryProfessor.setText(entry.instructor != null && !entry.instructor.isBlank()
-                ? "Prof. " + entry.instructor
-                : "Professor not set");
-        tvSummaryTime.setText(formatMinutes(entry.startMinutes) + " - " + formatMinutes(entry.endMinutes));
+        ScheduleEntryEntity todayEntry = findTodaySummaryEntry(schedules);
+
+        if (todayEntry == null) {
+            tvSummaryLabel.setText("YOU HAVE NO CLASS SCHEDULE TODAY");
+            tvSummaryTitle.setText("FREE TIME");
+            tvSummaryProfessor.setText("USE THIS TIME TO REST, STUDY, OR EXPLORE.");
+            tvSummaryTime.setText("YOUR NEXT SCHEDULE WILL APPEAR HERE.");
+            tvSummaryCode.setText("");
+            return;
+        }
+
+        tvSummaryLabel.setText("YOU HAVE CLASS SCHEDULE TODAY");
+        tvSummaryTitle.setText(todayEntry.title != null && !todayEntry.title.isBlank()
+                ? todayEntry.title.toUpperCase(Locale.getDefault())
+                : "CLASS");
+
+        if (todayEntry.instructor != null && !todayEntry.instructor.isBlank()) {
+            tvSummaryProfessor.setText(("PROF. " + todayEntry.instructor).toUpperCase(Locale.getDefault()));
+        } else if (todayEntry.courseCode != null && !todayEntry.courseCode.isBlank()) {
+            tvSummaryProfessor.setText(todayEntry.courseCode.toUpperCase(Locale.getDefault()));
+        } else {
+            tvSummaryProfessor.setText("TODAY'S CLASS");
+        }
+
+        tvSummaryTime.setText(
+                (formatMinutes(todayEntry.startMinutes) + " - " + formatMinutes(todayEntry.endMinutes))
+                        .toUpperCase(Locale.getDefault())
+        );
+        tvSummaryCode.setText("");
     }
 
     @Nullable
@@ -401,9 +379,11 @@ public class ScheduleFragment extends Fragment {
             if (entry.dayOfWeek != today) {
                 continue;
             }
+
             if (fallback == null || entry.startMinutes < fallback.startMinutes) {
                 fallback = entry;
             }
+
             if (entry.startMinutes >= currentMinutes &&
                     (nextClass == null || entry.startMinutes < nextClass.startMinutes)) {
                 nextClass = entry;
@@ -416,12 +396,14 @@ public class ScheduleFragment extends Fragment {
     private void loadRoomOptions() {
         viewModel.loadRooms(rooms -> {
             if (!isAdded()) return;
+
             requireActivity().runOnUiThread(() -> {
                 allRooms.clear();
                 allRooms.addAll(rooms);
 
                 roomOptions.clear();
                 roomNameMap.clear();
+
                 for (RoomEntity room : allRooms) {
                     if (isCampusAreaCode(room.code)) {
                         continue;
@@ -429,7 +411,7 @@ public class ScheduleFragment extends Fragment {
                     roomOptions.add(room);
                     roomNameMap.put(room.id, buildRoomDisplay(room));
                 }
-                weeklyScheduleGrid.setRoomNameMap(roomNameMap);
+
                 dailyAdapter.setRoomNameMap(roomNameMap);
                 renderScheduleContent();
             });
@@ -439,7 +421,9 @@ public class ScheduleFragment extends Fragment {
     private void showScheduleFormDialog(@Nullable ScheduleEntryEntity existing) {
         if (!isAdded()) return;
 
-        View formView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_schedule_form, null, false);
+        View formView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.dialog_schedule_form, null, false);
+
         EditText etSubjectName = formView.findViewById(R.id.et_subject_name);
         EditText etSubjectCode = formView.findViewById(R.id.et_subject_code);
         EditText etProfessor = formView.findViewById(R.id.et_professor);
@@ -449,26 +433,45 @@ public class ScheduleFragment extends Fragment {
         Spinner spinnerRoom = formView.findViewById(R.id.spinner_room_location);
         Spinner spinnerPlatform = formView.findViewById(R.id.spinner_platform);
         Spinner spinnerReminder = formView.findViewById(R.id.spinner_reminder);
+
         LinearLayout roomGroup = formView.findViewById(R.id.room_group);
         LinearLayout onlineGroup = formView.findViewById(R.id.online_group);
         TextView btnPickStart = formView.findViewById(R.id.btn_pick_start);
         TextView btnPickEnd = formView.findViewById(R.id.btn_pick_end);
 
         String[] classTypes = new String[]{"On-site", "Online"};
-        spinnerClassType.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, classTypes));
+        spinnerClassType.setAdapter(new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_spinner_dropdown_item,
+                classTypes
+        ));
 
         List<String> roomItems = new ArrayList<>();
         roomItems.add("Select Room");
         for (RoomEntity room : roomOptions) {
             roomItems.add(buildRoomDisplay(room));
         }
-        spinnerRoom.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, roomItems));
+        spinnerRoom.setAdapter(new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_spinner_dropdown_item,
+                roomItems
+        ));
 
         String[] platforms = new String[]{"Zoom", "Google Meet", "Microsoft Teams", "Other"};
-        spinnerPlatform.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, platforms));
+        spinnerPlatform.setAdapter(new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_spinner_dropdown_item,
+                platforms
+        ));
 
-        String[] reminderOptions = new String[]{"No reminder", "5 mins before", "10 mins before", "15 mins before", "30 mins before"};
-        spinnerReminder.setAdapter(new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, reminderOptions));
+        String[] reminderOptions = new String[]{
+                "No reminder", "5 mins before", "10 mins before", "15 mins before", "30 mins before"
+        };
+        spinnerReminder.setAdapter(new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_spinner_dropdown_item,
+                reminderOptions
+        ));
 
         spinnerClassType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -503,13 +506,16 @@ public class ScheduleFragment extends Fragment {
             etSubjectCode.setText(existing.courseCode != null ? existing.courseCode : "");
             etProfessor.setText(existing.instructor != null ? existing.instructor : "");
             etNotes.setText(existing.notes != null ? existing.notes : "");
+
             selectedDayHolder[0] = existing.dayOfWeek;
             setupFormDaySelection(formView, selectedDayHolder, existing.dayOfWeek);
 
             startMinutesHolder[0] = existing.startMinutes;
             endMinutesHolder[0] = existing.endMinutes;
+
             btnPickStart.setText(formatMinutes(existing.startMinutes));
             btnPickStart.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
+
             btnPickEnd.setText(formatMinutes(existing.endMinutes));
             btnPickEnd.setTextColor(ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
 
@@ -521,6 +527,7 @@ public class ScheduleFragment extends Fragment {
                     }
                 }
             }
+
             setupColorPicker(formView, selectedColorIndex, selectedColorIndex[0]);
 
             int typeIndex = existing.isOnline == 1 ? 1 : 0;
@@ -564,10 +571,12 @@ public class ScheduleFragment extends Fragment {
                     etSubjectName.setError("Subject name is required");
                     return;
                 }
+
                 if (startMinutesHolder[0] < 0 || endMinutesHolder[0] < 0) {
                     Toast.makeText(requireContext(), "Please select start and end time", Toast.LENGTH_SHORT).show();
                     return;
                 }
+
                 if (endMinutesHolder[0] <= startMinutesHolder[0]) {
                     Toast.makeText(requireContext(), "End time must be later than start time", Toast.LENGTH_SHORT).show();
                     return;
@@ -576,6 +585,7 @@ public class ScheduleFragment extends Fragment {
                 boolean online = spinnerClassType.getSelectedItemPosition() == 1;
                 Integer roomId = null;
                 String platform = null;
+
                 if (online) {
                     platform = spinnerPlatform.getSelectedItem() != null
                             ? String.valueOf(spinnerPlatform.getSelectedItem())
@@ -616,6 +626,7 @@ public class ScheduleFragment extends Fragment {
                         existing != null ? existing.createdAt : now,
                         now
                 );
+
                 if (existing != null) {
                     entry.id = existing.id;
                     entry.remoteId = existing.remoteId;
@@ -660,7 +671,9 @@ public class ScheduleFragment extends Fragment {
     private void showScheduleDetailDialog(ScheduleEntryEntity entry) {
         if (!isAdded()) return;
 
-        View detailView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_schedule_detail, null, false);
+        View detailView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.dialog_schedule_detail, null, false);
+
         TextView tvCode = detailView.findViewById(R.id.tv_detail_code);
         TextView tvTitle = detailView.findViewById(R.id.tv_detail_title);
         TextView tvProfessor = detailView.findViewById(R.id.tv_detail_professor);
@@ -674,16 +687,20 @@ public class ScheduleFragment extends Fragment {
         tvProfessor.setText(entry.instructor != null && !entry.instructor.isBlank()
                 ? "Prof. " + entry.instructor
                 : "Professor not set");
-        tvSchedule.setText(dayToLabel(entry.dayOfWeek) + " • " + formatMinutes(entry.startMinutes) + " - " + formatMinutes(entry.endMinutes));
+        tvSchedule.setText(dayToLabel(entry.dayOfWeek) + " • " +
+                formatMinutes(entry.startMinutes) + " - " + formatMinutes(entry.endMinutes));
 
         if (entry.isOnline == 1) {
-            tvLocation.setText("Location: Online" + (entry.onlinePlatform != null ? " • " + entry.onlinePlatform : ""));
+            tvLocation.setText("Location: Online" +
+                    (entry.onlinePlatform != null ? " • " + entry.onlinePlatform : ""));
         } else {
             tvLocation.setText("Location: " + resolveLocation(entry));
         }
 
         int reminder = entry.reminderMinutes;
-        tvReminder.setText(reminder > 0 ? "Reminder: " + reminder + " minutes before" : "Reminder: Off");
+        tvReminder.setText(reminder > 0
+                ? "Reminder: " + reminder + " minutes before"
+                : "Reminder: Off");
         tvNotes.setText(entry.notes != null && !entry.notes.isBlank() ? entry.notes : "No notes");
 
         AlertDialog detailDialog = new MaterialAlertDialogBuilder(requireContext())
@@ -708,23 +725,24 @@ public class ScheduleFragment extends Fragment {
                     .setTitle("Delete schedule")
                     .setMessage("Remove this class from your schedule?")
                     .setNegativeButton("Cancel", null)
-                    .setPositiveButton("Delete", (dialog, which) -> viewModel.deleteSchedule(entry, new ScheduleViewModel.SimpleCallback() {
-                        @Override
-                        public void onSuccess() {
-                            if (!isAdded()) return;
-                            requireActivity().runOnUiThread(() -> {
-                                detailDialog.dismiss();
-                                Toast.makeText(requireContext(), "Schedule deleted", Toast.LENGTH_SHORT).show();
-                            });
-                        }
+                    .setPositiveButton("Delete", (dialog, which) ->
+                            viewModel.deleteSchedule(entry, new ScheduleViewModel.SimpleCallback() {
+                                @Override
+                                public void onSuccess() {
+                                    if (!isAdded()) return;
+                                    requireActivity().runOnUiThread(() -> {
+                                        detailDialog.dismiss();
+                                        Toast.makeText(requireContext(), "Schedule deleted", Toast.LENGTH_SHORT).show();
+                                    });
+                                }
 
-                        @Override
-                        public void onError(String message) {
-                            if (!isAdded()) return;
-                            requireActivity().runOnUiThread(() ->
-                                    Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show());
-                        }
-                    }))
+                                @Override
+                                public void onError(String message) {
+                                    if (!isAdded()) return;
+                                    requireActivity().runOnUiThread(() ->
+                                            Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show());
+                                }
+                            }))
                     .show();
         });
 
@@ -768,6 +786,7 @@ public class ScheduleFragment extends Fragment {
                 applyFormDayUi(formView, selectedDayHolder[0]);
             });
         }
+
         selectedDayHolder[0] = selectedDayValue;
         applyFormDayUi(formView, selectedDayHolder[0]);
     }
@@ -777,7 +796,10 @@ public class ScheduleFragment extends Fragment {
             TextView tv = formView.findViewById(FORM_DAY_VIEW_IDS[i]);
             boolean selected = (i + 1) == selectedDayValue;
             tv.setBackgroundResource(selected ? R.drawable.bg_schedule_day_selected : R.drawable.bg_schedule_day_plain);
-            tv.setTextColor(ContextCompat.getColor(requireContext(), selected ? R.color.green_primary : R.color.text_primary));
+            tv.setTextColor(ContextCompat.getColor(
+                    requireContext(),
+                    selected ? R.color.green_primary : R.color.text_primary
+            ));
         }
     }
 
@@ -819,7 +841,8 @@ public class ScheduleFragment extends Fragment {
             GradientDrawable drawable = new GradientDrawable();
             drawable.setShape(GradientDrawable.OVAL);
             drawable.setColor(Color.parseColor(getScheduleColors()[i]));
-            drawable.setStroke(i == selectedIndex ? 3 : 1, Color.parseColor(i == selectedIndex ? "#5A5A5A" : "#D0D0D0"));
+            drawable.setStroke(i == selectedIndex ? 3 : 1,
+                    Color.parseColor(i == selectedIndex ? "#5A5A5A" : "#D0D0D0"));
             colorView.setBackground(drawable);
         }
     }

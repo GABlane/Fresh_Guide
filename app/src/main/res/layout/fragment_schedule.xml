@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     android:background="@color/background_default"
     android:orientation="vertical"
-    android:paddingTop="18dp"
     android:paddingBottom="8dp">
 
     <LinearLayout
@@ -13,8 +12,8 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="10dp"
-        android:paddingEnd="10dp">
+        android:paddingTop="15dp"
+        android:paddingBottom="15dp">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -28,216 +27,204 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/instrument_bold"
                 android:text="Class Schedule"
-                android:textColor="@color/green_primary"
-                android:textSize="40sp" />
+                android:textColor="@color/green_dark"
+                android:textSize="28sp" />
 
             <TextView
                 android:id="@+id/tv_schedule_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
                 android:fontFamily="@font/instrument_regular"
-                android:textColor="#9B9B9B"
+                android:textColor="@color/text_hint"
                 android:textSize="14sp" />
         </LinearLayout>
 
-        <TextView
+        <ImageView
             android:id="@+id/btn_add_schedule"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:gravity="center"
-            android:text="+"
-            android:textColor="@color/green_primary"
-            android:textSize="34sp" />
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="4dp"
+            android:contentDescription="Add schedule"
+            android:src="@drawable/ic_schedule_add"
+            android:tint="@color/green_dark"
+            />
     </LinearLayout>
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/card_today_summary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
-        android:visibility="gone"
-        app:cardCornerRadius="18dp"
+        android:layout_marginTop="14dp"
+        app:cardBackgroundColor="@color/media_placeholder_bg"
+        app:cardCornerRadius="24dp"
         app:cardElevation="0dp"
-        app:strokeColor="#D5D5D5"
+        app:strokeColor="@color/border_default"
         app:strokeWidth="1dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="14dp">
+            android:paddingStart="30dp"
+            android:paddingTop="20dp"
+            android:paddingEnd="30dp"
+            android:paddingBottom="18dp">
 
             <TextView
                 android:id="@+id/tv_summary_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="YOU HAVE CLASS SCHEDULE TODAY"
-                android:textColor="#7F7F7F"
-                android:textSize="10sp"
-                android:textStyle="bold" />
+                android:layout_gravity="center_horizontal"
+                android:fontFamily="@font/inter_medium"
+                android:includeFontPadding="false"
+                android:text="YOU HAVE NO CLASS SCHEDULE TODAY"
+                android:textAllCaps="true"
+                android:textColor="@color/text_hint"
+                android:textSize="11sp" />
 
-            <TextView
-                android:id="@+id/tv_summary_course_code"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textColor="#6E6E6E"
-                android:textSize="12sp" />
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/tv_summary_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#D63467"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                <ImageView
+                    android:id="@+id/img_summary_logo"
+                    android:layout_width="100dp"
+                    android:layout_height="74dp"
+                    android:contentDescription="@null"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ucc_logo" />
 
-            <TextView
-                android:id="@+id/tv_summary_professor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textColor="#5B5B5B"
-                android:textSize="12sp" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tv_summary_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/inter_bold"
+                        android:includeFontPadding="false"
+                        android:text="FREE TIME"
+                        android:textAllCaps="true"
+                        android:textColor="@color/text_primary"
+                        android:textSize="20sp" />
+
+                    <TextView
+                        android:id="@+id/tv_summary_professor"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:fontFamily="@font/inter_medium"
+                        android:includeFontPadding="false"
+                        android:lineSpacingExtra="1dp"
+                        android:text="Use this time to rest, study, or explore."
+                        android:textAllCaps="true"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/tv_summary_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textColor="#7A7A7A"
-                android:textSize="12sp" />
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="18dp"
+                android:fontFamily="@font/inter_medium"
+                android:includeFontPadding="false"
+                android:text="YOUR NEXT SCHEDULE WILL APPEAR HERE."
+                android:textAllCaps="true"
+                android:textColor="@color/text_hint"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tv_summary_course_code"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:visibility="gone" />
         </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="10dp"
-        android:paddingEnd="10dp">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Schedule view"
-            android:textColor="#757575"
-            android:textSize="13sp" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="34dp"
-            android:background="@drawable/bg_schedule_view_toggle_container"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingStart="3dp"
-            android:paddingEnd="3dp"
-            android:paddingTop="3dp"
-            android:paddingBottom="3dp">
-
-            <TextView
-                android:id="@+id/btn_view_weekly"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:background="@drawable/bg_schedule_view_toggle_selected"
-                android:gravity="center"
-                android:minWidth="66dp"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:text="Weekly"
-                android:textColor="@android:color/white"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/btn_view_daily"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:background="@drawable/bg_schedule_view_toggle_plain"
-                android:gravity="center"
-                android:minWidth="66dp"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:text="Daily"
-                android:textColor="#7B7B7B"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-    </LinearLayout>
 
     <HorizontalScrollView
         android:id="@+id/daily_day_selector_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:scrollbars="none"
-        android:visibility="gone">
+        android:layout_marginTop="14dp"
+        android:scrollbars="none">
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingStart="10dp"
-            android:paddingEnd="10dp">
+            android:paddingEnd="16dp">
 
             <TextView
                 android:id="@+id/daily_day_mon"
-                android:layout_width="46dp"
+                android:layout_width="52dp"
                 android:layout_height="30dp"
+                android:background="@drawable/bg_schedule_day_selected"
                 android:gravity="center"
                 android:text="Mon"
-                android:textColor="#2F2F2F"
+                android:textColor="@color/green_dark"
                 android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/daily_day_tue"
-                android:layout_width="46dp"
+                android:layout_width="52dp"
                 android:layout_height="30dp"
+                android:layout_marginStart="8dp"
                 android:gravity="center"
                 android:text="Tue"
-                android:textColor="#2F2F2F"
+                android:textColor="@color/text_primary"
                 android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/daily_day_wed"
-                android:layout_width="46dp"
+                android:layout_width="52dp"
                 android:layout_height="30dp"
+                android:layout_marginStart="8dp"
                 android:gravity="center"
                 android:text="Wed"
-                android:textColor="#2F2F2F"
+                android:textColor="@color/text_primary"
                 android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/daily_day_thu"
-                android:layout_width="46dp"
+                android:layout_width="52dp"
                 android:layout_height="30dp"
+                android:layout_marginStart="8dp"
                 android:gravity="center"
                 android:text="Thu"
-                android:textColor="#2F2F2F"
+                android:textColor="@color/text_primary"
                 android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/daily_day_fri"
-                android:layout_width="46dp"
+                android:layout_width="52dp"
                 android:layout_height="30dp"
+                android:layout_marginStart="8dp"
                 android:gravity="center"
                 android:text="Fri"
-                android:textColor="#2F2F2F"
+                android:textColor="@color/text_primary"
                 android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/daily_day_sat"
-                android:layout_width="46dp"
+                android:layout_width="52dp"
                 android:layout_height="30dp"
+                android:layout_marginStart="8dp"
                 android:gravity="center"
                 android:text="Sat"
-                android:textColor="#2F2F2F"
+                android:textColor="@color/text_primary"
                 android:textSize="13sp" />
         </LinearLayout>
     </HorizontalScrollView>
@@ -246,31 +233,15 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="10dp"
-        android:paddingStart="10dp"
-        android:paddingEnd="10dp"
+        android:layout_marginTop="12dp"
         android:paddingBottom="8dp">
-
-        <ScrollView
-            android:id="@+id/scroll_weekly_schedule"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fillViewport="true"
-            android:scrollbars="vertical"
-            android:visibility="gone">
-
-            <com.example.freshguide.ui.view.WeeklyScheduleGridView
-                android:id="@+id/weekly_schedule_grid"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-        </ScrollView>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_daily_schedule"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:paddingBottom="10dp"
+            android:paddingBottom="12dp"
             android:scrollbars="vertical"
             android:visibility="gone" />
 
@@ -283,17 +254,17 @@
             android:padding="16dp">
 
             <ImageView
-                android:layout_width="72dp"
-                android:layout_height="72dp"
-                android:src="@drawable/ic_my_schedule"
-                android:tint="#CFCFCF" />
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@drawable/ic_my_schedule"/>
 
             <TextView
+                android:id="@+id/tv_empty_state_message"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="12dp"
                 android:text="No schedule found."
-                android:textColor="#CCCCCC"
+                android:textColor="@color/text_hint"
                 android:textSize="14sp" />
 
             <TextView
@@ -302,14 +273,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:background="@drawable/bg_schedule_add_outline"
-                android:drawableStart="@drawable/ic_nav_schedule"
+                android:drawableStart="@drawable/ic_schedule_add"
+                android:drawableTint="@color/green_dark"
                 android:drawablePadding="6dp"
-                android:paddingStart="18dp"
-                android:paddingTop="8dp"
-                android:paddingEnd="18dp"
-                android:paddingBottom="8dp"
+                android:gravity="center_vertical"
+                android:paddingStart="25dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="25dp"
+                android:paddingBottom="6dp"
                 android:text="Schedule"
-                android:textColor="@color/green_primary"
+                android:textColor="@color/green_dark"
                 android:textSize="14sp" />
         </LinearLayout>
     </FrameLayout>
