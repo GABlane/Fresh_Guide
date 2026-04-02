@@ -91,7 +91,7 @@ app/src/main/
 |---|---|
 | **Gab** | Team Lead Developer |
 | **Angela** | Frontend Developer |
-| **Jovylyn** | Frontend Developer |
+| **Jovilyn** | Frontend Developer |
 | **Joyce** | Frontend Developer |
 | **Bryan** | Backend Developer |
 | **Trisha** | Backend Developer |
