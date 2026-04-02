@@ -4,10 +4,8 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.ShapeDrawable;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.os.Build;
@@ -26,7 +24,6 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,6 +40,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.freshguide.R;
@@ -50,6 +48,7 @@ import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.model.entity.ScheduleEntryEntity;
 import com.example.freshguide.ui.adapter.RoomDropdownAdapter;
 import com.example.freshguide.ui.adapter.ScheduleEntryAdapter;
+import com.example.freshguide.ui.adapter.TimeWheelAdapter;
 import com.example.freshguide.util.ScheduleReminderHelper;
 import com.example.freshguide.util.SessionManager;
 import com.example.freshguide.viewmodel.ScheduleViewModel;
@@ -58,9 +57,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.MaterialAutoCompleteTextView;
 
-import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -893,8 +892,13 @@ public class ScheduleFragment extends Fragment {
         if (!isAdded()) return;
 
         int value = isStart ? binding.startMinutes : binding.endMinutes;
-        int initialHour24 = value >= 0 ? value / 60 : 9;
-        int initialMinute = value >= 0 ? value % 60 : 0;
+
+        Calendar now = Calendar.getInstance();
+        int fallbackHour24 = now.get(Calendar.HOUR_OF_DAY);
+        int fallbackMinute = now.get(Calendar.MINUTE);
+
+        int initialHour24 = value >= 0 ? value / 60 : fallbackHour24;
+        int initialMinute = value >= 0 ? value % 60 : fallbackMinute;
 
         int initialAmPm = initialHour24 >= 12 ? 1 : 0;
         int initialHour12 = initialHour24 % 12;
@@ -903,39 +907,41 @@ public class ScheduleFragment extends Fragment {
         View pickerView = LayoutInflater.from(requireContext())
                 .inflate(R.layout.dialog_time_picker_custom, null, false);
 
-        NumberPicker pickerHour = pickerView.findViewById(R.id.picker_hour);
-        NumberPicker pickerMinute = pickerView.findViewById(R.id.picker_minute);
-        NumberPicker pickerAmPm = pickerView.findViewById(R.id.picker_ampm);
+        RecyclerView rvHour = pickerView.findViewById(R.id.rv_hour);
+        RecyclerView rvMinute = pickerView.findViewById(R.id.rv_minute);
+        TextView btnAm = pickerView.findViewById(R.id.btn_am);
+        TextView btnPm = pickerView.findViewById(R.id.btn_pm);
         TextView btnConfirm = pickerView.findViewById(R.id.btn_time_confirm);
 
-        String[] hours = {"01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"};
-        String[] minutes = new String[60];
+        final int[] selectedAmPm = {initialAmPm};
+
+        List<String> hourItems = Arrays.asList(
+                "01", "02", "03", "04", "05", "06",
+                "07", "08", "09", "10", "11", "12"
+        );
+
+        List<String> minuteItems = new ArrayList<>();
         for (int i = 0; i < 60; i++) {
-            minutes[i] = String.format(Locale.getDefault(), "%02d", i);
+            minuteItems.add(String.format(Locale.getDefault(), "%02d", i));
         }
-        String[] ampm = {"AM", "PM"};
 
-        pickerHour.setMinValue(0);
-        pickerHour.setMaxValue(hours.length - 1);
-        pickerHour.setDisplayedValues(hours);
-        pickerHour.setWrapSelectorWheel(true);
-        pickerHour.setValue(initialHour12 - 1);
+        TimeWheelAdapter hourAdapter = new TimeWheelAdapter(hourItems);
+        TimeWheelAdapter minuteAdapter = new TimeWheelAdapter(minuteItems);
 
-        pickerMinute.setMinValue(0);
-        pickerMinute.setMaxValue(minutes.length - 1);
-        pickerMinute.setDisplayedValues(minutes);
-        pickerMinute.setWrapSelectorWheel(true);
-        pickerMinute.setValue(initialMinute);
+        setupWheelRecycler(rvHour, hourAdapter, initialHour12 - 1);
+        setupWheelRecycler(rvMinute, minuteAdapter, initialMinute);
 
-        pickerAmPm.setMinValue(0);
-        pickerAmPm.setMaxValue(ampm.length - 1);
-        pickerAmPm.setDisplayedValues(ampm);
-        pickerAmPm.setWrapSelectorWheel(false);
-        pickerAmPm.setValue(initialAmPm);
+        updateAmPmButtons(btnAm, btnPm, selectedAmPm[0]);
 
-        styleNumberPicker(pickerHour);
-        styleNumberPicker(pickerMinute);
-        styleNumberPicker(pickerAmPm);
+        btnAm.setOnClickListener(v -> {
+            selectedAmPm[0] = 0;
+            updateAmPmButtons(btnAm, btnPm, selectedAmPm[0]);
+        });
+
+        btnPm.setOnClickListener(v -> {
+            selectedAmPm[0] = 1;
+            updateAmPmButtons(btnAm, btnPm, selectedAmPm[0]);
+        });
 
         BottomSheetDialog dialog = new BottomSheetDialog(
                 requireContext(),
@@ -959,12 +965,14 @@ public class ScheduleFragment extends Fragment {
         });
 
         btnConfirm.setOnClickListener(v -> {
-            int selectedHour12 = pickerHour.getValue() + 1;
-            int selectedMinute = pickerMinute.getValue();
-            int selectedAmPm = pickerAmPm.getValue();
+            int selectedHourIndex = getCenteredAdapterPosition(rvHour);
+            int selectedMinuteIndex = getCenteredAdapterPosition(rvMinute);
+
+            int selectedHour12 = selectedHourIndex + 1;
+            int selectedMinute = selectedMinuteIndex;
 
             int hour24;
-            if (selectedAmPm == 0) {
+            if (selectedAmPm[0] == 0) {
                 hour24 = (selectedHour12 == 12) ? 0 : selectedHour12;
             } else {
                 hour24 = (selectedHour12 == 12) ? 12 : selectedHour12 + 12;
@@ -988,60 +996,112 @@ public class ScheduleFragment extends Fragment {
         dialog.show();
     }
 
-    private void styleNumberPicker(NumberPicker picker) {
-        int green = ContextCompat.getColor(requireContext(), R.color.green_primary);
+    private void updateAmPmButtons(TextView btnAm, TextView btnPm, int selectedAmPm) {
+        boolean isAmSelected = selectedAmPm == 0;
 
-        setNumberPickerDividerColor(picker, green);
-        setNumberPickerTextColor(picker, green);
+        btnAm.setBackgroundResource(isAmSelected
+                ? R.drawable.bg_form_chip_selected
+                : R.drawable.bg_form_chip_unselected);
+        btnPm.setBackgroundResource(!isAmSelected
+                ? R.drawable.bg_form_chip_selected
+                : R.drawable.bg_form_chip_unselected);
 
-        for (int i = 0; i < picker.getChildCount(); i++) {
-            View child = picker.getChildAt(i);
-            if (child instanceof EditText) {
-                EditText editText = (EditText) child;
-                editText.setTextColor(green);
-                editText.setTextSize(24f);
-                editText.setTypeface(ResourcesCompat.getFont(requireContext(), R.font.inter_medium));
-                editText.setFocusable(false);
-                editText.setClickable(false);
-            }
-        }
+        btnAm.setTextColor(ContextCompat.getColor(
+                requireContext(),
+                isAmSelected ? android.R.color.white : R.color.green_primary
+        ));
+        btnPm.setTextColor(ContextCompat.getColor(
+                requireContext(),
+                !isAmSelected ? android.R.color.white : R.color.green_primary
+        ));
     }
 
-    private void setNumberPickerTextColor(NumberPicker numberPicker, int color) {
-        for (int i = 0; i < numberPicker.getChildCount(); i++) {
-            View child = numberPicker.getChildAt(i);
-            if (child instanceof EditText) {
-                try {
-                    EditText editText = (EditText) child;
-                    editText.setTextColor(color);
-                    editText.setTextSize(24f);
-                    editText.setTypeface(ResourcesCompat.getFont(requireContext(), R.font.inter_medium));
+    private void setupWheelRecycler(
+            RecyclerView recyclerView,
+            TimeWheelAdapter adapter,
+            int initialPosition
+    ) {
+        LinearLayoutManager layoutManager = new LinearLayoutManager(
+                requireContext(),
+                LinearLayoutManager.VERTICAL,
+                false
+        );
 
-                    Field selectorWheelPaintField = NumberPicker.class.getDeclaredField("mSelectorWheelPaint");
-                    selectorWheelPaintField.setAccessible(true);
-                    Paint paint = (Paint) selectorWheelPaintField.get(numberPicker);
-                    paint.setColor(color);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setItemAnimator(null);
+        recyclerView.setNestedScrollingEnabled(false);
 
-                    numberPicker.invalidate();
-                } catch (Exception ignored) {
+        LinearSnapHelper snapHelper = new LinearSnapHelper();
+        snapHelper.attachToRecyclerView(recyclerView);
+
+        recyclerView.post(() -> {
+            int itemHeight = dpToPx(72);
+            int offset = recyclerView.getHeight() / 2 - itemHeight / 2;
+            layoutManager.scrollToPositionWithOffset(initialPosition, offset);
+
+            recyclerView.post(() -> {
+                int centered = getCenteredAdapterPosition(recyclerView);
+                adapter.setSelectedPosition(centered);
+            });
+        });
+
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView rv, int newState) {
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    rv.post(() -> {
+                        int centered = getCenteredAdapterPosition(rv);
+                        adapter.setSelectedPosition(centered);
+                    });
                 }
             }
-        }
+        });
     }
 
-    private void setNumberPickerDividerColor(NumberPicker numberPicker, int color) {
-        try {
-            Field dividerField = NumberPicker.class.getDeclaredField("mSelectionDivider");
-            dividerField.setAccessible(true);
+//    private void updateWheelSelection(
+//            RecyclerView recyclerView,
+//            TimeWheelAdapter adapter,
+//            LinearSnapHelper snapHelper
+//    ) {
+//        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+//        if (layoutManager == null) return;
+//
+//        View snapView = snapHelper.findSnapView(layoutManager);
+//        if (snapView == null) return;
+//
+//        int position = layoutManager.getPosition(snapView);
+//        if (position == RecyclerView.NO_POSITION) return;
+//
+//        adapter.setSelectedPosition(position);
+//    }
 
-            ShapeDrawable dividerDrawable = new ShapeDrawable();
-            dividerDrawable.getPaint().setColor(color);
-            dividerDrawable.setIntrinsicHeight(2);
+    private int getCenteredAdapterPosition(RecyclerView recyclerView) {
+        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+        if (layoutManager == null) return 0;
 
-            dividerField.set(numberPicker, dividerDrawable);
-            numberPicker.invalidate();
-        } catch (Exception ignored) {
+        int centerY = recyclerView.getHeight() / 2;
+
+        View closestChild = null;
+        int closestDistance = Integer.MAX_VALUE;
+
+        for (int i = 0; i < recyclerView.getChildCount(); i++) {
+            View child = recyclerView.getChildAt(i);
+            int childCenterY = (child.getTop() + child.getBottom()) / 2;
+            int distance = Math.abs(childCenterY - centerY);
+
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestChild = child;
+            }
         }
+
+        if (closestChild == null) return 0;
+
+        int position = recyclerView.getChildAdapterPosition(closestChild);
+        if (position == RecyclerView.NO_POSITION) return 0;
+
+        return position;
     }
 
     private void showScheduleDetailDialog(ScheduleEntryEntity entry) {

@@ -108,5 +108,14 @@
     <color name="glass_highlight_top">#26FFFFFF</color>
     <color name="glass_highlight_bottom">#00FFFFFF</color>
 
+    <color name="time_picker_modal_bg">#1F1F1F</color>
+    <color name="time_picker_modal_stroke">#4CAF50</color>
+    <color name="time_picker_confirm_bg">#2A3A2A</color>
+    <color name="time_picker_confirm_stroke">#4CAF50</color>
+    <color name="time_picker_confirm_text">#D7F6D5</color>
+    <color name="time_picker_text_primary">#6FCF73</color>
+    <color name="time_picker_text_secondary">#3E6C40</color>
+    <color name="time_picker_divider">#664CAF50</color>
+
     <color name="label">#D3F6D0</color>
 </resources>
