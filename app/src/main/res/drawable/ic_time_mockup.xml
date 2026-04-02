@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="22dp"
+    android:height="22dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <path
+        android:fillColor="@color/schedule_time_placeholder"
+        android:pathData="M12,2A10,10 0 1,0 12,22A10,10 0 1,0 12,2Z" />
+
+    <path
+        android:fillColor="@color/input_background"
+        android:pathData="M12,6A6,6 0 1,0 12,18A6,6 0 1,0 12,6Z" />
+
+    <path
+        android:fillColor="@color/schedule_time_button"
+        android:pathData="M12,8c0.55,0 1,0.45 1,1v2.59l1.7,1.7a1,1 0 1,1 -1.4,1.41l-2,-2A1,1 0 0,1 11,12V9c0,-0.55 0.45,-1 1,-1z" />
+</vector>
