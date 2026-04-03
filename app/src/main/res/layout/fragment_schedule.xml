@@ -159,7 +159,8 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- ── Day Selector ── -->
+    <!-- ── Day Selector row — mirrors the timeline layout:
+         [36dp label gutter | scrollable Mon–Sat columns] ── -->
     <LinearLayout
         android:id="@+id/daily_day_selector_container"
         android:layout_width="match_parent"
@@ -168,113 +169,128 @@
         android:layout_marginBottom="4dp"
         android:orientation="horizontal">
 
-        <FrameLayout
+        <!-- 36dp gutter to align with time-label column -->
+        <View
+            android:layout_width="36dp"
+            android:layout_height="match_parent" />
+
+        <!-- Scrollable day labels — each FrameLayout is exactly 68dp wide to match DAY_COLUMN_WIDTH_DP -->
+        <HorizontalScrollView
+            android:id="@+id/day_selector_scroll"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:scrollbars="none"
+            android:overScrollMode="never">
 
-            <TextView
-                android:id="@+id/daily_day_mon"
+            <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:text="Mon"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp" />
-        </FrameLayout>
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
 
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1">
+                <FrameLayout
+                    android:layout_width="68dp"
+                    android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/daily_day_tue"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:text="Tue"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp" />
-        </FrameLayout>
+                    <TextView
+                        android:id="@+id/daily_day_mon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:text="Mon"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
+                </FrameLayout>
 
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1">
+                <FrameLayout
+                    android:layout_width="68dp"
+                    android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/daily_day_wed"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:text="Wed"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp" />
-        </FrameLayout>
+                    <TextView
+                        android:id="@+id/daily_day_tue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:text="Tue"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
+                </FrameLayout>
 
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1">
+                <FrameLayout
+                    android:layout_width="68dp"
+                    android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/daily_day_thu"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:text="Thu"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp" />
-        </FrameLayout>
+                    <TextView
+                        android:id="@+id/daily_day_wed"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:text="Wed"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
+                </FrameLayout>
 
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1">
+                <FrameLayout
+                    android:layout_width="68dp"
+                    android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/daily_day_fri"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:text="Fri"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp" />
-        </FrameLayout>
+                    <TextView
+                        android:id="@+id/daily_day_thu"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:text="Thu"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
+                </FrameLayout>
 
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1">
+                <FrameLayout
+                    android:layout_width="68dp"
+                    android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/daily_day_sat"
-                android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:paddingStart="10dp"
-                android:paddingEnd="10dp"
-                android:text="Sat"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp" />
-        </FrameLayout>
+                    <TextView
+                        android:id="@+id/daily_day_fri"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:text="Fri"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="68dp"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/daily_day_sat"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                        android:text="Sat"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
+                </FrameLayout>
+            </LinearLayout>
+        </HorizontalScrollView>
     </LinearLayout>
 
     <!-- ── Content area: Timeline OR Empty State ── -->
@@ -283,7 +299,7 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <!-- Timeline ScrollView (shown when schedules exist) -->
+        <!-- Timeline ScrollView (vertical scroll; horizontal scroll is inside via Java) -->
         <ScrollView
             android:id="@+id/timeline_scroll"
             android:layout_width="match_parent"
