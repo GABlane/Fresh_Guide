@@ -3,337 +3,357 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/background_default"
     android:fillViewport="true"
-    android:background="@color/background_default">
+    android:overScrollMode="never"
+    android:scrollbars="none">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingStart="10dp"
+        android:paddingTop="24dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="40dp">
 
-        <!-- Theme -->
-        <LinearLayout
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:fontFamily="@font/inter_bold"
+            android:text="Settings"
+            android:textColor="@color/green_primary"
+            android:textSize="28sp" />
+
+        <!-- Appearance -->
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_settings_theme"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            android:background="@color/background_card"
-            android:orientation="vertical"
-            android:padding="16dp">
+            app:cardBackgroundColor="@color/background_card"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/border_default"
+            app:strokeWidth="1dp">
 
             <LinearLayout
-                android:id="@+id/header_theme"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Theme"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/indicator_theme"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=">"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/content_theme"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
                 android:orientation="vertical"
-                android:visibility="gone">
+                android:paddingStart="20dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="8dp">
 
-                <RadioGroup
-                    android:id="@+id/theme_radio_group"
+                <LinearLayout
+                    android:id="@+id/header_theme"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/inter_bold"
+                        android:text="Appearance"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" />
+
+                    <ImageView
+                        android:id="@+id/indicator_theme"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_chevron_down"
+                        android:tint="@color/green_primary"
+                        android:contentDescription="@null" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/content_theme"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:paddingBottom="8dp">
 
-                    <RadioButton
-                        android:id="@+id/radio_theme_light"
+                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Light" />
+                        android:layout_marginBottom="10dp"
+                        android:fontFamily="@font/inter_medium"
+                        android:letterSpacing="0.06"
+                        android:text="THEME MODE"
+                        android:textAllCaps="true"
+                        android:textColor="@color/text_hint"
+                        android:textSize="10sp" />
 
-                    <RadioButton
-                        android:id="@+id/radio_theme_dark"
-                        android:layout_width="wrap_content"
+                    <RadioGroup
+                        android:id="@+id/theme_radio_group"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Dark" />
+                        android:orientation="vertical">
 
-                    <RadioButton
-                        android:id="@+id/radio_theme_system"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="System Default" />
-                </RadioGroup>
+                        <RadioButton
+                            android:id="@+id/radio_theme_light"
+                            android:layout_width="match_parent"
+                            android:layout_height="50dp"
+                            android:fontFamily="@font/inter_medium"
+                            android:gravity="center_vertical"
+                            android:text="Light"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp" />
+
+                        <RadioButton
+                            android:id="@+id/radio_theme_dark"
+                            android:layout_width="match_parent"
+                            android:layout_height="50dp"
+                            android:fontFamily="@font/inter_medium"
+                            android:gravity="center_vertical"
+                            android:text="Dark"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp" />
+
+                        <RadioButton
+                            android:id="@+id/radio_theme_system"
+                            android:layout_width="match_parent"
+                            android:layout_height="50dp"
+                            android:fontFamily="@font/inter_medium"
+                            android:gravity="center_vertical"
+                            android:text="System Default"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp" />
+                    </RadioGroup>
+                </LinearLayout>
             </LinearLayout>
-        </LinearLayout>
-
-        <!-- Schedule -->
-        <LinearLayout
-            android:id="@+id/card_settings_schedule"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:background="@color/background_card"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <LinearLayout
-                android:id="@+id/header_schedule"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Schedule Preferences"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/indicator_schedule"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="v"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/content_schedule"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Default View" />
-
-                <Spinner
-                    android:id="@+id/spinner_default_view"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Default Reminder" />
-
-                <Spinner
-                    android:id="@+id/spinner_default_reminder"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/switch_use_24_hour"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Use 24-hour format" />
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/switch_start_week_sunday"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Start week on Sunday" />
-            </LinearLayout>
-        </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- Notifications -->
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_settings_notifications"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="12dp"
-            android:background="@color/background_card"
-            android:orientation="vertical"
-            android:padding="16dp">
+            app:cardBackgroundColor="@color/background_card"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/border_default"
+            app:strokeWidth="1dp">
 
             <LinearLayout
-                android:id="@+id/header_notifications"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Notifications"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/indicator_notifications"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=">"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/content_notifications"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
                 android:orientation="vertical"
-                android:visibility="gone">
+                android:paddingStart="20dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="4dp">
 
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/switch_schedule_notifications"
+                <LinearLayout
+                    android:id="@+id/header_notifications"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/inter_bold"
+                        android:text="Notifications"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" />
+
+                    <ImageView
+                        android:id="@+id/indicator_notifications"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_chevron_down"
+                        android:tint="@color/green_primary"
+                        android:rotation="-90"
+                        android:contentDescription="@null" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/content_notifications"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Schedule notifications" />
+                    android:orientation="vertical"
+                    android:paddingBottom="14dp"
+                    android:visibility="gone">
 
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/switch_sync_alerts"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Sync alerts" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/inter_medium"
+                                android:text="Class reminders"
+                                android:textColor="@color/text_primary"
+                                android:textSize="14sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:fontFamily="@font/inter_regular"
+                                android:text="Get notified before your class starts"
+                                android:textColor="@color/text_hint"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switch_schedule_notifications"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/border_subtle" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/inter_medium"
+                                android:text="Sync alerts"
+                                android:textColor="@color/text_primary"
+                                android:textSize="14sp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:fontFamily="@font/inter_regular"
+                                android:text="Notify when app data is updated"
+                                android:textColor="@color/text_hint"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switch_sync_alerts"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+                </LinearLayout>
             </LinearLayout>
-        </LinearLayout>
-
-        <!-- Data and Sync -->
-        <LinearLayout
-            android:id="@+id/card_settings_data"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:background="@color/background_card"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <LinearLayout
-                android:id="@+id/header_data"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Data and Sync"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/indicator_data"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=">"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/content_data"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/switch_auto_sync"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Auto sync" />
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/switch_wifi_only"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Sync on Wi-Fi only" />
-
-                <TextView
-                    android:id="@+id/tv_sync_version_info"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Data version: Not synced" />
-
-                <Button
-                    android:id="@+id/btn_reset_preferences"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="Reset Preferences" />
-            </LinearLayout>
-        </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <!-- About -->
-        <LinearLayout
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_settings_about"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/background_card"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_marginBottom="12dp"
+            app:cardBackgroundColor="@color/background_card"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/border_default"
+            app:strokeWidth="1dp">
 
             <LinearLayout
-                android:id="@+id/header_about"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="About and Support"
-                    android:textSize="16sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/indicator_about"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=">"
-                    android:textSize="16sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/content_about"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
                 android:orientation="vertical"
-                android:visibility="gone">
+                android:paddingStart="20dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="4dp">
 
-                <TextView
-                    android:id="@+id/tv_app_version_info"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="App version: 1.0" />
+                <LinearLayout
+                    android:id="@+id/header_about"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                <TextView
-                    android:id="@+id/tv_role_info"
-                    android:layout_width="wrap_content"
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/inter_bold"
+                        android:text="About"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" />
+
+                    <ImageView
+                        android:id="@+id/indicator_about"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_chevron_down"
+                        android:tint="@color/green_primary"
+                        android:rotation="-90"
+                        android:contentDescription="@null" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/content_about"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="Role: student" />
+                    android:orientation="vertical"
+                    android:paddingBottom="16dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/tv_app_version_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/inter_medium"
+                        android:text="App version: 1.0"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/tv_role_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:fontFamily="@font/inter_medium"
+                        android:text="Role: student"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
+                </LinearLayout>
             </LinearLayout>
-        </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Reset -->
+        <TextView
+            android:id="@+id/btn_reset_preferences"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/bg_schedule_add_outline"
+            android:fontFamily="@font/inter_medium"
+            android:gravity="center"
+            android:text="Reset Settings"
+            android:textColor="@color/green_dark"
+            android:textSize="14sp" />
 
     </LinearLayout>
 </ScrollView>
