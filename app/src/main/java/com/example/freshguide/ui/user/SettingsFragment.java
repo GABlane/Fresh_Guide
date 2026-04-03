@@ -5,7 +5,6 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,6 +41,11 @@ public class SettingsFragment extends Fragment {
 
     private boolean bindingValues;
 
+    private TextView tvAboutContact;
+    private TextView tvPrivacyPolicy;
+    private TextView tvTerms;
+    private TextView tvWebsite;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -69,55 +73,20 @@ public class SettingsFragment extends Fragment {
         tvProfileName = view.findViewById(R.id.tv_profile_name);
         tvProfileSubtitle = view.findViewById(R.id.tv_profile_subtitle);
 
+        tvAboutContact = view.findViewById(R.id.tv_about_contact);
+        tvPrivacyPolicy = view.findViewById(R.id.tv_privacy_policy);
+        tvTerms = view.findViewById(R.id.tv_terms);
+        tvWebsite = view.findViewById(R.id.tv_website);
+
         themeRadioGroup = view.findViewById(R.id.theme_radio_group);
-
-        setupExpandableSection(
-                view.findViewById(R.id.header_theme),
-                view.findViewById(R.id.content_theme),
-                view.findViewById(R.id.indicator_theme),
-                true
-        );
-
-        setupExpandableSection(
-                view.findViewById(R.id.header_notifications),
-                view.findViewById(R.id.content_notifications),
-                view.findViewById(R.id.indicator_notifications),
-                false
-        );
-
-        setupExpandableSection(
-                view.findViewById(R.id.header_support),
-                view.findViewById(R.id.content_support),
-                view.findViewById(R.id.indicator_support),
-                false
-        );
-
-        setupExpandableSection(
-                view.findViewById(R.id.header_about),
-                view.findViewById(R.id.content_about),
-                view.findViewById(R.id.indicator_about),
-                false
-        );
 
         setupNotificationControls();
         setupThemeControls();
         setupProfileHeader();
         setupAboutSection();
         applyRoleVisibility();
-        setupResetButton(view.findViewById(R.id.btn_reset_preferences));
 
         bindSavedValues();
-    }
-
-    private void setupExpandableSection(View header, View content, ImageView indicator, boolean expanded) {
-        content.setVisibility(expanded ? View.VISIBLE : View.GONE);
-        indicator.setRotation(expanded ? 0f : -90f);
-
-        header.setOnClickListener(v -> {
-            boolean isExpanded = content.getVisibility() == View.VISIBLE;
-            content.setVisibility(isExpanded ? View.GONE : View.VISIBLE);
-            indicator.animate().rotation(isExpanded ? -90f : 0f).setDuration(180).start();
-        });
     }
 
     private void setupNotificationControls() {
@@ -193,24 +162,27 @@ public class SettingsFragment extends Fragment {
     }
 
     private void setupAboutSection() {
-        tvAppVersionInfo.setText("App version: " + BuildConfig.VERSION_NAME);
-        tvRoleInfo.setText("Role: " + (sessionManager.isAdmin() ? "admin" : "student"));
+        tvAppVersionInfo.setText("Version " + BuildConfig.VERSION_NAME);
+        tvRoleInfo.setText("Role: " + (sessionManager.isAdmin() ? "Admin" : "Student"));
         tvDeveloperInfo.setText("Developed by: BSCS 3A and ETC.");
-        tvAboutDescription.setText("FreshGuide is a mobile application designed to help students manage schedules, reminders, and academic activities more efficiently.");
-    }
+        tvAboutDescription.setText(
+                "FreshGuide is a mobile application built for freshmen. " +
+                        "It helps students explore the campus through map guidance and stay organized with class schedule support."
+        );
 
+    }
     private void applyRoleVisibility() {
         boolean isAdmin = sessionManager.isAdmin();
         cardNotifications.setVisibility(isAdmin ? View.GONE : View.VISIBLE);
     }
 
-    private void setupResetButton(View resetButton) {
-        resetButton.setOnClickListener(v -> {
-            sessionManager.resetAppPreferences();
-            bindSavedValues();
-            Toast.makeText(requireContext(), "Settings reset", Toast.LENGTH_SHORT).show();
-        });
-    }
+//    private void setupResetButton(View resetButton) {
+//        resetButton.setOnClickListener(v -> {
+//            sessionManager.resetAppPreferences();
+//            bindSavedValues();
+//            Toast.makeText(requireContext(), "Settings reset", Toast.LENGTH_SHORT).show();
+//        });
+//    }
 
     private void bindSavedValues() {
         bindingValues = true;

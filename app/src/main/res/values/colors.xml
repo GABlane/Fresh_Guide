@@ -121,6 +121,11 @@
     <color name="time_picker_wheel_fade_opaque">#FFFFFFFF</color>
     <color name="time_picker_wheel_fade_transparent">#00FFFFFF</color>
 
+    <color name="profile_gradient_start">#A7E36C</color>
+    <color name="profile_gradient_mid">#39B54A</color>
+    <color name="profile_gradient_end">#12770E</color>
+    <color name="profile_ring_stroke">#D6EFCF</color>
+
 
 
     <color name="label">#188114</color>
