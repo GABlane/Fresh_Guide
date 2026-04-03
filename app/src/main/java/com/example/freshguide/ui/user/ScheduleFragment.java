@@ -91,6 +91,8 @@ public class ScheduleFragment extends Fragment {
     /** Number of day columns in the grid (Mon–Sat) */
     private static final int DAY_COLUMN_COUNT = 6;
 
+//    private FrameLayout dayHeaderHost;
+
     private final ActivityResultLauncher<String> notificationPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
                 if (!granted && isAdded()) {
@@ -112,7 +114,6 @@ public class ScheduleFragment extends Fragment {
     private View emptyState;
     private View cardSummary;
 
-    private TextView[] dailyDayViews;
     private TextView tvSummaryCode;
     private TextView tvSummaryTitle;
     private TextView tvSummaryProfessor;
@@ -154,6 +155,7 @@ public class ScheduleFragment extends Fragment {
 
         viewModel = new ViewModelProvider(this).get(ScheduleViewModel.class);
         sessionManager = SessionManager.getInstance(requireContext());
+//        dayHeaderHost = view.findViewById(R.id.day_header_host);
 
         ScheduleReminderHelper.ensureNotificationChannel(requireContext());
 
@@ -172,14 +174,6 @@ public class ScheduleFragment extends Fragment {
         tvSummaryLabel     = view.findViewById(R.id.tv_summary_label);
         tvEmptyStateMessage = view.findViewById(R.id.tv_empty_state_message);
 
-        dailyDayViews = new TextView[]{
-                view.findViewById(R.id.daily_day_mon),
-                view.findViewById(R.id.daily_day_tue),
-                view.findViewById(R.id.daily_day_wed),
-                view.findViewById(R.id.daily_day_thu),
-                view.findViewById(R.id.daily_day_fri),
-                view.findViewById(R.id.daily_day_sat)
-        };
 
         tvDate.setText(new SimpleDateFormat("EEEE, MMMM d", Locale.getDefault())
                 .format(Calendar.getInstance().getTime()));
@@ -188,17 +182,17 @@ public class ScheduleFragment extends Fragment {
         // are defined in the XML — no runtime margin injection needed.
         // Sync the day-selector HorizontalScrollView scroll position with the
         // selected day so the header always shows the active day centred.
-        android.widget.HorizontalScrollView daySelectorHScroll =
-                requireView().findViewById(R.id.day_selector_scroll);
-        if (daySelectorHScroll != null) {
-            float d3 = getResources().getDisplayMetrics().density;
-            int colW = (int) (DAY_COLUMN_WIDTH_DP * d3);
-            int selIdx = Math.max(0, Math.min(DAY_COLUMN_COUNT - 1, selectedDay - 1));
-            daySelectorHScroll.post(() -> {
-                int target = selIdx * colW - (daySelectorHScroll.getWidth() - colW) / 2;
-                daySelectorHScroll.scrollTo(Math.max(0, target), 0);
-            });
-        }
+//        android.widget.HorizontalScrollView daySelectorHScroll =
+//                requireView().findViewById(R.id.day_selector_scroll);
+//        if (daySelectorHScroll != null) {
+//            float d3 = getResources().getDisplayMetrics().density;
+//            int colW = (int) (DAY_COLUMN_WIDTH_DP * d3);
+//            int selIdx = Math.max(0, Math.min(DAY_COLUMN_COUNT - 1, selectedDay - 1));
+//            daySelectorHScroll.post(() -> {
+//                int target = selIdx * colW - (daySelectorHScroll.getWidth() - colW) / 2;
+//                daySelectorHScroll.scrollTo(Math.max(0, target), 0);
+//            });
+//        }
 
         view.findViewById(R.id.btn_add_schedule).setOnClickListener(v -> showScheduleFormDialog(null));
         view.findViewById(R.id.btn_empty_add_schedule).setOnClickListener(v -> showScheduleFormDialog(null));
@@ -296,26 +290,23 @@ public class ScheduleFragment extends Fragment {
     // ══════════════════════════════════════════════════════════════════════════
 
     private void setupDailyDaySelector() {
-        for (TextView dayView : dailyDayViews) {
-            dayView.setClickable(false);
-            dayView.setFocusable(false);
-            dayView.setEnabled(false);
-        }
+        // no-op
     }
 
     private void applyDailyDaySelectionUi() {
-        for (int i = 0; i < dailyDayViews.length; i++) {
-            TextView dayView = dailyDayViews[i];
-            boolean isToday = (i + 1) == selectedDay;
-
-            if (isToday) {
-                dayView.setBackgroundResource(R.drawable.bg_schedule_day_selected);
-                dayView.setTextColor(ContextCompat.getColor(requireContext(), R.color.green_primary));
-            } else {
-                dayView.setBackground(null);
-                dayView.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary));
-            }
-        }
+//        for (int i = 0; i < dailyDayViews.length; i++) {
+//            TextView dayView = dailyDayViews[i];
+//            boolean isToday = (i + 1) == selectedDay;
+//
+//            if (isToday) {
+//                dayView.setBackgroundResource(R.drawable.bg_schedule_day_selected);
+//                dayView.setTextColor(ContextCompat.getColor(requireContext(), R.color.green_primary));
+//            } else {
+//                dayView.setBackground(null);
+//                dayView.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary));
+//            }
+//        }
+        renderScheduleContent();
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -333,7 +324,7 @@ public class ScheduleFragment extends Fragment {
         boolean hasSchedules    = !filteredDailySchedules.isEmpty();
         boolean hasAnySchedules = !allSchedules.isEmpty();
 
-        dailyDaySelectorContainer.setVisibility(View.VISIBLE);
+        dailyDaySelectorContainer.setVisibility(View.GONE);
         timelineScrollView.setVisibility(hasSchedules ? View.VISIBLE : View.GONE);
         emptyState.setVisibility(hasSchedules ? View.GONE : View.VISIBLE);
 
@@ -373,12 +364,13 @@ public class ScheduleFragment extends Fragment {
     private void buildTimeline(List<ScheduleEntryEntity> entries) {
         if (!isAdded() || timelineContainer == null) return;
         timelineContainer.removeAllViews();
+//        if (dayHeaderHost != null) dayHeaderHost.removeAllViews();
 
-        // ── Time range ─────────────────────────────────────────────────────────
+        // ── Time range ────────────────────────────────────────────────────────────
         int minStart = Integer.MAX_VALUE, maxEnd = Integer.MIN_VALUE;
         for (ScheduleEntryEntity e : entries) {
             minStart = Math.min(minStart, e.startMinutes);
-            maxEnd   = Math.max(maxEnd, e.endMinutes);
+            maxEnd   = Math.max(maxEnd,   e.endMinutes);
         }
         int startHour = Math.max(0,  (minStart / 60) - 1);
         int endHour   = Math.min(23, (maxEnd   / 60) + 2);
@@ -386,79 +378,74 @@ public class ScheduleFragment extends Fragment {
 
         float density      = requireContext().getResources().getDisplayMetrics().density;
         float pxPerMinute  = DP_PER_MINUTE * density;
-        int   labelWidthPx = (int) (LABEL_WIDTH_DP * density);
-        int   colWidthPx   = (int) (DAY_COLUMN_WIDTH_DP * density);
+        int   labelWidthPx = (int) (LABEL_WIDTH_DP       * density);
+        int   colWidthPx   = (int) (DAY_COLUMN_WIDTH_DP  * density);
 
         int totalMinutes  = (endHour - startHour + 1) * 60;
         int totalHeightPx = (int) (totalMinutes * pxPerMinute) + (int) (32 * density);
+        int gridTotalWidth = colWidthPx * DAY_COLUMN_COUNT;
 
-        // ── Colors ────────────────────────────────────────────────────────────
-        int colorHint = ContextCompat.getColor(requireContext(), R.color.text_hint);
+        // ── Colors ────────────────────────────────────────────────────────────────
+        int colorHint = ContextCompat.getColor(requireContext(), R.color.schedule_time_text);
+        int gridLineColor    = ContextCompat.getColor(requireContext(), R.color.schedule_grid_major);
+        int colHighlightColor = ContextCompat.getColor(requireContext(), R.color.schedule_header_bg);
 
-        int colHighlightColor;
-        try {
-            colHighlightColor = ContextCompat.getColor(requireContext(), R.color.background_default);
-        } catch (Exception e) {
-            boolean isDark = (getResources().getConfiguration().uiMode
-                    & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES;
-            colHighlightColor = isDark ? Color.argb(30,255,255,255) : Color.argb(20,0,0,0);
-        }
-
-        // Zero-based column index for the selected day
         int selectedColIndex = Math.max(0, Math.min(DAY_COLUMN_COUNT - 1, selectedDay - 1));
 
-        // ── Outer row: [time labels | horizontal scroll] ─────────────────────
-        // timelineContainer is a FrameLayout inside a vertical ScrollView.
-        // We replace its content with a single horizontal LinearLayout.
+        // ═══════════════════════════════════════════════════════════════════════
+        // Build ONE shared HorizontalScrollView that holds BOTH the day-header
+        // row and the timeline grid stacked in a vertical LinearLayout.
+        //
+        //  hScroll
+        //  └─ verticalWrapper  (LinearLayout, vertical)
+        //      ├─ dayLabelRow  (LinearLayout, horizontal, 36dp tall)
+        //      └─ grid         (FrameLayout)
+        // ═══════════════════════════════════════════════════════════════════════
 
-        LinearLayout outerRow = new LinearLayout(requireContext());
-        outerRow.setOrientation(LinearLayout.HORIZONTAL);
-        FrameLayout.LayoutParams outerLp = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, totalHeightPx);
-        outerRow.setLayoutParams(outerLp);
-
-        // ── Left column: time labels (fixed, does not scroll horizontally) ───
-        FrameLayout labelColumn = new FrameLayout(requireContext());
-        LinearLayout.LayoutParams labelColLp = new LinearLayout.LayoutParams(labelWidthPx, totalHeightPx);
-        labelColumn.setLayoutParams(labelColLp);
-
-        for (int hour = startHour; hour <= endHour; hour++) {
-            int minutesFromStart = (hour - startHour) * 60;
-            int topPx = (int) (minutesFromStart * pxPerMinute) + (int) (8 * density);
-
-            TextView tvLabel = new TextView(requireContext());
-            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
-                    labelWidthPx, ViewGroup.LayoutParams.WRAP_CONTENT);
-            lp.topMargin  = topPx - (int) (7 * density);
-            lp.leftMargin = 0;
-            tvLabel.setLayoutParams(lp);
-            tvLabel.setText(formatHour(hour));
-            tvLabel.setTextSize(9f);
-            tvLabel.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
-            tvLabel.setPaddingRelative(0, 0, (int) (5 * density), 0);
-            tvLabel.setTextColor(colorHint);
-            labelColumn.addView(tvLabel);
-        }
-        outerRow.addView(labelColumn);
-
-        // ── Right side: HorizontalScrollView containing the 6-column grid ───
-        android.widget.HorizontalScrollView hScroll = new android.widget.HorizontalScrollView(requireContext());
+        android.widget.HorizontalScrollView hScroll =
+                new android.widget.HorizontalScrollView(requireContext());
         hScroll.setHorizontalScrollBarEnabled(false);
         hScroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
         hScroll.setFillViewport(false);
-        LinearLayout.LayoutParams hScrollLp = new LinearLayout.LayoutParams(
-                0, totalHeightPx, 1f);
-        hScroll.setLayoutParams(hScrollLp);
 
-        // The grid FrameLayout — holds grid lines, column highlights, and blocks
-        int gridTotalWidth = colWidthPx * DAY_COLUMN_COUNT;
+        // ── Vertical wrapper ──────────────────────────────────────────────────
+        LinearLayout verticalWrapper = new LinearLayout(requireContext());
+        verticalWrapper.setOrientation(LinearLayout.VERTICAL);
+        verticalWrapper.setLayoutParams(new ViewGroup.LayoutParams(
+                gridTotalWidth, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        // ── Day-label row (36dp tall, inside the scroll) ──────────────────────
+        LinearLayout dayLabelRow = new LinearLayout(requireContext());
+        dayLabelRow.setOrientation(LinearLayout.HORIZONTAL);
+        dayLabelRow.setLayoutParams(new LinearLayout.LayoutParams(
+                gridTotalWidth, (int) (36 * density)));
+
+        for (int i = 0; i < DAY_COLUMN_COUNT; i++) {
+            boolean isSelected = i == selectedColIndex;
+            TextView tvDay = new TextView(requireContext());
+            LinearLayout.LayoutParams lp =
+                    new LinearLayout.LayoutParams(colWidthPx, ViewGroup.LayoutParams.MATCH_PARENT);
+            tvDay.setLayoutParams(lp);
+            tvDay.setText(DAY_LABELS[i]);
+            tvDay.setGravity(Gravity.CENTER);
+            tvDay.setTextSize(13f);
+            tvDay.setTextColor(ContextCompat.getColor(requireContext(),
+                    isSelected ? R.color.green_primary : R.color.text_primary));
+            if (isSelected) {
+                tvDay.setBackgroundResource(R.drawable.bg_schedule_day_selected);
+            }
+            dayLabelRow.addView(tvDay);
+        }
+        verticalWrapper.addView(dayLabelRow);
+
+        // ── Grid FrameLayout (timeline content) ───────────────────────────────
         FrameLayout grid = new FrameLayout(requireContext());
-        ViewGroup.LayoutParams gridLp = new ViewGroup.LayoutParams(gridTotalWidth, totalHeightPx);
-        grid.setLayoutParams(gridLp);
+        grid.setLayoutParams(new LinearLayout.LayoutParams(gridTotalWidth, totalHeightPx));
 
-        // Selected-day column highlight (behind everything)
+        // Selected-day column highlight
         View colHighlight = new View(requireContext());
-        FrameLayout.LayoutParams hlLp = new FrameLayout.LayoutParams(colWidthPx, totalHeightPx);
+        FrameLayout.LayoutParams hlLp =
+                new FrameLayout.LayoutParams(colWidthPx, totalHeightPx);
         hlLp.leftMargin = selectedColIndex * colWidthPx;
         colHighlight.setLayoutParams(hlLp);
         colHighlight.setBackgroundColor(colHighlightColor);
@@ -466,15 +453,13 @@ public class ScheduleFragment extends Fragment {
 
         // Hour grid lines spanning full grid width
         for (int hour = startHour; hour <= endHour; hour++) {
-            int minutesFromStart = (hour - startHour) * 60;
-            int topPx = (int) (minutesFromStart * pxPerMinute) + (int) (8 * density);
-
+            int topPx = (int) (((hour - startHour) * 60) * pxPerMinute) + (int) (8 * density);
             View gridLine = new View(requireContext());
             FrameLayout.LayoutParams lineLp =
                     new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1);
             lineLp.topMargin = topPx;
             gridLine.setLayoutParams(lineLp);
-            gridLine.setBackgroundColor(Color.TRANSPARENT);
+            gridLine.setBackgroundColor(gridLineColor);   // ← was TRANSPARENT, now visible
             grid.addView(gridLine);
         }
 
@@ -485,42 +470,96 @@ public class ScheduleFragment extends Fragment {
 
         for (ScheduleEntryEntity entry : entries) {
             int topMinutes      = entry.startMinutes - timelineStartMinutes;
-            int durationMinutes = entry.endMinutes - entry.startMinutes;
-
+            int durationMinutes = entry.endMinutes   - entry.startMinutes;
             int topPx    = (int) (topMinutes * pxPerMinute) + (int) (8 * density);
             int heightPx = Math.max(
                     (int) (durationMinutes * pxPerMinute),
                     (int) (MIN_BLOCK_HEIGHT_DP * density));
 
             View block = buildScheduleBlock(entry, heightPx, density);
-
             FrameLayout.LayoutParams blockLp = new FrameLayout.LayoutParams(blockWidth, heightPx);
             blockLp.topMargin  = topPx;
             blockLp.leftMargin = blockLeft;
             block.setLayoutParams(blockLp);
-
             grid.addView(block);
         }
 
-        hScroll.addView(grid);
+        verticalWrapper.addView(grid);
+        hScroll.addView(verticalWrapper);
 
-        // Scroll to put the selected column in view (post so layout is done)
+        // ═══════════════════════════════════════════════════════════════════════
+        // Inject hScroll into BOTH containers so the same object drives header
+        // and grid scroll together. dayHeaderHost gets a "mirror" — actually we
+        // host one scroll view in the timeline, and put a synchronized dummy in
+        // the header host so the gutter stays consistent.
+        //
+        // Simpler alternative used here: place hScroll directly as the child of
+        // dayHeaderHost. The timeline row uses a clone reference approach by
+        // putting the verticalWrapper (header + grid) inside ONE hScroll that
+        // sits under the fixed left column in the timeline area. The dayHeaderHost
+        // in the XML is now unnecessary — hide it and let the scroll inside the
+        // timeline naturally render the header row at the top of the grid.
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // ── Outer row: [fixed label column | shared hScroll] ─────────────────
+        LinearLayout outerRow = new LinearLayout(requireContext());
+        outerRow.setOrientation(LinearLayout.HORIZONTAL);
+        outerRow.setLayoutParams(new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                totalHeightPx + (int) (36 * density)));
+
+        // Fixed time-label column
+        FrameLayout labelColumn = new FrameLayout(requireContext());
+        labelColumn.setLayoutParams(new LinearLayout.LayoutParams(
+                labelWidthPx, totalHeightPx + (int) (36 * density)));
+
+        // Blank spacer at the top to vertically align labels with grid (not header row)
+        for (int hour = startHour; hour <= endHour; hour++) {
+            int minutesFromStart = (hour - startHour) * 60;
+            // Offset by 36dp header row height
+            int topPx = (int) (minutesFromStart * pxPerMinute)
+                    + (int) (8 * density)
+                    + (int) (36 * density);  // push down past the day-label row
+
+            TextView tvLabel = new TextView(requireContext());
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+                    labelWidthPx, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.topMargin  = topPx - (int) (7 * density);
+            tvLabel.setLayoutParams(lp);
+            tvLabel.setText(formatHour(hour));
+            tvLabel.setTextSize(9f);
+            tvLabel.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+            tvLabel.setPaddingRelative(0, 0, (int) (5 * density), 0);
+            tvLabel.setTextColor(colorHint);
+            labelColumn.addView(tvLabel);
+        }
+        outerRow.addView(labelColumn);
+
+        LinearLayout.LayoutParams hScrollLp =
+                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f);
+        hScroll.setLayoutParams(hScrollLp);
+        outerRow.addView(hScroll);
+
+        timelineContainer.addView(outerRow);
+
+        // Update container height to include the header row
+        ViewGroup.LayoutParams cLp = timelineContainer.getLayoutParams();
+        if (cLp == null) cLp = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                totalHeightPx + (int) (36 * density));
+        cLp.height = totalHeightPx + (int) (36 * density);
+        timelineContainer.setLayoutParams(cLp);
+
+        // Scroll to put selected column into view
         hScroll.post(() -> {
             int targetScroll = selectedColIndex * colWidthPx
                     - (hScroll.getWidth() - colWidthPx) / 2;
             hScroll.scrollTo(Math.max(0, targetScroll), 0);
         });
 
-        outerRow.addView(hScroll);
-        timelineContainer.addView(outerRow);
-
-        // Update the container height
-        ViewGroup.LayoutParams cLp = timelineContainer.getLayoutParams();
-        if (cLp == null) cLp = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, totalHeightPx);
-        cLp.height = totalHeightPx;
-        timelineContainer.setLayoutParams(cLp);
+        // Hide the now-unused XML header host
+//        if (dayHeaderHost != null) dayHeaderHost.setVisibility(View.GONE);
     }
-
 
     /**
      * Inflates and populates a single calendar-style schedule block.
@@ -1001,7 +1040,6 @@ public class ScheduleFragment extends Fragment {
 
                     maybeRequestNotificationPermission(entry.reminderMinutes);
 
-                    final int finalColorIndex = colorIndex;
                     viewModel.saveSchedule(entry, new ScheduleViewModel.OperationCallback() {
                         @Override
                         public void onSuccess(ScheduleEntryEntity savedEntry) {

@@ -60,12 +60,12 @@
     <color name="map_building_exit">#F4F4F4</color>
 
     <!-- Schedule Colors (Light Mode) -->
-    <color name="schedule_bg">#F6F6F6</color>
-    <color name="schedule_grid_major">#D8D8D8</color>
-    <color name="schedule_grid_minor">#ECECEC</color>
-    <color name="schedule_time_text">#8A8A8A</color>
-    <color name="schedule_header_bg">#FFFFFF</color>
-    <color name="schedule_day_label">#4F4F4F</color>
+    <color name="schedule_bg">#FFFFFF</color>
+    <color name="schedule_grid_major">#E4E4E4</color>
+    <color name="schedule_grid_minor">#F0F0F0</color>
+    <color name="schedule_time_text">#9E9E9E</color>
+    <color name="schedule_header_bg">#F7F7F7</color>
+    <color name="schedule_day_label">#3C3C3C</color>
     <color name="schedule_card_bg">#FFFFFF</color>
     <color name="schedule_card_stroke">#D0D0D0</color>
 
@@ -120,6 +120,7 @@
 
     <color name="time_picker_wheel_fade_opaque">#FFFFFFFF</color>
     <color name="time_picker_wheel_fade_transparent">#00FFFFFF</color>
+
 
 
     <color name="label">#188114</color>

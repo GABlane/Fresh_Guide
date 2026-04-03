@@ -5,11 +5,17 @@
     <color name="white">#E7FFE7</color>
 
     <!-- Surface & Background Colors (Dark Mode) -->
-    <color name="surface_white">#1E1E1E</color>          <!-- Main surface -->
-    <color name="background_default">#121212</color>      <!-- App background -->
-    <color name="background_subtle">#1E1E1E</color>       <!-- Subtle elevation -->log
-    <color name="background_card">#141414</color>         <!-- Card surfaces -->
-    <color name="input_background">#1F1F1F</color>        <!-- Input fields -->
+<!--    <color name="surface_white">#1E1E1E</color>          &lt;!&ndash; Main surface &ndash;&gt;-->
+<!--    <color name="background_default">#121212</color>      &lt;!&ndash; App background &ndash;&gt;-->
+<!--    <color name="background_subtle">#1E1E1E</color>       &lt;!&ndash; Subtle elevation &ndash;&gt;-->
+<!--    <color name="background_card">#141414</color>         &lt;!&ndash; Card surfaces &ndash;&gt;-->
+<!--    <color name="input_background">#1F1F1F</color>        &lt;!&ndash; Input fields &ndash;&gt;-->
+
+    <color name="surface_white">#181818</color>
+    <color name="background_default">#0D0D0D</color>
+    <color name="background_subtle">#181818</color>
+    <color name="background_card">#111111</color>
+    <color name="input_background">#1A1A1A</color>
 
     <!-- Text Colors (Dark Mode) -->
     <color name="text_primary">#E6E6E6</color>
@@ -59,15 +65,16 @@
     <color name="map_building_entrance">#3A3A3A</color>   <!-- Gray blocks -->
     <color name="map_building_exit">#3E3E3E</color>
 
-    <!-- Schedule Colors (Dark Mode) -->
-    <color name="schedule_bg">#1A1A1A</color>
-    <color name="schedule_grid_major">#3A3A3A</color>
-    <color name="schedule_grid_minor">#2A2A2A</color>
-    <color name="schedule_time_text">#8C8C8C</color>
-    <color name="schedule_header_bg">#1E1E1E</color>
-    <color name="schedule_day_label">#B8B8B8</color>
-    <color name="schedule_card_bg">#2A2A2A</color>
-    <color name="schedule_card_stroke">#3A3A3A</color>
+
+    <!-- Schedule Colors (Dark Mode) — deep blacks, not mid-grays -->
+    <color name="schedule_bg">#0D0D0D</color>
+    <color name="schedule_grid_major">#2A2A2A</color>
+    <color name="schedule_grid_minor">#1C1C1C</color>
+    <color name="schedule_time_text">#5C5C5C</color>
+    <color name="schedule_header_bg">#151515</color>
+    <color name="schedule_day_label">#C8C8C8</color>
+    <color name="schedule_card_bg">#1E1E1E</color>
+    <color name="schedule_card_stroke">#303030</color>
 
     <!-- Floor Layout Colors (Dark Mode) -->
     <color name="floor_room_label">#B8B8B8</color>           <!-- Room label text -->
