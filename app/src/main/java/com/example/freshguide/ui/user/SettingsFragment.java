@@ -1,6 +1,7 @@
 package com.example.freshguide.ui.user;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +31,12 @@ public class SettingsFragment extends Fragment {
 
     private TextView tvAppVersionInfo;
     private TextView tvRoleInfo;
+    private TextView tvDeveloperInfo;
+    private TextView tvAboutDescription;
+
+    private TextView tvProfileInitial;
+    private TextView tvProfileName;
+    private TextView tvProfileSubtitle;
 
     private RadioGroup themeRadioGroup;
 
@@ -55,6 +62,12 @@ public class SettingsFragment extends Fragment {
 
         tvAppVersionInfo = view.findViewById(R.id.tv_app_version_info);
         tvRoleInfo = view.findViewById(R.id.tv_role_info);
+        tvDeveloperInfo = view.findViewById(R.id.tv_developer_info);
+        tvAboutDescription = view.findViewById(R.id.tv_about_description);
+
+        tvProfileInitial = view.findViewById(R.id.tv_profile_initial);
+        tvProfileName = view.findViewById(R.id.tv_profile_name);
+        tvProfileSubtitle = view.findViewById(R.id.tv_profile_subtitle);
 
         themeRadioGroup = view.findViewById(R.id.theme_radio_group);
 
@@ -73,6 +86,13 @@ public class SettingsFragment extends Fragment {
         );
 
         setupExpandableSection(
+                view.findViewById(R.id.header_support),
+                view.findViewById(R.id.content_support),
+                view.findViewById(R.id.indicator_support),
+                false
+        );
+
+        setupExpandableSection(
                 view.findViewById(R.id.header_about),
                 view.findViewById(R.id.content_about),
                 view.findViewById(R.id.indicator_about),
@@ -81,6 +101,7 @@ public class SettingsFragment extends Fragment {
 
         setupNotificationControls();
         setupThemeControls();
+        setupProfileHeader();
         setupAboutSection();
         applyRoleVisibility();
         setupResetButton(view.findViewById(R.id.btn_reset_preferences));
@@ -145,9 +166,37 @@ public class SettingsFragment extends Fragment {
         });
     }
 
+    private void setupProfileHeader() {
+        String displayName = sessionManager.getUserName();
+        if (TextUtils.isEmpty(displayName)) {
+            displayName = "User";
+        }
+
+        String subtitle;
+        if (sessionManager.isAdmin()) {
+            subtitle = "Admin";
+        } else {
+            String studentId = sessionManager.getStudentId();
+            subtitle = TextUtils.isEmpty(studentId) ? "Student" : studentId;
+        }
+
+        tvProfileName.setText(displayName);
+        tvProfileInitial.setText(getInitial(displayName));
+        tvProfileSubtitle.setText(subtitle);
+    }
+
+    private String getInitial(String name) {
+        if (TextUtils.isEmpty(name)) {
+            return "U";
+        }
+        return String.valueOf(Character.toUpperCase(name.trim().charAt(0)));
+    }
+
     private void setupAboutSection() {
         tvAppVersionInfo.setText("App version: " + BuildConfig.VERSION_NAME);
         tvRoleInfo.setText("Role: " + (sessionManager.isAdmin() ? "admin" : "student"));
+        tvDeveloperInfo.setText("Developed by: BSCS 3A and ETC.");
+        tvAboutDescription.setText("FreshGuide is a mobile application designed to help students manage schedules, reminders, and academic activities more efficiently.");
     }
 
     private void applyRoleVisibility() {

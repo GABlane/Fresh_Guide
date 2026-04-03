@@ -20,11 +20,51 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="16dp"
             android:fontFamily="@font/inter_bold"
             android:text="Settings"
             android:textColor="@color/green_primary"
             android:textSize="28sp" />
+
+        <!-- Profile Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_profile_initial"
+                android:layout_width="88dp"
+                android:layout_height="88dp"
+                android:background="@drawable/bg_profile_circle_gradient"
+                android:fontFamily="@font/inter_bold"
+                android:gravity="center"
+                android:text="J"
+                android:textColor="@android:color/white"
+                android:textSize="34sp" />
+
+            <TextView
+                android:id="@+id/tv_profile_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:fontFamily="@font/inter_bold"
+                android:text="Jovilyn"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/tv_profile_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/inter_medium"
+                android:text="Student"
+                android:textColor="@color/text_hint"
+                android:textSize="13sp" />
+        </LinearLayout>
 
         <!-- Appearance -->
         <com.google.android.material.card.MaterialCardView
@@ -67,9 +107,9 @@
                         android:id="@+id/indicator_theme"
                         android:layout_width="20dp"
                         android:layout_height="20dp"
+                        android:contentDescription="@null"
                         android:src="@drawable/ic_chevron_down"
-                        android:tint="@color/green_primary"
-                        android:contentDescription="@null" />
+                        android:tint="@color/green_primary" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -171,10 +211,10 @@
                         android:id="@+id/indicator_notifications"
                         android:layout_width="20dp"
                         android:layout_height="20dp"
-                        android:src="@drawable/ic_chevron_down"
-                        android:tint="@color/green_primary"
+                        android:contentDescription="@null"
                         android:rotation="-90"
-                        android:contentDescription="@null" />
+                        android:src="@drawable/ic_chevron_down"
+                        android:tint="@color/green_primary" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -265,6 +305,83 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Support -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/card_settings_support"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            app:cardBackgroundColor="@color/background_card"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/border_default"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="20dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="4dp">
+
+                <LinearLayout
+                    android:id="@+id/header_support"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/inter_bold"
+                        android:text="Support"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" />
+
+                    <ImageView
+                        android:id="@+id/indicator_support"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="@null"
+                        android:rotation="-90"
+                        android:src="@drawable/ic_chevron_down"
+                        android:tint="@color/green_primary" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/content_support"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingBottom="16dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/inter_medium"
+                        android:text="Contact Support"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/tv_support_email"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:autoLink="email"
+                        android:fontFamily="@font/inter_medium"
+                        android:text="freshguide@gmail.com"
+                        android:textColor="@color/green_primary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- About -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_settings_about"
@@ -306,10 +423,10 @@
                         android:id="@+id/indicator_about"
                         android:layout_width="20dp"
                         android:layout_height="20dp"
-                        android:src="@drawable/ic_chevron_down"
-                        android:tint="@color/green_primary"
+                        android:contentDescription="@null"
                         android:rotation="-90"
-                        android:contentDescription="@null" />
+                        android:src="@drawable/ic_chevron_down"
+                        android:tint="@color/green_primary" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -336,6 +453,27 @@
                         android:layout_marginTop="10dp"
                         android:fontFamily="@font/inter_medium"
                         android:text="Role: student"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/tv_developer_info"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:fontFamily="@font/inter_medium"
+                        android:text="Developed by: BSCS 3A and ETC."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
+
+                    <TextView
+                        android:id="@+id/tv_about_description"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:fontFamily="@font/inter_regular"
+                        android:lineSpacingExtra="2dp"
+                        android:text="FreshGuide is a mobile application designed to help students manage schedules, reminders, and academic activities more efficiently."
                         android:textColor="@color/text_secondary"
                         android:textSize="13sp" />
                 </LinearLayout>
