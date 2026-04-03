@@ -7,9 +7,9 @@
     <!-- Surface & Background Colors (Dark Mode) -->
     <color name="surface_white">#1E1E1E</color>          <!-- Main surface -->
     <color name="background_default">#121212</color>      <!-- App background -->
-    <color name="background_subtle">#1E1E1E</color>       <!-- Subtle elevation -->
-    <color name="background_card">#2A2A2A</color>         <!-- Card surfaces -->
-    <color name="input_background">#2E2E2E</color>        <!-- Input fields -->
+    <color name="background_subtle">#1E1E1E</color>       <!-- Subtle elevation -->log
+    <color name="background_card">#141414</color>         <!-- Card surfaces -->
+    <color name="input_background">#1F1F1F</color>        <!-- Input fields -->
 
     <!-- Text Colors (Dark Mode) -->
     <color name="text_primary">#E6E6E6</color>
@@ -18,7 +18,7 @@
     <color name="text_hint">#6B6B6B</color>
 
     <!-- Brand Colors (adjusted for dark backgrounds) -->
-    <color name="green_primary">#4CAF50</color>           <!-- Brighter for visibility -->
+    <color name="green_primary">#BCCCBD</color>           <!-- Brighter for visibility -->
     <color name="green_dark">#12770E</color>            <!-- Darker variant -->
     <color name="green_light">#81C784</color>             <!-- Light green accent -->
     <color name="green_pill">#A91B4D1F</color>              <!-- Dark pill background -->
@@ -89,7 +89,7 @@
     <color name="media_placeholder_bg">#2E2E2E</color>       <!-- Dark placeholder -->
 
     <!-- Schedule & Dialog Colors (Dark Mode) -->
-    <color name="schedule_form_label">#6FCF73</color>        <!-- Bright green -->
+    <color name="schedule_form_label">#CFE8D0</color>        <!-- Bright green -->
     <color name="schedule_time_button">#B8B8B8</color>       <!-- Light gray -->
     <color name="schedule_time_placeholder">#8C8C8C</color>  <!-- Medium gray -->
     <color name="schedule_detail_code">#B8B8B8</color>       <!-- Light gray -->
