@@ -72,7 +72,7 @@
             android:paddingStart="24dp"
             android:paddingTop="16dp"
             android:paddingEnd="24dp"
-            android:paddingBottom="14dp">
+            android:paddingBottom="18dp">
 
             <TextView
                 android:id="@+id/tv_summary_label"
@@ -110,9 +110,24 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/tv_summary_subject_code"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/inter_medium"
+                        android:includeFontPadding="false"
+                        android:text="CCS 103"
+                        android:textAllCaps="true"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="10sp"
+                        android:letterSpacing="0.03"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+
+                    <TextView
                         android:id="@+id/tv_summary_title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
                         android:fontFamily="@font/inter_bold"
                         android:includeFontPadding="false"
                         android:text="FREE TIME"
@@ -124,16 +139,33 @@
 
                     <TextView
                         android:id="@+id/tv_summary_professor"
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:fontFamily="@font/inter_medium"
                         android:includeFontPadding="false"
-                        android:text="Use this time to rest, study, or explore."
+                        android:text="PROF. JACK ROBERTO"
                         android:textAllCaps="true"
                         android:textColor="@color/text_secondary"
                         android:textSize="10sp"
-                        android:letterSpacing="0.03" />
+                        android:letterSpacing="0.03"
+                        android:maxLines="2"
+                        android:ellipsize="end" />
+
+                    <TextView
+                        android:id="@+id/tv_summary_location"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="@font/inter_medium"
+                        android:includeFontPadding="false"
+                        android:text="COMPUTER LAB"
+                        android:textAllCaps="true"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="10sp"
+                        android:letterSpacing="0.03"
+                        android:maxLines="2"
+                        android:ellipsize="end" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -142,7 +174,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="18dp"
                 android:fontFamily="@font/inter_medium"
                 android:includeFontPadding="false"
                 android:text="YOUR NEXT SCHEDULE WILL APPEAR HERE."

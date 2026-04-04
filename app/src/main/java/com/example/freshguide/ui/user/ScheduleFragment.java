@@ -129,6 +129,8 @@ public class ScheduleFragment extends Fragment {
     private TextView tvSummaryLabel;
     private TextView tvDate;
     private TextView tvEmptyStateMessage;
+    private TextView tvSummarySubjectCode;
+    private TextView tvSummaryLocation;
 
     // ── Room data ──────────────────────────────────────────────────────────────
     private final List<RoomEntity> allRooms = new ArrayList<>();
@@ -182,6 +184,9 @@ public class ScheduleFragment extends Fragment {
         tvSummaryTime      = view.findViewById(R.id.tv_summary_time);
         tvSummaryLabel     = view.findViewById(R.id.tv_summary_label);
         tvEmptyStateMessage = view.findViewById(R.id.tv_empty_state_message);
+
+        tvSummarySubjectCode = view.findViewById(R.id.tv_summary_subject_code);
+        tvSummaryLocation = view.findViewById(R.id.tv_summary_location);
 
 
         tvDate.setText(new SimpleDateFormat("EEEE, MMMM d", Locale.getDefault())
@@ -571,6 +576,7 @@ public class ScheduleFragment extends Fragment {
         TextView tvStartTime = block.findViewById(R.id.tv_block_start_time);
         TextView tvEndTime   = block.findViewById(R.id.tv_block_end_time);
         TextView tvTitle     = block.findViewById(R.id.tv_block_title);
+        TextView tvProfessor = block.findViewById(R.id.tv_block_professor);
         TextView tvCode      = block.findViewById(R.id.tv_block_code);
         TextView tvLocation  = block.findViewById(R.id.tv_block_location);
 
@@ -578,6 +584,12 @@ public class ScheduleFragment extends Fragment {
         tvStartTime.setText(formatMinutes(entry.startMinutes));
         tvEndTime.setText(formatMinutes(entry.endMinutes));
         tvTitle.setText(entry.title != null && !entry.title.isBlank() ? entry.title : "Class");
+
+        String professor = (entry.instructor != null && !entry.instructor.isBlank())
+                ? "Prof. " + entry.instructor
+                : "";
+        tvProfessor.setText(professor);
+        tvProfessor.setVisibility(professor.isEmpty() ? View.GONE : View.VISIBLE);
 
         String code = (entry.courseCode != null && !entry.courseCode.isBlank()) ? entry.courseCode : "";
         tvCode.setText(code);
@@ -620,19 +632,25 @@ public class ScheduleFragment extends Fragment {
         tvStartTime.setTextColor(secondaryText);
         tvEndTime.setTextColor(secondaryText);
         tvTitle.setTextColor(primaryText);
+        tvProfessor.setTextColor(secondaryText);
         tvCode.setTextColor(secondaryText);
         tvLocation.setTextColor(secondaryText);
 
         // ── Compact mode: hide extras if block is too short ────────────────────
-        boolean isCompact = heightPx < (int) (52 * density);
+        boolean isCompact = heightPx < (int) (60 * density);
         if (isCompact) {
             tvEndTime.setVisibility(View.GONE);
             tvLocation.setVisibility(View.GONE);
         }
 
-        boolean isTiny = heightPx < (int) (36 * density);
-        if (isTiny) {
+        boolean isSmall = heightPx < (int) (48 * density);
+        if (isSmall) {
             tvCode.setVisibility(View.GONE);
+        }
+
+        boolean isTiny = heightPx < (int) (38 * density);
+        if (isTiny) {
+            tvProfessor.setVisibility(View.GONE);
             tvStartTime.setVisibility(View.GONE);
         }
 
@@ -649,8 +667,10 @@ public class ScheduleFragment extends Fragment {
 
         if (schedules == null || schedules.isEmpty()) {
             tvSummaryLabel.setText("NO SCHEDULE YET");
+            tvSummarySubjectCode.setText("");
             tvSummaryTitle.setText("GET STARTED");
-            tvSummaryProfessor.setText("ADD YOUR FIRST CLASS TO BUILD YOUR SCHEDULE.");
+            tvSummaryProfessor.setText("Add your first class to build your schedule.");
+            tvSummaryLocation.setText("");
             tvSummaryTime.setText("YOUR CLASSES WILL APPEAR HERE.");
             tvSummaryCode.setText("");
             resetSummaryCardColors();
@@ -661,8 +681,10 @@ public class ScheduleFragment extends Fragment {
 
         if (todayEntry == null) {
             tvSummaryLabel.setText("YOU HAVE NO CLASS SCHEDULE TODAY");
+            tvSummarySubjectCode.setText("");
             tvSummaryTitle.setText("FREE TIME");
-            tvSummaryProfessor.setText("USE THIS TIME TO REST, STUDY, OR EXPLORE.");
+            tvSummaryProfessor.setText("Use this time to rest, study, or explore.");
+            tvSummaryLocation.setText("");
             tvSummaryTime.setText("YOUR NEXT SCHEDULE WILL APPEAR HERE.");
             tvSummaryCode.setText("");
             resetSummaryCardColors();
@@ -670,6 +692,12 @@ public class ScheduleFragment extends Fragment {
         }
 
         tvSummaryLabel.setText("YOU HAVE CLASS SCHEDULE TODAY");
+
+        String subjectCode = (todayEntry.courseCode != null && !todayEntry.courseCode.isBlank())
+                ? todayEntry.courseCode.toUpperCase(Locale.getDefault())
+                : "";
+        tvSummarySubjectCode.setText(subjectCode);
+
         tvSummaryTitle.setText(todayEntry.title != null && !todayEntry.title.isBlank()
                 ? todayEntry.title.toUpperCase(Locale.getDefault())
                 : "CLASS");
@@ -677,11 +705,21 @@ public class ScheduleFragment extends Fragment {
         if (todayEntry.instructor != null && !todayEntry.instructor.isBlank()) {
             tvSummaryProfessor.setText(("PROF. " + todayEntry.instructor)
                     .toUpperCase(Locale.getDefault()));
-        } else if (todayEntry.courseCode != null && !todayEntry.courseCode.isBlank()) {
-            tvSummaryProfessor.setText(todayEntry.courseCode.toUpperCase(Locale.getDefault()));
         } else {
-            tvSummaryProfessor.setText("TODAY'S CLASS");
+            tvSummaryProfessor.setText("");
         }
+
+        String location;
+        if (todayEntry.isOnline == 1) {
+            location = "ONLINE" + (
+                    todayEntry.onlinePlatform != null && !todayEntry.onlinePlatform.isBlank()
+                            ? " • " + todayEntry.onlinePlatform.toUpperCase(Locale.getDefault())
+                            : ""
+            );
+        } else {
+            location = resolveLocation(todayEntry).toUpperCase(Locale.getDefault());
+        }
+        tvSummaryLocation.setText(location);
 
         tvSummaryTime.setText(
                 (formatMinutes(todayEntry.startMinutes) + " - " + formatMinutes(todayEntry.endMinutes))
@@ -715,6 +753,9 @@ public class ScheduleFragment extends Fragment {
         tvSummaryLabel.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_hint));
         tvSummaryProfessor.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
         tvSummaryTime.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_hint));
+
+        tvSummarySubjectCode.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
+        tvSummaryLocation.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
     }
 
     private void applySummaryCardPalette(@NonNull ScheduleEntryEntity entry) {
@@ -745,6 +786,8 @@ public class ScheduleFragment extends Fragment {
             tvSummaryLabel.setTextColor(secondaryText);
             tvSummaryProfessor.setTextColor(secondaryText);
             tvSummaryTime.setTextColor(secondaryText);
+            tvSummarySubjectCode.setTextColor(secondaryText);
+            tvSummaryLocation.setTextColor(secondaryText);
 
         } catch (Exception e) {
             resetSummaryCardColors();
