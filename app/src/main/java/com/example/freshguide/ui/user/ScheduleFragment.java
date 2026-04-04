@@ -10,6 +10,8 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -47,7 +49,6 @@ import androidx.recyclerview.widget.LinearSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
-import com.example.freshguide.R;
 import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.model.entity.ScheduleEntryEntity;
 import com.example.freshguide.ui.adapter.RoomDropdownAdapter;
@@ -82,15 +83,10 @@ public class ScheduleFragment extends Fragment {
     };
 
     // ── Timeline sizing constants ──────────────────────────────────────────────
-    /** dp per minute — 90 dp per hour */
     private static final float DP_PER_MINUTE = 1.5f;
-    /** Minimum block height in dp so very short classes are still readable */
     private static final int MIN_BLOCK_HEIGHT_DP = 48;
-    /** Width of the time-label column in dp — kept narrow so it doesn't eat into the grid */
     private static final int LABEL_WIDTH_DP = 36;
-    /** Fixed width of each day column in dp — wide enough to be readable */
     private static final int DAY_COLUMN_WIDTH_DP = 68;
-    /** Number of day columns in the grid (Mon–Sat) */
     private static final int DAY_COLUMN_COUNT = 6;
 
     private View summaryContent;
@@ -99,7 +95,6 @@ public class ScheduleFragment extends Fragment {
     private String lastRenderedScheduleSignature = null;
     private int lastRenderedToday = -1;
 
-//    private FrameLayout dayHeaderHost;
 
     private final ActivityResultLauncher<String> notificationPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
@@ -148,9 +143,6 @@ public class ScheduleFragment extends Fragment {
 
     private final List<ScheduleBlockBinding> scheduleBlocks = new ArrayList<>();
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  Lifecycle
-    // ══════════════════════════════════════════════════════════════════════════
 
     @Nullable
     @Override
@@ -191,23 +183,6 @@ public class ScheduleFragment extends Fragment {
 
         tvDate.setText(new SimpleDateFormat("EEEE, MMMM d", Locale.getDefault())
                 .format(Calendar.getInstance().getTime()));
-
-        // The day-selector gutter (36dp spacer View) and 68dp-wide column slots
-        // are defined in the XML — no runtime margin injection needed.
-        // Sync the day-selector HorizontalScrollView scroll position with the
-        // selected day so the header always shows the active day centred.
-//        android.widget.HorizontalScrollView daySelectorHScroll =
-//                requireView().findViewById(R.id.day_selector_scroll);
-//        if (daySelectorHScroll != null) {
-//            float d3 = getResources().getDisplayMetrics().density;
-//            int colW = (int) (DAY_COLUMN_WIDTH_DP * d3);
-//            int selIdx = Math.max(0, Math.min(DAY_COLUMN_COUNT - 1, selectedDay - 1));
-//            daySelectorHScroll.post(() -> {
-//                int target = selIdx * colW - (daySelectorHScroll.getWidth() - colW) / 2;
-//                daySelectorHScroll.scrollTo(Math.max(0, target), 0);
-//            });
-//        }
-
         view.findViewById(R.id.btn_add_schedule).setOnClickListener(v -> showScheduleFormDialog(null));
         view.findViewById(R.id.btn_empty_add_schedule).setOnClickListener(v -> showScheduleFormDialog(null));
 
@@ -236,6 +211,27 @@ public class ScheduleFragment extends Fragment {
         });
     }
 
+    private final Handler summaryRefreshHandler = new Handler(Looper.getMainLooper());
+
+    private final Runnable summaryRefreshRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (!isAdded()) return;
+
+            updateSummaryCard(allSchedules);
+            summaryRefreshHandler.postDelayed(this, 60_000L);
+        }
+    };
+
+    private void startSummaryAutoRefresh() {
+        summaryRefreshHandler.removeCallbacks(summaryRefreshRunnable);
+        summaryRefreshRunnable.run();
+    }
+
+    private void stopSummaryAutoRefresh() {
+        summaryRefreshHandler.removeCallbacks(summaryRefreshRunnable);
+    }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -247,6 +243,8 @@ public class ScheduleFragment extends Fragment {
         }
 
         renderScheduleContent();
+        updateSummaryCard(allSchedules);
+        startSummaryAutoRefresh();
     }
 
     @Override
@@ -261,9 +259,12 @@ public class ScheduleFragment extends Fragment {
         unregisterScheduleNetworkCallback();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  Network callback
-    // ══════════════════════════════════════════════════════════════════════════
+    @Override
+    public void onPause() {
+        super.onPause();
+        stopSummaryAutoRefresh();
+    }
+
 
     private void registerScheduleNetworkCallback() {
         if (!isAdded() || networkCallbackRegistered || Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -299,28 +300,83 @@ public class ScheduleFragment extends Fragment {
         connectivityManager = null;
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  Day selector
-    // ══════════════════════════════════════════════════════════════════════════
+
+    private android.widget.HorizontalScrollView dayHeaderScroll;
+    private LinearLayout dayHeaderRow;
 
     private void setupDailyDaySelector() {
-        // no-op
+        if (!isAdded() || dailyDaySelectorContainer == null) return;
+
+        LinearLayout container = (LinearLayout) dailyDaySelectorContainer;
+        container.removeAllViews();
+
+        View gutter = new View(requireContext());
+        LinearLayout.LayoutParams gutterParams = new LinearLayout.LayoutParams(dpToPx(LABEL_WIDTH_DP), ViewGroup.LayoutParams.MATCH_PARENT);
+        gutter.setLayoutParams(gutterParams);
+        container.addView(gutter);
+
+        dayHeaderScroll = new android.widget.HorizontalScrollView(requireContext());
+        dayHeaderScroll.setHorizontalScrollBarEnabled(false);
+        dayHeaderScroll.setOverScrollMode(View.OVER_SCROLL_NEVER);
+        dayHeaderScroll.setFillViewport(false);
+
+        LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.MATCH_PARENT, 1f);
+        dayHeaderScroll.setLayoutParams(scrollParams);
+
+        dayHeaderRow = new LinearLayout(requireContext());
+        dayHeaderRow.setOrientation(LinearLayout.HORIZONTAL);
+
+        float density = requireContext().getResources().getDisplayMetrics().density;
+        int colWidthPx = (int) (DAY_COLUMN_WIDTH_DP * density);
+
+        for (int i = 0; i < DAY_COLUMN_COUNT; i++) {
+            TextView tvDay = new TextView(requireContext());
+            LinearLayout.LayoutParams lp =
+                    new LinearLayout.LayoutParams(colWidthPx, ViewGroup.LayoutParams.MATCH_PARENT);
+            tvDay.setLayoutParams(lp);
+            tvDay.setText(DAY_LABELS[i]);
+            tvDay.setGravity(Gravity.CENTER);
+            tvDay.setTextSize(13f);
+            tvDay.setClickable(false);
+            tvDay.setFocusable(false);
+            dayHeaderRow.addView(tvDay);
+        }
+
+        dayHeaderScroll.addView(dayHeaderRow);
+        container.addView(dayHeaderScroll);
+
+        updateFixedDayHeaderUi();
+    }
+
+    private void updateFixedDayHeaderUi() {
+        if (dayHeaderRow == null || !isAdded()) return;
+
+        int today = getDefaultDay();
+        for (int i = 0; i < dayHeaderRow.getChildCount(); i++) {
+            View child = dayHeaderRow.getChildAt(i);
+            if (!(child instanceof TextView)) continue;
+
+            TextView tvDay = (TextView) child;
+            boolean isToday = (i + 1) == today;
+
+            tvDay.setTextColor(ContextCompat.getColor(requireContext(),
+                    isToday ? R.color.green_primary : R.color.text_primary));
+            tvDay.setBackground(isToday
+                    ? ContextCompat.getDrawable(requireContext(), R.drawable.bg_schedule_day_selected)
+                    : null);
+        }
     }
 
     private void applyDailyDaySelectionUi() {
-        // Today is only a passive visual cue now.
-        // No daily filtering here.
         renderScheduleContent();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  Schedule rendering — timeline view
-    // ══════════════════════════════════════════════════════════════════════════
 
     private void renderScheduleContent() {
         boolean hasAnySchedules = !allSchedules.isEmpty();
 
-        dailyDaySelectorContainer.setVisibility(View.GONE);
+        dailyDaySelectorContainer.setVisibility(hasAnySchedules ? View.VISIBLE : View.GONE);
 
         if (!hasAnySchedules) {
             timelineScrollView.setVisibility(View.GONE);
@@ -363,31 +419,6 @@ public class ScheduleFragment extends Fragment {
         return sb.toString();
     }
 
-    /**
-     * Builds a weekly-style calendar timeline inside {@link #timelineContainer}.
-     *
-     * <p>Layout model:
-     * <pre>
-     *  |-- labelWidthPx --|-- col0 --|-- col1 --|-- col2 --|-- col3 --|-- col4 --|-- col5 --|
-     *       time labels       Mon        Tue        Wed        Thu        Fri        Sat
-     * </pre>
-     * Each schedule block is placed horizontally within the column that matches
-     * {@link #selectedDay} (1 = Mon … 6 = Sat).  Hour grid lines extend from the
-     * right edge of the label gutter across the full six-column grid.
-     */
-    /**
-     * Builds a swipeable weekly timeline.
-     *
-     * <p>The outer ScrollView ({@link #timelineScrollView}) scrolls <em>vertically</em>.
-     * Inside it, a horizontal {@code LinearLayout} places:
-     * <ol>
-     *   <li>A fixed time-label column (width = LABEL_WIDTH_DP)</li>
-     *   <li>A {@link android.widget.HorizontalScrollView} containing the 6 day-columns grid</li>
-     * </ol>
-     * The time-label column never scrolls horizontally, so hours stay visible at all times.
-     * Each day column is DAY_COLUMN_WIDTH_DP wide. The selected day's blocks are placed
-     * inside its column.
-     */
     private void buildTimeline(List<ScheduleEntryEntity> entries) {
         if (!isAdded() || timelineContainer == null || entries == null || entries.isEmpty()) return;
 
@@ -401,8 +432,8 @@ public class ScheduleFragment extends Fragment {
             maxEnd = Math.max(maxEnd, e.endMinutes);
         }
 
-        int startHour = Math.max(0, (minStart / 60) - 1);
-        int endHour = Math.min(23, (maxEnd / 60) + 2);
+        int startHour = 6;
+        int endHour = 23;
         int timelineStartMinutes = startHour * 60;
 
         float density = requireContext().getResources().getDisplayMetrics().density;
@@ -431,34 +462,14 @@ public class ScheduleFragment extends Fragment {
         verticalWrapper.setLayoutParams(new ViewGroup.LayoutParams(
                 gridTotalWidth, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        LinearLayout dayLabelRow = new LinearLayout(requireContext());
-        dayLabelRow.setOrientation(LinearLayout.HORIZONTAL);
-        dayLabelRow.setLayoutParams(new LinearLayout.LayoutParams(
-                gridTotalWidth, (int) (36 * density)));
-
-        for (int i = 0; i < DAY_COLUMN_COUNT; i++) {
-            boolean isToday = i == todayColIndex;
-
-            TextView tvDay = new TextView(requireContext());
-            LinearLayout.LayoutParams lp =
-                    new LinearLayout.LayoutParams(colWidthPx, ViewGroup.LayoutParams.MATCH_PARENT);
-            tvDay.setLayoutParams(lp);
-            tvDay.setText(DAY_LABELS[i]);
-            tvDay.setGravity(Gravity.CENTER);
-            tvDay.setTextSize(13f);
-            tvDay.setClickable(false);
-            tvDay.setFocusable(false);
-            tvDay.setTextColor(ContextCompat.getColor(requireContext(),
-                    isToday ? R.color.green_primary : R.color.text_primary));
-
-            if (isToday) {
-                tvDay.setBackgroundResource(R.drawable.bg_schedule_day_selected);
+        hScroll.getViewTreeObserver().addOnScrollChangedListener(() -> {
+            if (dayHeaderScroll != null) {
+                dayHeaderScroll.scrollTo(hScroll.getScrollX(), 0);
             }
+        });
 
-            dayLabelRow.addView(tvDay);
-        }
+        updateFixedDayHeaderUi();
 
-        verticalWrapper.addView(dayLabelRow);
 
         FrameLayout grid = new FrameLayout(requireContext());
         grid.setLayoutParams(new LinearLayout.LayoutParams(gridTotalWidth, totalHeightPx));
@@ -514,17 +525,16 @@ public class ScheduleFragment extends Fragment {
         outerRow.setOrientation(LinearLayout.HORIZONTAL);
         outerRow.setLayoutParams(new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                totalHeightPx + (int) (36 * density)));
+                totalHeightPx));
 
         FrameLayout labelColumn = new FrameLayout(requireContext());
         labelColumn.setLayoutParams(new LinearLayout.LayoutParams(
-                labelWidthPx, totalHeightPx + (int) (36 * density)));
+                labelWidthPx, totalHeightPx));
 
         for (int hour = startHour; hour <= endHour; hour++) {
             int minutesFromStart = (hour - startHour) * 60;
             int topPx = (int) (minutesFromStart * pxPerMinute)
-                    + (int) (8 * density)
-                    + (int) (36 * density);
+                    + (int) (8 * density);
 
             TextView tvLabel = new TextView(requireContext());
             FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
@@ -554,7 +564,7 @@ public class ScheduleFragment extends Fragment {
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     totalHeightPx + (int) (36 * density));
         }
-        cLp.height = totalHeightPx + (int) (36 * density);
+        cLp.height = totalHeightPx;
         timelineContainer.setLayoutParams(cLp);
 
         hScroll.post(() -> {
@@ -564,11 +574,6 @@ public class ScheduleFragment extends Fragment {
         });
     }
 
-    /**
-     * Inflates and populates a single calendar-style schedule block.
-     * Background color comes from the entry's colorHex; text colors are
-     * automatically adjusted for readability via luminance.
-     */
     private View buildScheduleBlock(ScheduleEntryEntity entry, int heightPx, float density) {
         View block = LayoutInflater.from(requireContext())
                 .inflate(R.layout.item_schedule_timeline_block, timelineContainer, false);
@@ -608,14 +613,9 @@ public class ScheduleFragment extends Fragment {
         tvLocation.setText(location);
         tvLocation.setVisibility(location.isEmpty() ? View.GONE : View.VISIBLE);
 
-        // ── Background — gradient derived from stored colorHex (start color) ────
-        // Find the palette slot whose start color matches entry.colorHex, then
-        // build a full gradient. Falls back to slot 0 if not found.
         String[][] gradients = getScheduleGradients();
         int bgSlot = resolveSchedulePaletteSlot(entry.colorHex);
 
-// Use the CURRENT theme's palette color for rendering,
-// not the originally saved raw hex.
         int effectiveBgColor;
         try {
             effectiveBgColor = Color.parseColor(gradients[bgSlot][0]);
@@ -658,75 +658,88 @@ public class ScheduleFragment extends Fragment {
         return block;
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  Summary card
-    // ══════════════════════════════════════════════════════════════════════════
-
+    /**  Summary card **/
     private void updateSummaryCard(@Nullable List<ScheduleEntryEntity> schedules) {
         cardSummary.setVisibility(View.VISIBLE);
 
-        if (schedules == null || schedules.isEmpty()) {
+        SummaryState summaryState = resolveSummaryState(schedules);
+
+        if (summaryState.type == SummaryState.NO_SCHEDULE_YET) {
             tvSummaryLabel.setText("NO SCHEDULE YET");
             tvSummarySubjectCode.setText("");
             tvSummaryTitle.setText("GET STARTED");
             tvSummaryProfessor.setText("Add your first class to build your schedule.");
             tvSummaryLocation.setText("");
-            tvSummaryTime.setText("YOUR CLASSES WILL APPEAR HERE.");
+            tvSummaryTime.setText("Your classes will appear here.");
             tvSummaryCode.setText("");
+
+            tvSummarySubjectCode.setVisibility(View.GONE);
+            tvSummaryLocation.setVisibility(View.GONE);
+
             resetSummaryCardColors();
             return;
         }
 
-        ScheduleEntryEntity todayEntry = findTodaySummaryEntry(schedules);
-
-        if (todayEntry == null) {
-            tvSummaryLabel.setText("YOU HAVE NO CLASS SCHEDULE TODAY");
+        if (summaryState.type == SummaryState.FREE_TIME || summaryState.entry == null) {
+            tvSummaryLabel.setText("TAKE YOUR TIME");
             tvSummarySubjectCode.setText("");
             tvSummaryTitle.setText("FREE TIME");
-            tvSummaryProfessor.setText("Use this time to rest, study, or explore.");
+            tvSummaryProfessor.setText("Use this time to rest, study, or prepare for your next class.");
             tvSummaryLocation.setText("");
-            tvSummaryTime.setText("YOUR NEXT SCHEDULE WILL APPEAR HERE.");
+            tvSummaryTime.setText("No more classes right now.");
             tvSummaryCode.setText("");
+
+            tvSummarySubjectCode.setVisibility(View.GONE);
+            tvSummaryLocation.setVisibility(View.GONE);
+
             resetSummaryCardColors();
             return;
         }
 
-        tvSummaryLabel.setText("YOU HAVE CLASS SCHEDULE TODAY");
+        ScheduleEntryEntity entry = summaryState.entry;
 
-        String subjectCode = (todayEntry.courseCode != null && !todayEntry.courseCode.isBlank())
-                ? todayEntry.courseCode.toUpperCase(Locale.getDefault())
+        if (summaryState.type == SummaryState.ONGOING_NOW) {
+            tvSummaryLabel.setText("YOU HAVE ONGOING CLASS NOW");
+        } else {
+            tvSummaryLabel.setText("NEXT CLASS");
+        }
+
+        String subjectCode = (entry.courseCode != null && !entry.courseCode.isBlank())
+                ? entry.courseCode.toUpperCase(Locale.getDefault())
                 : "";
         tvSummarySubjectCode.setText(subjectCode);
+        tvSummarySubjectCode.setVisibility(subjectCode.isEmpty() ? View.GONE : View.VISIBLE);
 
-        tvSummaryTitle.setText(todayEntry.title != null && !todayEntry.title.isBlank()
-                ? todayEntry.title.toUpperCase(Locale.getDefault())
+        tvSummaryTitle.setText(entry.title != null && !entry.title.isBlank()
+                ? entry.title.toUpperCase(Locale.getDefault())
                 : "CLASS");
 
-        if (todayEntry.instructor != null && !todayEntry.instructor.isBlank()) {
-            tvSummaryProfessor.setText(("PROF. " + todayEntry.instructor)
-                    .toUpperCase(Locale.getDefault()));
+        if (entry.instructor != null && !entry.instructor.isBlank()) {
+            tvSummaryProfessor.setText(("PROF. " + entry.instructor).toUpperCase(Locale.getDefault()));
         } else {
             tvSummaryProfessor.setText("");
         }
 
         String location;
-        if (todayEntry.isOnline == 1) {
+        if (entry.isOnline == 1) {
             location = "ONLINE" + (
-                    todayEntry.onlinePlatform != null && !todayEntry.onlinePlatform.isBlank()
-                            ? " • " + todayEntry.onlinePlatform.toUpperCase(Locale.getDefault())
+                    entry.onlinePlatform != null && !entry.onlinePlatform.isBlank()
+                            ? " • " + entry.onlinePlatform.toUpperCase(Locale.getDefault())
                             : ""
             );
         } else {
-            location = resolveLocation(todayEntry).toUpperCase(Locale.getDefault());
+            location = resolveLocation(entry).toUpperCase(Locale.getDefault());
         }
+
         tvSummaryLocation.setText(location);
+        tvSummaryLocation.setVisibility(location.isEmpty() ? View.GONE : View.VISIBLE);
 
         tvSummaryTime.setText(
-                (formatMinutes(todayEntry.startMinutes) + " - " + formatMinutes(todayEntry.endMinutes))
+                (formatMinutes(entry.startMinutes) + " - " + formatMinutes(entry.endMinutes))
                         .toUpperCase(Locale.getDefault()));
         tvSummaryCode.setText("");
 
-        applySummaryCardPalette(todayEntry);
+        applySummaryCardPalette(entry);
     }
 
     /** Restores the summary card to its default theme colors. */
@@ -848,30 +861,73 @@ public class ScheduleFragment extends Fragment {
         }
     }
 
-    @Nullable
-    private ScheduleEntryEntity findTodaySummaryEntry(@Nullable List<ScheduleEntryEntity> schedules) {
-        if (schedules == null || schedules.isEmpty()) return null;
+    private static class SummaryState {
+        static final int NO_SCHEDULE_YET = 0;
+        static final int FREE_TIME = 1;
+        static final int NEXT_CLASS = 2;
+        static final int ONGOING_NOW = 3;
+
+        int type;
+        @Nullable ScheduleEntryEntity entry;
+    }
+
+    @NonNull
+    private SummaryState resolveSummaryState(@Nullable List<ScheduleEntryEntity> schedules) {
+        SummaryState state = new SummaryState();
+
+        if (schedules == null || schedules.isEmpty()) {
+            state.type = SummaryState.NO_SCHEDULE_YET;
+            state.entry = null;
+            return state;
+        }
 
         int today = getDefaultDay();
-        Calendar now = Calendar.getInstance();
-        int currentMinutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE);
+        int currentMinutes = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 60
+                + Calendar.getInstance().get(Calendar.MINUTE);
 
-        ScheduleEntryEntity nextClass = null;
-        ScheduleEntryEntity fallback  = null;
-
+        List<ScheduleEntryEntity> todayEntries = new ArrayList<>();
         for (ScheduleEntryEntity entry : schedules) {
-            if (entry.dayOfWeek != today) continue;
-
-            if (fallback == null || entry.startMinutes < fallback.startMinutes) {
-                fallback = entry;
-            }
-            if (entry.startMinutes >= currentMinutes &&
-                    (nextClass == null || entry.startMinutes < nextClass.startMinutes)) {
-                nextClass = entry;
+            if (entry.dayOfWeek == today) {
+                todayEntries.add(entry);
             }
         }
 
-        return nextClass != null ? nextClass : fallback;
+        if (todayEntries.isEmpty()) {
+            state.type = SummaryState.FREE_TIME;
+            state.entry = null;
+            return state;
+        }
+
+        ScheduleEntryEntity ongoing = null;
+        ScheduleEntryEntity next = null;
+
+        for (ScheduleEntryEntity entry : todayEntries) {
+            if (currentMinutes >= entry.startMinutes && currentMinutes < entry.endMinutes) {
+                if (ongoing == null || entry.startMinutes < ongoing.startMinutes) {
+                    ongoing = entry;
+                }
+            } else if (entry.startMinutes > currentMinutes) {
+                if (next == null || entry.startMinutes < next.startMinutes) {
+                    next = entry;
+                }
+            }
+        }
+
+        if (ongoing != null) {
+            state.type = SummaryState.ONGOING_NOW;
+            state.entry = ongoing;
+            return state;
+        }
+
+        if (next != null) {
+            state.type = SummaryState.NEXT_CLASS;
+            state.entry = next;
+            return state;
+        }
+
+        state.type = SummaryState.FREE_TIME;
+        state.entry = null;
+        return state;
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -1192,9 +1248,6 @@ public class ScheduleFragment extends Fragment {
         dialog.show();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  Schedule block form helpers  (UNCHANGED from original)
-    // ══════════════════════════════════════════════════════════════════════════
 
     private void addScheduleBlock(LinearLayout container,
                                   int initialDay,
@@ -1310,9 +1363,6 @@ public class ScheduleFragment extends Fragment {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  Time picker dialog  (UNCHANGED from original)
-    // ══════════════════════════════════════════════════════════════════════════
 
     private void showTimePickerForBlock(ScheduleBlockBinding binding, boolean isStart) {
         if (!isAdded()) return;
@@ -1608,10 +1658,6 @@ public class ScheduleFragment extends Fragment {
         detailDialog.show();
     }
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  Color picker  (UNCHANGED from original)
-    // ══════════════════════════════════════════════════════════════════════════
-
     private void setupColorPicker(View formView, int[] selectedColorIndex, int currentSelected) {
         int[] colorViewIds = {
                 R.id.color_0, R.id.color_1, R.id.color_2,
@@ -1651,10 +1697,6 @@ public class ScheduleFragment extends Fragment {
                     .start();
         }
     }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    //  Helper utilities
-    // ══════════════════════════════════════════════════════════════════════════
 
     private void maybeRequestNotificationPermission(int reminderMinutes) {
         if (reminderMinutes <= 0) return;
@@ -1743,10 +1785,6 @@ public class ScheduleFragment extends Fragment {
         return hour + " AM";
     }
 
-    /**
-     * Returns gradient start colors (index 0) and end colors (index 1) for each palette slot.
-     * Index layout: [slotIndex][0] = startColor, [slotIndex][1] = endColor.
-     */
     private String[][] getScheduleGradientsForTheme(boolean isDark) {
         if (isDark) {
             return new String[][]{
@@ -1891,57 +1929,15 @@ public class ScheduleFragment extends Fragment {
         return Color.argb(a, r, g, b);
     }
 
-    // ── Color math helpers ─────────────────────────────────────────────────────
-
-    /**
-     * Returns dark text for light backgrounds, light text for dark backgrounds,
-     * using the WCAG relative-luminance formula.
-     */
-    private int getContrastingTextColor(int bgColor) {
-        double lum = (0.299 * Color.red(bgColor)
-                + 0.587 * Color.green(bgColor)
-                + 0.114 * Color.blue(bgColor)) / 255.0;
-        return lum > 0.5 ? Color.parseColor("#1C1B1F") : Color.parseColor("#E6E6E6");
-    }
-
-    /** Secondary (slightly less prominent) text that still contrasts with the background. */
-    private int getSecondaryTextColor(int bgColor) {
-        double lum = (0.299 * Color.red(bgColor)
-                + 0.587 * Color.green(bgColor)
-                + 0.114 * Color.blue(bgColor)) / 255.0;
-        return lum > 0.5 ? Color.parseColor("#5E5E5E") : Color.parseColor("#B8B8B8");
-    }
-
     /** Multiplies alpha channel by {@code factor} (0–1). */
     private int adjustColorAlpha(int color, float factor) {
         int alpha = Math.min(255, Math.round(Color.alpha(color) * factor));
         return Color.argb(alpha, Color.red(color), Color.green(color), Color.blue(color));
     }
 
-    /**
-     * Darkens a color by multiplying its RGB channels by {@code factor} (0–1).
-     * Alpha is preserved. Used to derive subtle stroke colors.
-     */
-    private int darkenColor(int color, float factor) {
-        return Color.argb(
-                Color.alpha(color),
-                Math.round(Color.red(color)   * factor),
-                Math.round(Color.green(color) * factor),
-                Math.round(Color.blue(color)  * factor)
-        );
-    }
-
-//    private int dpToPx(int dp) {
-//        return Math.round(dp * requireContext().getResources().getDisplayMetrics().density);
-//    }
-
     private int dpToPx(int dp) {
         return Math.round(dp * requireContext().getResources().getDisplayMetrics().density);
     }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    //  Inner class — form schedule-block binding
-    // ══════════════════════════════════════════════════════════════════════════
 
     private static class ScheduleBlockBinding {
         View root;
