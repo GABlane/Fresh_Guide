@@ -3,6 +3,6 @@
     <corners android:radius="18dp" />
     <gradient
         android:angle="315"
-        android:startColor="#CFCFCF"
-        android:endColor="#9E9E9E" />
+        android:startColor="@color/bg_profile_start"
+        android:endColor="@color/bg_profile_end" />
 </shape>

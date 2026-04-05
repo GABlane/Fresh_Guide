@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_default">
@@ -28,7 +29,8 @@
         android:paddingEnd="10dp"
         android:text="Monday, February 26"
         android:textColor="@color/text_hint"
-        android:textSize="14sp"
+        android:textSize="15sp"
+        android:fontFamily="@font/inter_bold"
         app:layout_constraintStart_toStartOf="@id/tv_profile_title"
         app:layout_constraintTop_toBottomOf="@id/tv_profile_title" />
 
@@ -65,12 +67,12 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="12dp"
-        android:layout_marginTop="22dp"
+        android:layout_marginTop="10dp"
         android:layout_marginEnd="12dp"
         android:layout_marginBottom="90dp"
         app:cardBackgroundColor="@android:color/transparent"
         app:cardCornerRadius="16dp"
-        app:cardElevation="0dp"
+        app:cardElevation="5dp"
         app:cardPreventCornerOverlap="false"
         app:cardUseCompatPadding="false"
         app:strokeColor="@android:color/transparent"
@@ -170,7 +172,24 @@
                     android:textSize="16sp" />
 
             </LinearLayout>
+
+
         </FrameLayout>
     </com.google.android.material.card.MaterialCardView>
+
+    <ImageView
+        android:id="@+id/img_watermark"
+        android:layout_width="140dp"
+        android:layout_height="125dp"
+        android:layout_marginTop="4dp"
+        android:alpha="0.18"
+        android:contentDescription="Watermark"
+        android:scaleType="fitCenter"
+        android:src="@drawable/watermark"
+        app:layout_constraintEnd_toEndOf="@id/card_student_id"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="@id/card_student_id"
+        app:layout_constraintTop_toBottomOf="@id/card_student_id" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
