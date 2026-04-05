@@ -132,7 +132,8 @@
     <color name="profile_gradient_end">#12770E</color>
     <color name="profile_ring_stroke">#D6EFCF</color>
 
-
+    <color name="bg_profile_start">#6A6A6A</color>
+    <color name="bg_profile_end">#434343</color>
 
     <color name="label">#D3F6D0</color>
 </resources>

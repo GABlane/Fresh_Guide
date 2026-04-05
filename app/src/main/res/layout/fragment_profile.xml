@@ -29,7 +29,8 @@
         android:paddingEnd="10dp"
         android:text="Monday, February 26"
         android:textColor="@color/text_hint"
-        android:textSize="14sp"
+        android:textSize="15sp"
+        android:fontFamily="@font/inter_bold"
         app:layout_constraintStart_toStartOf="@id/tv_profile_title"
         app:layout_constraintTop_toBottomOf="@id/tv_profile_title" />
 
@@ -66,7 +67,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginStart="12dp"
-        android:layout_marginTop="22dp"
+        android:layout_marginTop="10dp"
         android:layout_marginEnd="12dp"
         android:layout_marginBottom="90dp"
         app:cardBackgroundColor="@android:color/transparent"
