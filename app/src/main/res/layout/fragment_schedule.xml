@@ -5,8 +5,8 @@
     android:layout_height="match_parent"
     android:background="@color/background_default"
     android:orientation="vertical"
-    android:layout_marginLeft="10dp"
-    android:layout_marginRight="10dp"
+    android:paddingStart="@dimen/screen_horizontal_gutter"
+    android:paddingEnd="@dimen/screen_horizontal_gutter"
     android:paddingBottom="8dp">
 
     <!-- ── Header ── -->

@@ -10,7 +10,7 @@ import androidx.lifecycle.MediatorLiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Transformations;
 
-import com.example.freshguide.model.entity.RoomEntity;
+import com.example.freshguide.model.ui.RoomSearchResult;
 import com.example.freshguide.repository.RoomRepository;
 
 import java.util.List;
@@ -25,7 +25,7 @@ public class RoomListViewModel extends AndroidViewModel {
     /** Combines query + buildingCode changes to trigger a new room source. */
     private final MediatorLiveData<Pair<String, String>> filter = new MediatorLiveData<>();
 
-    private final LiveData<List<RoomEntity>> rooms;
+    private final LiveData<List<RoomSearchResult>> rooms;
 
     public RoomListViewModel(@NonNull Application application) {
         super(application);
@@ -39,16 +39,16 @@ public class RoomListViewModel extends AndroidViewModel {
             String bc = pair.second != null ? pair.second.trim() : "";
 
             if (!bc.isEmpty()) {
-                return repository.searchRoomsByBuilding(bc, q);
+                return repository.searchRoomResultsByBuilding(bc, q);
             } else if (!q.isEmpty()) {
-                return repository.searchRooms(q);
+                return repository.searchRoomResults(q);
             } else {
-                return repository.getAllRooms();
+                return repository.getAllSearchResults();
             }
         });
     }
 
-    public LiveData<List<RoomEntity>> getRooms() { return rooms; }
+    public LiveData<List<RoomSearchResult>> getRooms() { return rooms; }
 
     public void setQuery(String q) {
         query.setValue(q != null ? q : "");

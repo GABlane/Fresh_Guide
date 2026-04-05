@@ -1,66 +1,158 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/background_subtle">
+    android:background="@color/background_default"
+    android:paddingStart="@dimen/screen_horizontal_gutter"
+    android:paddingTop="10dp"
+    android:paddingEnd="@dimen/screen_horizontal_gutter">
 
-    <!-- Building filter header (shown only when navigated from campus map) -->
-    <TextView
-        android:id="@+id/tv_building_header"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="4dp"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:textColor="@color/text_primary"
-        android:visibility="gone" />
-
-    <!-- Search bar — satisfies checklist 3.1 user event handling -->
     <LinearLayout
-        android:layout_width="match_parent"
+        android:id="@+id/search_bar_container"
+        android:layout_width="0dp"
         android:layout_height="48dp"
-        android:layout_margin="16dp"
-        android:orientation="horizontal"
         android:background="@drawable/bg_search_bar"
         android:gravity="center_vertical"
-        android:paddingStart="14dp"
-        android:paddingEnd="14dp">
+        android:orientation="horizontal"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_search"
-            android:contentDescription="Search" />
+        <ImageButton
+            android:id="@+id/btn_back"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/action_back"
+            android:padding="0dp"
+            android:src="@drawable/ic_arrow_back_24"
+            app:tint="@color/text_secondary" />
 
         <EditText
             android:id="@+id/et_search"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1"
             android:layout_marginStart="8dp"
+            android:layout_weight="1"
             android:background="@null"
-            android:hint="Search rooms…"
-            android:textColorHint="@color/text_hint"
-            android:textSize="14sp"
-            android:inputType="text"
+            android:fontFamily="@font/instrument_regular"
+            android:hint="@string/search_location_hint"
             android:imeOptions="actionSearch"
-            android:singleLine="true" />
+            android:inputType="text"
+            android:singleLine="true"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_hint"
+            android:textCursorDrawable="@null"
+            android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/btn_clear"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/search_clear"
+            android:padding="0dp"
+            android:src="@drawable/ic_search_close"
+            android:visibility="gone"
+            app:tint="@color/text_secondary" />
     </LinearLayout>
 
-    <!-- Checklist 5.4: list with scrollable content, checklist 2.3 -->
+    <TextView
+        android:id="@+id/tv_context_label"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:fontFamily="@font/instrument_regular"
+        android:textColor="@color/text_secondary"
+        android:textSize="13sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/search_bar_container" />
+
+    <LinearLayout
+        android:id="@+id/layout_section_header"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_context_label">
+
+        <TextView
+            android:id="@+id/tv_section_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="@font/instrument_regular"
+            android:text="@string/search_recent_title"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/btn_clear_history"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/instrument_regular"
+            android:text="@string/search_clear_all"
+            android:textColor="@color/green_primary"
+            android:textSize="14sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_rooms"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:paddingBottom="8dp"
-        android:clipToPadding="false" />
+        android:clipToPadding="false"
+        android:paddingTop="6dp"
+        android:paddingBottom="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layout_section_header" />
 
-</LinearLayout>
+    <LinearLayout
+        android:id="@+id/layout_empty_state"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/search_bar_container">
+
+        <FrameLayout
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:background="@drawable/bg_search_empty_circle">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/logo_mark_description"
+                android:padding="18dp"
+                android:src="@drawable/logo"
+                app:tint="@null" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tv_empty_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:fontFamily="@font/instrument_regular"
+            android:gravity="center"
+            android:text="@string/search_empty_default"
+            android:textColor="@color/text_hint"
+            android:textSize="17sp" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

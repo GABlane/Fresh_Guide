@@ -3,6 +3,7 @@
     <!-- Layout spacing -->
     <dimen name="content_margin">16dp</dimen>
     <dimen name="content_padding">32dp</dimen>
+    <dimen name="screen_horizontal_gutter">20dp</dimen>
     <dimen name="card_max_width">480dp</dimen>
 
     <!-- Login screen -->

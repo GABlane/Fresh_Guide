@@ -1,5 +1,6 @@
 package com.example.freshguide.ui.user;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -7,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -19,13 +21,33 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.freshguide.R;
+import com.example.freshguide.model.ui.RoomSearchResult;
 import com.example.freshguide.ui.adapter.RoomAdapter;
 import com.example.freshguide.viewmodel.RoomListViewModel;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class RoomListFragment extends Fragment {
+
+    private static final String PREFS_SEARCH = "room_search_state";
+    private static final String KEY_RECENT_ROOM_IDS = "recent_room_ids";
+    private static final int MAX_RECENT_ROOMS = 6;
 
     private RoomListViewModel viewModel;
     private RoomAdapter adapter;
+    private EditText etSearch;
+    private ImageButton btnClear;
+    private TextView btnClearHistory;
+    private TextView tvSectionTitle;
+    private TextView tvContextLabel;
+    private TextView tvEmptyMessage;
+    private View emptyState;
+    private View sectionHeader;
+    private RecyclerView recyclerView;
+
+    private final List<RoomSearchResult> currentRooms = new ArrayList<>();
 
     @Nullable
     @Override
@@ -40,43 +62,187 @@ public class RoomListFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(RoomListViewModel.class);
 
         adapter = new RoomAdapter();
-        RecyclerView recyclerView = view.findViewById(R.id.recycler_rooms);
+        recyclerView = view.findViewById(R.id.recycler_rooms);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerView.setAdapter(adapter);
 
-        // Checklist 5.5: list item click events
+        etSearch = view.findViewById(R.id.et_search);
+        btnClear = view.findViewById(R.id.btn_clear);
+        btnClearHistory = view.findViewById(R.id.btn_clear_history);
+        tvSectionTitle = view.findViewById(R.id.tv_section_title);
+        tvContextLabel = view.findViewById(R.id.tv_context_label);
+        tvEmptyMessage = view.findViewById(R.id.tv_empty_message);
+        emptyState = view.findViewById(R.id.layout_empty_state);
+        sectionHeader = view.findViewById(R.id.layout_section_header);
+
         NavController nav = Navigation.findNavController(view);
         adapter.setOnItemClickListener(room -> {
-            // Checklist 5.1: pass data via Bundle args
+            saveRecentRoom(room.roomId);
             Bundle args = new Bundle();
-            args.putInt("roomId", room.id);
-            args.putString("roomName", room.name);
+            args.putInt("roomId", room.roomId);
+            args.putString("roomName", room.getDisplayName());
             nav.navigate(R.id.action_roomList_to_roomDetail, args);
         });
+        adapter.setOnActionClickListener(room -> {
+            etSearch.setText(room.getDisplayName());
+            etSearch.setSelection(etSearch.getText().length());
+        });
 
-        // Building filter from campus map tap
+        view.findViewById(R.id.btn_back).setOnClickListener(v -> nav.navigateUp());
+        btnClear.setOnClickListener(v -> etSearch.setText(""));
+        btnClearHistory.setOnClickListener(v -> {
+            clearRecentRooms();
+            renderState();
+        });
+
         Bundle args = getArguments();
         if (args != null) {
             String buildingCode = args.getString("buildingCode", "");
             String buildingName = args.getString("buildingName", "");
             if (!buildingCode.isEmpty()) {
                 viewModel.setBuilding(buildingCode);
-                TextView header = view.findViewById(R.id.tv_building_header);
-                header.setText("Rooms in " + buildingName);
-                header.setVisibility(View.VISIBLE);
+                tvContextLabel.setText(getString(R.string.search_filtered_in, buildingName));
+                tvContextLabel.setVisibility(View.VISIBLE);
             }
         }
 
-        // Search input — checklist 3.1: user event handling
-        EditText etSearch = view.findViewById(R.id.et_search);
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
                 viewModel.setQuery(s.toString());
+                updateClearButtonVisibility(s);
             }
+
             @Override public void afterTextChanged(Editable s) {}
         });
+        updateClearButtonVisibility(etSearch.getText());
 
-        viewModel.getRooms().observe(getViewLifecycleOwner(), rooms -> adapter.submitList(rooms));
+        viewModel.getRooms().observe(getViewLifecycleOwner(), rooms -> {
+            currentRooms.clear();
+            if (rooms != null) {
+                currentRooms.addAll(rooms);
+            }
+            renderState();
+        });
+    }
+
+    private void renderState() {
+        String query = etSearch.getText() != null ? etSearch.getText().toString().trim() : "";
+        boolean showingRecent = query.isEmpty();
+
+        List<RoomSearchResult> visibleItems = showingRecent
+                ? getRecentRooms(currentRooms)
+                : new ArrayList<>(currentRooms);
+
+        adapter.setRecentMode(showingRecent);
+        adapter.submitList(new ArrayList<>(visibleItems));
+
+        boolean hasItems = !visibleItems.isEmpty();
+        recyclerView.setVisibility(hasItems ? View.VISIBLE : View.GONE);
+        emptyState.setVisibility(hasItems ? View.GONE : View.VISIBLE);
+        boolean showRecentHeader = showingRecent && hasItems;
+        sectionHeader.setVisibility(showRecentHeader ? View.VISIBLE : View.GONE);
+        tvSectionTitle.setVisibility(showRecentHeader ? View.VISIBLE : View.GONE);
+        btnClearHistory.setVisibility(showRecentHeader ? View.VISIBLE : View.GONE);
+        tvEmptyMessage.setText(showingRecent
+                ? getString(R.string.search_empty_default)
+                : getString(R.string.search_no_results));
+    }
+
+    private List<RoomSearchResult> getRecentRooms(List<RoomSearchResult> source) {
+        List<Integer> recentIds = getRecentRoomIds();
+        if (recentIds.isEmpty() || source.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<RoomSearchResult> recentRooms = new ArrayList<>();
+        for (int roomId : recentIds) {
+            RoomSearchResult room = findRoomById(source, roomId);
+            if (room != null) {
+                recentRooms.add(room);
+            }
+        }
+        return recentRooms;
+    }
+
+    @Nullable
+    private RoomSearchResult findRoomById(List<RoomSearchResult> rooms, int roomId) {
+        for (RoomSearchResult room : rooms) {
+            if (room != null && room.roomId == roomId) {
+                return room;
+            }
+        }
+        return null;
+    }
+
+    private void saveRecentRoom(int roomId) {
+        List<Integer> ids = getRecentRoomIds();
+        ids.remove(Integer.valueOf(roomId));
+        ids.add(0, roomId);
+        while (ids.size() > MAX_RECENT_ROOMS) {
+            ids.remove(ids.size() - 1);
+        }
+        persistRecentRoomIds(ids);
+    }
+
+    private List<Integer> getRecentRoomIds() {
+        Context context = getContext();
+        if (context == null) {
+            return new ArrayList<>();
+        }
+
+        String stored = context.getSharedPreferences(PREFS_SEARCH, Context.MODE_PRIVATE)
+                .getString(KEY_RECENT_ROOM_IDS, "");
+
+        List<Integer> ids = new ArrayList<>();
+        if (stored == null || stored.trim().isEmpty()) {
+            return ids;
+        }
+
+        String[] parts = stored.split(",");
+        for (String part : parts) {
+            try {
+                ids.add(Integer.parseInt(part.trim()));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return ids;
+    }
+
+    private void persistRecentRoomIds(List<Integer> ids) {
+        Context context = getContext();
+        if (context == null) {
+            return;
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < ids.size(); i++) {
+            if (i > 0) {
+                builder.append(',');
+            }
+            builder.append(ids.get(i));
+        }
+
+        context.getSharedPreferences(PREFS_SEARCH, Context.MODE_PRIVATE)
+                .edit()
+                .putString(KEY_RECENT_ROOM_IDS, builder.toString())
+                .apply();
+    }
+
+    private void clearRecentRooms() {
+        Context context = getContext();
+        if (context == null) {
+            return;
+        }
+        context.getSharedPreferences(PREFS_SEARCH, Context.MODE_PRIVATE)
+                .edit()
+                .remove(KEY_RECENT_ROOM_IDS)
+                .apply();
+    }
+
+    private void updateClearButtonVisibility(CharSequence text) {
+        btnClear.setVisibility(text != null && text.length() > 0 ? View.VISIBLE : View.GONE);
     }
 }

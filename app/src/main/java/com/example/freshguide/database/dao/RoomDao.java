@@ -9,6 +9,7 @@ import androidx.room.Query;
 import androidx.room.Update;
 
 import com.example.freshguide.model.entity.RoomEntity;
+import com.example.freshguide.model.ui.RoomSearchResult;
 
 import java.util.List;
 
@@ -41,6 +42,48 @@ public interface RoomDao {
            "AND (:query = '' OR r.name LIKE '%' || :query || '%' OR r.code LIKE '%' || :query || '%') " +
            "ORDER BY r.name ASC")
     LiveData<List<RoomEntity>> searchByBuilding(String buildingCode, String query);
+
+    @Query("SELECT r.id AS roomId, " +
+           "COALESCE(NULLIF(TRIM(r.name), ''), NULLIF(TRIM(r.code), ''), 'Room') AS roomName, " +
+           "r.code AS roomCode, " +
+           "r.type AS roomType, " +
+           "f.number AS floorNumber, " +
+           "COALESCE(NULLIF(TRIM(b.name), ''), NULLIF(TRIM(b.code), ''), '') AS buildingName, " +
+           "b.code AS buildingCode " +
+           "FROM rooms r " +
+           "JOIN floors f ON r.floor_id = f.id " +
+           "JOIN buildings b ON f.building_id = b.id " +
+           "ORDER BY roomName ASC")
+    LiveData<List<RoomSearchResult>> getAllSearchResults();
+
+    @Query("SELECT r.id AS roomId, " +
+           "COALESCE(NULLIF(TRIM(r.name), ''), NULLIF(TRIM(r.code), ''), 'Room') AS roomName, " +
+           "r.code AS roomCode, " +
+           "r.type AS roomType, " +
+           "f.number AS floorNumber, " +
+           "COALESCE(NULLIF(TRIM(b.name), ''), NULLIF(TRIM(b.code), ''), '') AS buildingName, " +
+           "b.code AS buildingCode " +
+           "FROM rooms r " +
+           "JOIN floors f ON r.floor_id = f.id " +
+           "JOIN buildings b ON f.building_id = b.id " +
+           "WHERE r.name LIKE '%' || :query || '%' OR r.code LIKE '%' || :query || '%' " +
+           "ORDER BY roomName ASC")
+    LiveData<List<RoomSearchResult>> searchResults(String query);
+
+    @Query("SELECT r.id AS roomId, " +
+           "COALESCE(NULLIF(TRIM(r.name), ''), NULLIF(TRIM(r.code), ''), 'Room') AS roomName, " +
+           "r.code AS roomCode, " +
+           "r.type AS roomType, " +
+           "f.number AS floorNumber, " +
+           "COALESCE(NULLIF(TRIM(b.name), ''), NULLIF(TRIM(b.code), ''), '') AS buildingName, " +
+           "b.code AS buildingCode " +
+           "FROM rooms r " +
+           "JOIN floors f ON r.floor_id = f.id " +
+           "JOIN buildings b ON f.building_id = b.id " +
+           "WHERE b.code = :buildingCode " +
+           "AND (:query = '' OR r.name LIKE '%' || :query || '%' OR r.code LIKE '%' || :query || '%') " +
+           "ORDER BY roomName ASC")
+    LiveData<List<RoomSearchResult>> searchResultsByBuilding(String buildingCode, String query);
 
     // Satisfies checklist 6.3: INSERT — Create
     @Insert(onConflict = OnConflictStrategy.REPLACE)

@@ -19,6 +19,7 @@ import com.example.freshguide.model.entity.OriginEntity;
 import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.model.entity.RouteEntity;
 import com.example.freshguide.model.entity.RouteStepEntity;
+import com.example.freshguide.model.ui.RoomSearchResult;
 import com.example.freshguide.network.ApiClient;
 import com.example.freshguide.network.ApiService;
 
@@ -73,6 +74,18 @@ public class RoomRepository {
 
     public LiveData<List<RoomEntity>> searchRoomsByBuilding(String buildingCode, String query) {
         return roomDao.searchByBuilding(buildingCode, query);
+    }
+
+    public LiveData<List<RoomSearchResult>> getAllSearchResults() {
+        return roomDao.getAllSearchResults();
+    }
+
+    public LiveData<List<RoomSearchResult>> searchRoomResults(String query) {
+        return roomDao.searchResults(query);
+    }
+
+    public LiveData<List<RoomSearchResult>> searchRoomResultsByBuilding(String buildingCode, String query) {
+        return roomDao.searchResultsByBuilding(buildingCode, query);
     }
 
     public void getRoomDetail(int roomId, RoomDetailCallback callback) {

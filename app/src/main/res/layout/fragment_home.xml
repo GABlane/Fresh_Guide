@@ -5,7 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/background_default">
+    android:background="@color/background_default"
+    android:paddingStart="@dimen/screen_horizontal_gutter"
+    android:paddingEnd="@dimen/screen_horizontal_gutter">
 
     <!-- Header: full logo + search bar -->
     <LinearLayout

@@ -1,67 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Satisfies checklist 5.6: custom list item layout -->
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="8dp"
-    android:layout_marginEnd="8dp"
-    android:layout_marginTop="6dp"
-    android:layout_marginBottom="2dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    android:background="@drawable/bg_search_result_item"
     android:clickable="true"
     android:focusable="true"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp"
-    app:strokeWidth="0dp">
+    android:gravity="center_vertical"
+    android:minHeight="64dp"
+    android:orientation="horizontal"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
+
+    <ImageView
+        android:id="@+id/iv_leading_icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:contentDescription="@null"
+        android:tint="@color/text_secondary" />
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical">
-
-        <!-- Type badge / color strip -->
-        <View
-            android:layout_width="4dp"
-            android:layout_height="48dp"
-            android:background="@color/green_primary"
-            android:layout_marginEnd="14dp" />
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tv_room_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="15sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary" />
-
-            <TextView
-                android:id="@+id/tv_room_code"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:textSize="12sp"
-                android:textColor="@color/text_hint" />
-        </LinearLayout>
+        android:layout_marginStart="16dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
 
         <TextView
-            android:id="@+id/tv_room_type"
+            android:id="@+id/tv_room_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:paddingTop="3dp"
-            android:paddingBottom="3dp"
-            android:textSize="11sp"
-            android:textColor="@color/green_primary"
-            android:background="@drawable/bg_chip_green_outline" />
+            android:fontFamily="@font/instrument_regular"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp" />
 
+        <TextView
+            android:id="@+id/tv_room_code"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="@font/instrument_regular"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
     </LinearLayout>
-</com.google.android.material.card.MaterialCardView>
+
+    <ImageButton
+        android:id="@+id/btn_item_action"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/search_apply_suggestion"
+        android:padding="0dp"
+        android:src="@drawable/ic_search_autofill"
+        android:tint="@color/text_secondary"
+        android:visibility="gone" />
+
+</LinearLayout>
