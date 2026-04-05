@@ -31,7 +31,7 @@
     <color name="green">#4CAF50</color>                   <!-- Alternative green -->
     <color name="orange_accent">#FF8A3D</color>           <!-- Slightly desaturated -->
     <color name="orange_text">#FFB74D</color>             <!-- Orange text -->
-    <color name="map_orange">#FFB74D</color>              <!-- Map accent -->
+    <color name="map_orange">#7C5827</color>              <!-- Map accent -->
 
     <!-- Border & Divider Colors (Dark Mode) -->
     <color name="border_default">#3A3A3A</color>
