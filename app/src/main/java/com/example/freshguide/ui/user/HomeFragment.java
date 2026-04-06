@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.graphics.Typeface;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -454,7 +455,7 @@ public class HomeFragment extends Fragment {
                 });
                 roomBox.setOnClickListener(v -> {
                     Log.d(TAG, "Room clicked id=" + room.id + " code=" + room.code + " name=" + room.name);
-                    openRoomOnMap(room, roomBox, false);
+                    openRoomOnMap(room, roomBox, true);
                 });
 
                 if (pendingFocusedRoomId != null && pendingFocusedRoomId == room.id) {
@@ -641,7 +642,7 @@ public class HomeFragment extends Fragment {
                         .setDuration(120L)
                         .start())
                 .start();
-
+        animateRoomPin(roomBox);
         if (animateCentering) {
             centerRoomInFloorMap(roomBox);
         }
@@ -697,28 +698,34 @@ public class HomeFragment extends Fragment {
 
     private void applyRoomHighlightState(@NonNull View roomBox, boolean highlighted) {
         View pin = roomBox.findViewById(R.id.room_pin);
-        boolean isLeftRoom = roomBox.getId() == R.id.room_left_1
-                || roomBox.getId() == R.id.room_left_2
-                || roomBox.getId() == R.id.room_left_3
-                || roomBox.getId() == R.id.room_left_4
-                || roomBox.getId() == R.id.room_left_5;
-
-        roomBox.setBackgroundResource(highlighted
-                ? (isLeftRoom ? R.drawable.bg_room_classroom_right_door_selected
-                : R.drawable.bg_room_classroom_left_door_selected)
-                : (isLeftRoom ? R.drawable.bg_room_classroom_right_door
-                : R.drawable.bg_room_classroom_left_door));
-        roomBox.setTranslationZ(highlighted ? 8f : 0f);
+        roomBox.setTranslationZ(highlighted ? 10f : 0f);
 
         TextView label = roomBox.findViewById(R.id.room_label);
         if (label != null) {
             label.setTextColor(ContextCompat.getColor(requireContext(),
                     highlighted ? R.color.green_primary : R.color.floor_room_label));
+            label.setTypeface(Typeface.DEFAULT, highlighted ? Typeface.BOLD : Typeface.NORMAL);
         }
 
         if (pin != null) {
             pin.setVisibility(highlighted ? View.VISIBLE : View.GONE);
         }
+    }
+
+    private void animateRoomPin(@NonNull View roomBox) {
+        View pin = roomBox.findViewById(R.id.room_pin);
+        if (pin == null) {
+            return;
+        }
+        pin.setScaleX(0.65f);
+        pin.setScaleY(0.65f);
+        pin.setAlpha(0f);
+        pin.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(180L)
+                .start();
     }
 
     private void runOnUiThreadSafely(Runnable task) {

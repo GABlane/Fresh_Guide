@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="248dp"
+    android:layout_height="200dp"
+    android:layout_marginEnd="14dp"
+    android:background="@drawable/bg_room_media_placeholder"
+    android:clipToOutline="true">
+
+    <ImageView
+        android:id="@+id/iv_gallery_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop" />
+
+    <TextView
+        android:id="@+id/tv_gallery_placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fontFamily="@font/inter_medium"
+        android:gravity="center"
+        android:text="No room image"
+        android:textColor="@color/room_detail_placeholder"
+        android:textSize="14sp" />
+</FrameLayout>

@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -16,11 +17,14 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.freshguide.R;
 import com.example.freshguide.database.AppDatabase;
 import com.example.freshguide.model.entity.FacilityEntity;
 import com.example.freshguide.model.entity.RoomEntity;
+import com.example.freshguide.ui.adapter.RoomImageGalleryAdapter;
 import com.example.freshguide.util.RoomImageCacheManager;
 import com.example.freshguide.util.RoomImageUrlResolver;
 import com.example.freshguide.viewmodel.RoomDetailViewModel;
@@ -33,6 +37,8 @@ import java.io.File;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -46,6 +52,14 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
     private boolean isCampusArea;
     private final ExecutorService imageExecutor = Executors.newSingleThreadExecutor();
     private String latestImageUrl;
+    private RoomImageGalleryAdapter galleryAdapter;
+    private View galleryFadeLeft;
+    private View galleryFadeRight;
+
+    @Override
+    public int getTheme() {
+        return R.style.ThemeOverlay_FreshGuide_MapBottomSheet;
+    }
 
     @Nullable
     @Override
@@ -59,12 +73,28 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
         super.onStart();
         if (getDialog() instanceof BottomSheetDialog) {
             BottomSheetDialog dialog = (BottomSheetDialog) getDialog();
+            Window window = dialog.getWindow();
+            if (window != null) {
+                window.setDimAmount(0f);
+            }
             View sheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
             if (sheet != null) {
                 sheet.setBackgroundResource(R.drawable.bg_room_detail_sheet);
                 BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(sheet);
-                behavior.setSkipCollapsed(true);
-                behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                ViewGroup.LayoutParams params = sheet.getLayoutParams();
+                if (params != null) {
+                    params.height = ViewGroup.LayoutParams.MATCH_PARENT;
+                    sheet.setLayoutParams(params);
+                }
+                // Place-details sheet: visible over the map, draggable between collapsed, half, and full.
+                behavior.setFitToContents(false);
+                behavior.setExpandedOffset(dpToPx(14));
+                behavior.setHalfExpandedRatio(0.5f);
+                behavior.setPeekHeight(dpToPx(86), true);
+                behavior.setSkipCollapsed(false);
+                behavior.setHideable(false);
+                behavior.setDraggable(true);
+                behavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
             }
         }
     }
@@ -83,11 +113,24 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
         TextView tvType = view.findViewById(R.id.tv_room_type);
         TextView tvDescription = view.findViewById(R.id.tv_room_description);
         TextView tvFacilities = view.findViewById(R.id.tv_facilities);
-        ImageView ivRoomImage = view.findViewById(R.id.iv_room_image);
-        TextView tvImagePlaceholder = view.findViewById(R.id.tv_image_placeholder);
         View btnDirections = view.findViewById(R.id.btn_get_directions);
         ImageButton btnBookmark = view.findViewById(R.id.btn_room_bookmark);
+        RecyclerView galleryRecycler = view.findViewById(R.id.recycler_room_gallery);
+        galleryFadeLeft = view.findViewById(R.id.gallery_fade_left);
+        galleryFadeRight = view.findViewById(R.id.gallery_fade_right);
         NavController nav = NavHostFragment.findNavController(this);
+
+        galleryAdapter = new RoomImageGalleryAdapter();
+        LinearLayoutManager galleryLayoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
+        galleryRecycler.setLayoutManager(galleryLayoutManager);
+        galleryRecycler.setAdapter(galleryAdapter);
+        galleryRecycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                updateGalleryFades(recyclerView);
+            }
+        });
+        galleryRecycler.post(() -> updateGalleryFades(galleryRecycler));
 
         btnBookmark.setOnClickListener(v ->
                 Toast.makeText(requireContext(), "Favorites coming soon", Toast.LENGTH_SHORT).show());
@@ -111,7 +154,7 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
             tvDescription.setText(description);
 
             String resolvedImageUrl = RoomImageUrlResolver.resolvePath(requireContext(), room.imageUrl);
-            loadRoomImage(room.cachedImagePath, resolvedImageUrl, ivRoomImage, tvImagePlaceholder);
+            loadRoomImages(room.cachedImagePath, resolvedImageUrl, galleryRecycler);
         });
 
         viewModel.getFacilities().observe(getViewLifecycleOwner(), facilities -> {
@@ -175,15 +218,18 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
         return "Location details unavailable";
     }
 
-    private void loadRoomImage(String cachedImagePath, String imageUrl, ImageView imageView, TextView placeholderView) {
+    private void loadRoomImages(String cachedImagePath, String imageUrl, RecyclerView galleryRecycler) {
+        List<RoomImageGalleryAdapter.GalleryItem> placeholders = new ArrayList<>();
+        placeholders.add(new RoomImageGalleryAdapter.GalleryItem(null, "No room image"));
+        galleryAdapter.submitList(placeholders);
+        updateGalleryFades(galleryRecycler);
+
         if (cachedImagePath != null && !cachedImagePath.trim().isEmpty()) {
             File cachedFile = new File(cachedImagePath);
             if (cachedFile.exists()) {
                 Bitmap cachedBitmap = BitmapFactory.decodeFile(cachedFile.getAbsolutePath());
                 if (cachedBitmap != null) {
-                    imageView.setImageBitmap(cachedBitmap);
-                    imageView.setVisibility(View.VISIBLE);
-                    placeholderView.setVisibility(View.GONE);
+                    submitGalleryBitmaps(buildGalleryItems(cachedBitmap), galleryRecycler);
                     return;
                 }
             }
@@ -192,15 +238,8 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
         latestImageUrl = imageUrl;
 
         if (imageUrl == null || imageUrl.trim().isEmpty()) {
-            imageView.setImageBitmap(null);
-            imageView.setVisibility(View.VISIBLE);
-            placeholderView.setVisibility(View.VISIBLE);
             return;
         }
-
-        imageView.setVisibility(View.VISIBLE);
-        imageView.setImageBitmap(null);
-        placeholderView.setVisibility(View.VISIBLE);
 
         final android.content.Context appContext = requireContext().getApplicationContext();
         final AppDatabase db = AppDatabase.getInstance(appContext);
@@ -255,16 +294,40 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
                 if (latestImageUrl == null || !latestImageUrl.equals(imageUrl)) return;
 
                 if (finalBitmap != null) {
-                    imageView.setImageBitmap(finalBitmap);
-                    imageView.setVisibility(View.VISIBLE);
-                    placeholderView.setVisibility(View.GONE);
+                    submitGalleryBitmaps(buildGalleryItems(finalBitmap), galleryRecycler);
                 } else {
-                    imageView.setImageBitmap(null);
-                    imageView.setVisibility(View.VISIBLE);
-                    placeholderView.setVisibility(View.VISIBLE);
+                    List<RoomImageGalleryAdapter.GalleryItem> emptyItems = new ArrayList<>();
+                    emptyItems.add(new RoomImageGalleryAdapter.GalleryItem(null, "No room image"));
+                    galleryAdapter.submitList(emptyItems);
+                    updateGalleryFades(galleryRecycler);
                 }
             });
         });
+    }
+
+    private List<RoomImageGalleryAdapter.GalleryItem> buildGalleryItems(@NonNull Bitmap bitmap) {
+        List<RoomImageGalleryAdapter.GalleryItem> items = new ArrayList<>();
+        items.add(new RoomImageGalleryAdapter.GalleryItem(bitmap, null));
+        return items;
+    }
+
+    private void submitGalleryBitmaps(List<RoomImageGalleryAdapter.GalleryItem> items, RecyclerView galleryRecycler) {
+        galleryAdapter.submitList(items);
+        galleryRecycler.post(() -> updateGalleryFades(galleryRecycler));
+    }
+
+    private void updateGalleryFades(@NonNull RecyclerView galleryRecycler) {
+        if (galleryFadeLeft == null || galleryFadeRight == null) {
+            return;
+        }
+        boolean canScrollLeft = galleryRecycler.canScrollHorizontally(-1);
+        boolean canScrollRight = galleryRecycler.canScrollHorizontally(1);
+        galleryFadeLeft.setVisibility(canScrollLeft ? View.VISIBLE : View.GONE);
+        galleryFadeRight.setVisibility(canScrollRight ? View.VISIBLE : View.GONE);
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(dp * getResources().getDisplayMetrics().density);
     }
 
 }

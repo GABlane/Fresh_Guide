@@ -468,21 +468,21 @@
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_compass"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
+            android:layout_width="58dp"
+            android:layout_height="58dp"
             android:layout_gravity="bottom|end"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="5dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginBottom="8dp"
             android:contentDescription="Directions"
-            android:src="@drawable/direction"
-            app:backgroundTint="@color/background_default"
+            android:src="@drawable/ic_directions"
+            app:backgroundTint="@color/background_card"
             app:strokeColor="@color/border_subtle"
-            app:borderWidth="0dp"
-            app:elevation="0.2dp"
+            app:borderWidth="1dp"
+            app:elevation="1dp"
             app:ensureMinTouchTargetSize="false"
-            app:fabCustomSize="64dp"
-            app:maxImageSize="22dp"
-            app:tint="@null"
+            app:fabCustomSize="58dp"
+            app:maxImageSize="20dp"
+            app:tint="@color/green_primary"
             app:useCompatPadding="false" />
 
     </FrameLayout>

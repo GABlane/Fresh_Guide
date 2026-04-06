@@ -40,4 +40,13 @@
     <style name="Widget.FreshGuide.BottomSheet" parent="Widget.Material3.BottomSheet.Modal">
         <item name="android:background">@drawable/bg_bottom_sheet_surface</item>
     </style>
+
+    <style name="ThemeOverlay.FreshGuide.MapBottomSheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.FreshGuide.MapBottomSheet</item>
+        <item name="android:backgroundDimEnabled">false</item>
+    </style>
+
+    <style name="Widget.FreshGuide.MapBottomSheet" parent="Widget.Material3.BottomSheet.Modal">
+        <item name="android:background">@drawable/bg_room_detail_sheet</item>
+    </style>
 </resources>

@@ -6,12 +6,12 @@
 
     <ImageView
         android:id="@+id/room_pin"
-        android:layout_width="18dp"
-        android:layout_height="18dp"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
         android:layout_gravity="top|center_horizontal"
-        android:layout_marginTop="-10dp"
+        android:layout_marginTop="-12dp"
         android:contentDescription="@null"
-        android:src="@drawable/ic_map_room_pin"
+        android:src="@drawable/ic_map_room_pin_red"
         android:visibility="gone" />
 
     <TextView
