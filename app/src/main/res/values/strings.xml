@@ -50,9 +50,12 @@
     <string name="label_direction">Direction</string>
     <string name="label_origin">Origin</string>
     <string name="label_destination">Destination</string>
+    <string name="hint_choose_origin">Choose your origin</string>
+    <string name="hint_choose_destination">Choose your destination</string>
     <string name="label_select_destination">Select destination</string>
     <string name="action_start_directions">Start Directions</string>
     <string name="label_guide">Guide</string>
+    <string name="label_no_origins">No origins found</string>
     <string name="label_no_rooms">No rooms available yet</string>
     <string name="label_no_directions">No directions available yet</string>
     <string name="default_origin">Entrance</string>
