@@ -89,6 +89,12 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private boolean suppressDestinationWatcher;
     private int resultPanelMaxHeightPx;
 
+    // -----------------------------------------------------------------------
+    // FIX: Guard flag that prevents focus-change listeners from re-opening
+    // the dropdown while we are programmatically tearing it down.
+    // -----------------------------------------------------------------------
+    private boolean isClosingDropdown = false;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -196,32 +202,106 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void setupInputs() {
+        // -----------------------------------------------------------------------
+        // FIX: sheetRoot must be focusable in touch mode so that requestFocus()
+        // on it actually wins the focus race when we clear field focus.
+        // Without this, Android's default focus traversal hands focus back to one
+        // of the EditTexts, which re-triggers handleFieldFocusChanged(true) and
+        // re-opens the dropdown.
+        // -----------------------------------------------------------------------
+        if (sheetRoot != null) {
+            sheetRoot.setFocusable(true);
+            sheetRoot.setFocusableInTouchMode(true);
+        }
+
         resultsScrim.setOnClickListener(v -> hideResultsAndClearFocus());
+
         sheetRoot.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN && shouldDismissResults(event)) {
                 hideResultsAndClearFocus();
             }
             return false;
         });
-        originResults.setOnClickListener(v -> {
-        });
-        destinationResults.setOnClickListener(v -> {
-        });
+
+        // -----------------------------------------------------------------------
+        // FIX: Remove the empty click listeners on originResults / destinationResults.
+        // Those empty lambdas marked the panels as clickable even when GONE,
+        // which meant the touch-slop system could treat them as hit targets in
+        // z-order even after setVisibility(GONE).  We handle panel-interior
+        // touches via the RecyclerView items themselves; the scrim handles
+        // everything outside.  If you still need to stop scrim clicks from
+        // leaking through the panel while it is VISIBLE, set clickable=true via
+        // setDropdownVisibility() — which already does that — instead of a
+        // static empty listener.
+        // -----------------------------------------------------------------------
 
         bindFieldInteractions(ActiveField.ORIGIN);
         bindFieldInteractions(ActiveField.DESTINATION);
     }
 
+    // ---------------------------------------------------------------------------
+    // FIX: Central suggestion-pick handler.
+    //
+    // Original order:                   Fixed order:
+    //   applySuggestionSelection()        1. Set activeField = NONE immediately
+    //   closeDropdown()                   2. Apply selection (sets text, suppressed watcher)
+    //   updateClearButtons()              3. Force-hide all panels and scrim
+    //   updateSuggestionList()  ← re-showed dropdown via showActiveResults()
+    //   updateStartState()                4. Clear focus with guard flag ON
+    //                                     5. updateClearButtons / updateStartState
+    //                                     (NO updateSuggestionList call here –
+    //                                      it would call showActiveResults which
+    //                                      could re-show if focus was still live)
+    // ---------------------------------------------------------------------------
     private void onSuggestionPicked(DirectionSearchAdapter.SuggestionItem item) {
+        // 1. Lock state before any focus side-effects.
+        activeField = ActiveField.NONE;
+        dropdownVisible = false;
+
+        // 2. Apply selection (text watcher suppressed internally).
         if (item.isOrigin) {
             applySuggestionSelection(ActiveField.ORIGIN, item.id, item.title);
         } else {
             applySuggestionSelection(ActiveField.DESTINATION, item.id, item.title);
         }
-        closeDropdown();
+
+        // 3. Hide all dropdown UI immediately, before touching focus.
+        forceHideAllDropdowns();
+
+        // 4. Strip focus from both fields under the guard flag so that
+        //    handleFieldFocusChanged cannot re-open the dropdown.
+        clearAllFieldFocus();
+
+        // 5. Housekeeping — no updateSuggestionList() here.
         updateClearButtons();
-        updateSuggestionList();
         updateStartState();
+    }
+
+    // ---------------------------------------------------------------------------
+    // FIX: Hard-hide every dropdown panel and the scrim unconditionally.
+    // Called before we manipulate focus so there is no visual flicker.
+    // ---------------------------------------------------------------------------
+    private void forceHideAllDropdowns() {
+        setDropdownVisibility(originResults, false);
+        setDropdownVisibility(destinationResults, false);
+        setDropdownVisibility(resultsScrim, false);
+    }
+
+    // ---------------------------------------------------------------------------
+    // FIX: Clear focus under the isClosingDropdown guard so that
+    // handleFieldFocusChanged() becomes a no-op during teardown.
+    // sheetRoot.requestFocus() is called AFTER both clearFocus() calls so that
+    // Android's traversal cannot sneak focus back into an EditText in between.
+    // ---------------------------------------------------------------------------
+    private void clearAllFieldFocus() {
+        isClosingDropdown = true;
+        try {
+            if (etOrigin != null) etOrigin.clearFocus();
+            if (etDestination != null) etDestination.clearFocus();
+            if (sheetRoot != null) sheetRoot.requestFocus();
+        } finally {
+            isClosingDropdown = false;
+        }
     }
 
     private void setFieldText(EditText field, String value, boolean originField) {
@@ -247,14 +327,9 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
             requireActivity().runOnUiThread(() -> {
                 allOrigins.clear();
-                if (origins != null) {
-                    allOrigins.addAll(origins);
-                }
-
+                if (origins != null) allOrigins.addAll(origins);
                 allRooms.clear();
-                if (rooms != null) {
-                    allRooms.addAll(rooms);
-                }
+                if (rooms != null) allRooms.addAll(rooms);
 
                 applyPreselectedRoom();
                 updateSuggestionList();
@@ -265,13 +340,9 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void applyPreselectedRoom() {
-        if (preselectedRoomId <= 0) {
-            return;
-        }
+        if (preselectedRoomId <= 0) return;
         for (RoomEntity room : allRooms) {
-            if (room.id != preselectedRoomId) {
-                continue;
-            }
+            if (room.id != preselectedRoomId) continue;
             selectedRoomId = room.id;
             String name = room.name != null && !room.name.trim().isEmpty()
                     ? room.name
@@ -300,9 +371,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private List<DirectionSearchAdapter.SuggestionItem> buildOriginSuggestions(String query) {
         List<DirectionSearchAdapter.SuggestionItem> suggestions = new ArrayList<>();
         for (OriginEntity origin : allOrigins) {
-            if (!matches(query, origin.name, origin.code, origin.description)) {
-                continue;
-            }
+            if (!matches(query, origin.name, origin.code, origin.description)) continue;
             suggestions.add(new DirectionSearchAdapter.SuggestionItem(
                     origin.id,
                     safe(origin.name, "Origin"),
@@ -317,9 +386,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private List<DirectionSearchAdapter.SuggestionItem> buildDestinationSuggestions(String query) {
         List<DirectionSearchAdapter.SuggestionItem> suggestions = new ArrayList<>();
         for (RoomEntity room : allRooms) {
-            if (!matches(query, room.name, room.code, room.location)) {
-                continue;
-            }
+            if (!matches(query, room.name, room.code, room.location)) continue;
             suggestions.add(new DirectionSearchAdapter.SuggestionItem(
                     room.id,
                     safe(room.name, "Room"),
@@ -332,15 +399,24 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void showActiveResults() {
-        if (originResults == null || destinationResults == null) {
+        if (originResults == null || destinationResults == null) return;
+
+        // -----------------------------------------------------------------------
+        // FIX: Never show results while we are closing the dropdown, regardless
+        // of what hasFocus() reports at this instant.
+        // -----------------------------------------------------------------------
+        if (isClosingDropdown) {
             return;
         }
+
         boolean showOrigin = activeField == ActiveField.ORIGIN && etOrigin.hasFocus();
         boolean showDestination = activeField == ActiveField.DESTINATION && etDestination.hasFocus();
         dropdownVisible = showOrigin || showDestination;
+
         setDropdownVisibility(originResults, showOrigin);
         setDropdownVisibility(destinationResults, showDestination);
         setDropdownVisibility(resultsScrim, dropdownVisible);
+
         if (dropdownVisible) {
             resultsScrim.bringToFront();
             bringPersistentControlsToFront();
@@ -354,23 +430,15 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
     private void hideResults() {
         dropdownVisible = false;
+        activeField = ActiveField.NONE;
         setDropdownVisibility(originResults, false);
         setDropdownVisibility(destinationResults, false);
         setDropdownVisibility(resultsScrim, false);
-        activeField = ActiveField.NONE;
     }
 
     private void hideResultsAndClearFocus() {
         hideResults();
-        if (etOrigin != null) {
-            etOrigin.clearFocus();
-        }
-        if (etDestination != null) {
-            etDestination.clearFocus();
-        }
-        if (sheetRoot != null) {
-            sheetRoot.requestFocus();
-        }
+        clearAllFieldFocus();
         updateClearButtons();
     }
 
@@ -383,11 +451,15 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             hideResultsAndClearFocus();
             return;
         }
+
+        // -----------------------------------------------------------------------
+        // FIX: Do not react to focus requests while the dropdown is being closed.
+        // -----------------------------------------------------------------------
+        if (isClosingDropdown) return;
+
         EditText field = getFieldInput(fieldType);
         EditText otherField = getFieldInput(getOtherField(fieldType));
-        if (otherField != null) {
-            otherField.clearFocus();
-        }
+        if (otherField != null) otherField.clearFocus();
         activeField = fieldType;
         if (field != null) {
             field.requestFocus();
@@ -406,36 +478,22 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void bringPersistentControlsToFront() {
-        if (originLabel != null) {
-            originLabel.bringToFront();
-        }
-        if (originFieldContainer != null) {
-            originFieldContainer.bringToFront();
-        }
-        if (destinationLabel != null) {
-            destinationLabel.bringToFront();
-        }
-        if (destinationFieldContainer != null) {
-            destinationFieldContainer.bringToFront();
-        }
-        if (btnStart != null) {
-            btnStart.bringToFront();
-        }
+        if (originLabel != null) originLabel.bringToFront();
+        if (originFieldContainer != null) originFieldContainer.bringToFront();
+        if (destinationLabel != null) destinationLabel.bringToFront();
+        if (destinationFieldContainer != null) destinationFieldContainer.bringToFront();
+        if (btnStart != null) btnStart.bringToFront();
     }
 
     private boolean shouldDismissResults(@NonNull MotionEvent event) {
-        if (activeField == ActiveField.NONE || !dropdownVisible) {
-            return false;
-        }
+        if (activeField == ActiveField.NONE || !dropdownVisible) return false;
         View activeInput = getFieldContainer(activeField);
         View activeResults = getResultsPanel(activeField);
         return !isTouchWithinView(activeInput, event) && !isTouchWithinView(activeResults, event);
     }
 
     private boolean isTouchWithinView(@Nullable View target, @NonNull MotionEvent event) {
-        if (target == null || target.getVisibility() != View.VISIBLE) {
-            return false;
-        }
+        if (target == null || target.getVisibility() != View.VISIBLE) return false;
         int[] location = new int[2];
         target.getLocationOnScreen(location);
         float rawX = event.getRawX();
@@ -447,12 +505,12 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void updateResultPanelHeights() {
-        if (sheetRoot == null || btnStart == null) {
-            return;
-        }
+        if (sheetRoot == null || btnStart == null) return;
         sheetRoot.post(() -> {
-            setHeight(originResults, computeDropdownHeight(etOrigin, originAdapter != null ? originAdapter.getItemCount() : 0));
-            setHeight(destinationResults, computeDropdownHeight(etDestination, destinationAdapter != null ? destinationAdapter.getItemCount() : 0));
+            setHeight(originResults, computeDropdownHeight(etOrigin,
+                    originAdapter != null ? originAdapter.getItemCount() : 0));
+            setHeight(destinationResults, computeDropdownHeight(etDestination,
+                    destinationAdapter != null ? destinationAdapter.getItemCount() : 0));
         });
     }
 
@@ -475,21 +533,15 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void setHeight(@Nullable View target, int heightPx) {
-        if (target == null) {
-            return;
-        }
+        if (target == null) return;
         ViewGroup.LayoutParams params = target.getLayoutParams();
-        if (params == null) {
-            return;
-        }
+        if (params == null) return;
         params.height = heightPx;
         target.setLayoutParams(params);
     }
 
     private void setDropdownVisibility(@Nullable View target, boolean visible) {
-        if (target == null) {
-            return;
-        }
+        if (target == null) return;
         target.setVisibility(visible ? View.VISIBLE : View.GONE);
         target.setClickable(visible);
         target.setFocusable(visible);
@@ -497,14 +549,10 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private boolean matches(String query, String... values) {
-        if (query == null || query.trim().isEmpty()) {
-            return true;
-        }
+        if (query == null || query.trim().isEmpty()) return true;
         String normalized = query.trim().toLowerCase(Locale.US);
         for (String value : values) {
-            if (value != null && value.toLowerCase(Locale.US).contains(normalized)) {
-                return true;
-            }
+            if (value != null && value.toLowerCase(Locale.US).contains(normalized)) return true;
         }
         return false;
     }
@@ -535,20 +583,17 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             resultPanelMaxHeightPx = dpToPx(360);
             return;
         }
-
         if (newState == BottomSheetBehavior.STATE_HALF_EXPANDED) {
             sheetDisplayState = SheetDisplayState.HALF;
             resultPanelMaxHeightPx = dpToPx(200);
             return;
         }
-
         if (newState == BottomSheetBehavior.STATE_HIDDEN) {
             sheetDisplayState = SheetDisplayState.CLOSED;
             hideResultsAndClearFocus();
             dismissAllowingStateLoss();
             return;
         }
-
         if (newState == BottomSheetBehavior.STATE_COLLAPSED && bottomSheetBehavior != null) {
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         }
@@ -566,9 +611,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             field.addTextChangedListener(new SimpleWatcher() {
                 @Override
                 public void afterTextChanged(Editable s) {
-                    if (isWatcherSuppressed(fieldType)) {
-                        return;
-                    }
+                    if (isWatcherSuppressed(fieldType)) return;
                     handleFieldTextChanged(fieldType);
                 }
             });
@@ -579,6 +622,15 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void handleFieldFocusChanged(ActiveField fieldType, boolean hasFocus) {
+        // -----------------------------------------------------------------------
+        // FIX: If we are in the middle of programmatically closing the dropdown,
+        // do not let focus events re-open it.  This is the primary guard that
+        // stops Android's focus traversal from handing focus back to an EditText
+        // between our two clearFocus() calls, which previously caused the panel
+        // to re-appear.
+        // -----------------------------------------------------------------------
+        if (isClosingDropdown) return;
+
         if (hasFocus) {
             activeField = fieldType;
             updateSuggestionList();
@@ -592,6 +644,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void handleFieldTextChanged(ActiveField fieldType) {
+        if (isClosingDropdown) return;
         activeField = fieldType;
         clearSelectedId(fieldType);
         updateClearButtons();
@@ -602,9 +655,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private void clearFieldSelection(ActiveField fieldType) {
         clearSelectedId(fieldType);
         EditText field = getFieldInput(fieldType);
-        if (field != null) {
-            field.setText("");
-        }
+        if (field != null) field.setText("");
         focusField(fieldType);
         updateClearButtons();
         updateStartState();
@@ -616,19 +667,13 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void clearSelectedId(ActiveField fieldType) {
-        if (fieldType == ActiveField.ORIGIN) {
-            originId = -1;
-        } else if (fieldType == ActiveField.DESTINATION) {
-            selectedRoomId = -1;
-        }
+        if (fieldType == ActiveField.ORIGIN) originId = -1;
+        else if (fieldType == ActiveField.DESTINATION) selectedRoomId = -1;
     }
 
     private void assignSelectedId(ActiveField fieldType, int id) {
-        if (fieldType == ActiveField.ORIGIN) {
-            originId = id;
-        } else if (fieldType == ActiveField.DESTINATION) {
-            selectedRoomId = id;
-        }
+        if (fieldType == ActiveField.ORIGIN) originId = id;
+        else if (fieldType == ActiveField.DESTINATION) selectedRoomId = id;
     }
 
     private boolean isWatcherSuppressed(ActiveField fieldType) {
@@ -637,65 +682,43 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
     @Nullable
     private EditText getFieldInput(ActiveField fieldType) {
-        if (fieldType == ActiveField.ORIGIN) {
-            return etOrigin;
-        }
-        if (fieldType == ActiveField.DESTINATION) {
-            return etDestination;
-        }
+        if (fieldType == ActiveField.ORIGIN) return etOrigin;
+        if (fieldType == ActiveField.DESTINATION) return etDestination;
         return null;
     }
 
     @Nullable
     private View getFieldContainer(ActiveField fieldType) {
-        if (fieldType == ActiveField.ORIGIN) {
-            return originFieldContainer;
-        }
-        if (fieldType == ActiveField.DESTINATION) {
-            return destinationFieldContainer;
-        }
+        if (fieldType == ActiveField.ORIGIN) return originFieldContainer;
+        if (fieldType == ActiveField.DESTINATION) return destinationFieldContainer;
         return null;
     }
 
     @Nullable
     private ImageButton getClearButton(ActiveField fieldType) {
-        if (fieldType == ActiveField.ORIGIN) {
-            return btnClearOrigin;
-        }
-        if (fieldType == ActiveField.DESTINATION) {
-            return btnClearDestination;
-        }
+        if (fieldType == ActiveField.ORIGIN) return btnClearOrigin;
+        if (fieldType == ActiveField.DESTINATION) return btnClearDestination;
         return null;
     }
 
     @Nullable
     private View getResultsPanel(ActiveField fieldType) {
-        if (fieldType == ActiveField.ORIGIN) {
-            return originResults;
-        }
-        if (fieldType == ActiveField.DESTINATION) {
-            return destinationResults;
-        }
+        if (fieldType == ActiveField.ORIGIN) return originResults;
+        if (fieldType == ActiveField.DESTINATION) return destinationResults;
         return null;
     }
 
     @NonNull
     private ActiveField getOtherField(ActiveField fieldType) {
-        if (fieldType == ActiveField.ORIGIN) {
-            return ActiveField.DESTINATION;
-        }
-        if (fieldType == ActiveField.DESTINATION) {
-            return ActiveField.ORIGIN;
-        }
+        if (fieldType == ActiveField.ORIGIN) return ActiveField.DESTINATION;
+        if (fieldType == ActiveField.DESTINATION) return ActiveField.ORIGIN;
         return ActiveField.NONE;
     }
 
     private void navigateToDirections(int roomId, int selectedOriginId) {
-        if (!isAdded()) {
-            return;
-        }
-
-        NavController navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
+        if (!isAdded()) return;
+        NavController navController =
+                Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
         Bundle args = new Bundle();
         args.putInt("roomId", roomId);
         args.putInt("originId", selectedOriginId);
@@ -709,11 +732,8 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
     private abstract static class SimpleWatcher implements TextWatcher {
         @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-        }
-
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
         @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-        }
+        public void onTextChanged(CharSequence s, int start, int before, int count) {}
     }
 }
