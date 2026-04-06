@@ -113,6 +113,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private boolean dropdownVisible;
     private boolean suppressOriginWatcher;
     private boolean suppressDestinationWatcher;
+    private boolean reverseCurrentRoute;
     private int resultPanelMaxHeightPx;
 
     // -----------------------------------------------------------------------
@@ -262,17 +263,32 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void startDirectionsInPlace(@NonNull View rootView) {
-        if (originId == -1) {
-            originId = resolveOriginId(textOf(etOrigin));
+        String originText = textOf(etOrigin);
+        String destinationText = textOf(etDestination);
+
+        int directOriginId = resolveOriginId(originText);
+        int directRoomId = resolveRoomId(destinationText);
+        int swappedRoomId = resolveRoomId(originText);
+        int swappedOriginId = resolveOriginId(destinationText);
+
+        int routeOriginId = -1;
+        int routeRoomId = -1;
+
+        if (directOriginId != -1 && directRoomId != -1) {
+            routeOriginId = directOriginId;
+            routeRoomId = directRoomId;
+            reverseCurrentRoute = false;
+        } else if (swappedOriginId != -1 && swappedRoomId != -1) {
+            routeOriginId = swappedOriginId;
+            routeRoomId = swappedRoomId;
+            reverseCurrentRoute = true;
         }
-        if (selectedRoomId == -1) {
-            selectedRoomId = resolveRoomId(textOf(etDestination));
-        }
-        if (originId == -1) {
+
+        if (routeOriginId == -1) {
             Snackbar.make(rootView, R.string.error_origin_missing, Snackbar.LENGTH_LONG).show();
             return;
         }
-        if (selectedRoomId == -1) {
+        if (routeRoomId == -1) {
             Snackbar.make(rootView, R.string.error_destination_missing, Snackbar.LENGTH_LONG).show();
             return;
         }
@@ -280,7 +296,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         hideResultsAndClearFocus();
         showRouteLoadingState();
         expandRouteSheet();
-        viewModel.loadRoute(selectedRoomId, originId);
+        viewModel.loadRoute(routeRoomId, routeOriginId);
     }
 
     private void showRouteLoadingState() {
@@ -301,6 +317,10 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
     private void renderRoute(@NonNull RouteDto route) {
         List<RouteStepDto> steps = route.steps != null ? route.steps : Collections.emptyList();
+        List<RouteStepDto> displaySteps = new ArrayList<>(steps);
+        if (reverseCurrentRoute) {
+            Collections.reverse(displaySteps);
+        }
 
         routeLoading.animate().cancel();
         routeLoading.animate()
@@ -309,13 +329,13 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
                 .withEndAction(() -> routeLoading.setVisibility(View.GONE))
                 .start();
 
-        if (steps.isEmpty()) {
+        if (displaySteps.isEmpty()) {
             showRouteEmptyState();
             return;
         }
 
         routeEmptyState.setVisibility(View.GONE);
-        routeAdapter.setSteps(steps);
+        routeAdapter.setSteps(displaySteps);
         routeRecycler.scrollToPosition(0);
         routeRecycler.setAlpha(0f);
         routeRecycler.setVisibility(View.VISIBLE);
@@ -408,6 +428,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
     private void clearRouteFeedback(boolean collapseToSummary) {
         contentMode = ContentMode.SUMMARY;
+        reverseCurrentRoute = false;
         routeLoading.animate().cancel();
         routeLoading.setVisibility(View.GONE);
         routeRecycler.animate().cancel();
