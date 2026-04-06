@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/sheet_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -38,248 +39,496 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/view_sheet_handle" />
 
-    <TextView
-        android:id="@+id/tv_origin_label"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="34dp"
-        android:fontFamily="@font/inter_medium"
-        android:text="@string/label_origin"
-        android:textColor="@color/green_primary"
-        android:textSize="13sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_title" />
-
     <LinearLayout
-        android:id="@+id/layout_origin_field"
-        android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="6dp"
-        android:layout_marginStart="34dp"
-        android:background="@drawable/bg_field_pill"
-        android:clickable="true"
-        android:focusable="true"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:paddingStart="14dp"
-        android:paddingEnd="10dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_origin_label">
-
-        <EditText
-            android:id="@+id/et_origin_search"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:fontFamily="@font/inter_medium"
-            android:hint="@string/hint_choose_origin"
-            android:imeOptions="actionNext"
-            android:inputType="textCapWords"
-            android:maxLines="1"
-            android:textColor="@color/text_primary"
-            android:textColorHint="@color/text_hint"
-            android:textSize="13sp" />
-
-        <ImageButton
-            android:id="@+id/btn_clear_origin"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@null"
-            android:padding="6dp"
-            android:src="@drawable/ic_search_close"
-            android:tint="@color/text_hint"
-            android:visibility="gone" />
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/tv_destination_label"
+        android:id="@+id/layout_collapsed_summary"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="14dp"
-        android:layout_marginStart="34dp"
-        android:fontFamily="@font/inter_medium"
-        android:text="@string/label_destination"
-        android:textColor="@color/green_primary"
-        android:textSize="13sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layout_origin_field" />
-
-    <LinearLayout
-        android:id="@+id/layout_destination_field"
-        android:layout_width="0dp"
-        android:layout_height="48dp"
-        android:layout_marginTop="6dp"
-        android:layout_marginStart="34dp"
-        android:background="@drawable/bg_field_pill"
-        android:clickable="true"
-        android:focusable="true"
-        android:gravity="center_vertical"
+        android:gravity="center"
         android:orientation="horizontal"
-        android:paddingStart="14dp"
-        android:paddingEnd="10dp"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tv_destination_label">
+        app:layout_constraintTop_toBottomOf="@id/view_sheet_handle">
 
-        <EditText
-            android:id="@+id/et_destination_search"
+        <TextView
+            android:id="@+id/tv_collapsed_origin"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
+            android:ellipsize="end"
             android:fontFamily="@font/inter_medium"
-            android:hint="@string/hint_choose_destination"
-            android:imeOptions="actionDone"
-            android:inputType="textCapWords"
+            android:gravity="end"
             android:maxLines="1"
-            android:textColor="@color/text_primary"
-            android:textColorHint="@color/text_hint"
-            android:textSize="13sp" />
+            android:textColor="@color/green_primary"
+            android:textSize="16sp"
+            tools:text="Main Entrance" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:fontFamily="@font/inter_medium"
+            android:text="&#8594;"
+            android:textColor="@color/green_primary"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_collapsed_destination"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:fontFamily="@font/inter_medium"
+            android:gravity="start"
+            android:maxLines="1"
+            android:textColor="@color/green_primary"
+            android:textSize="16sp"
+            tools:text="Computer Laboratory 1" />
+    </LinearLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layout_summary_content"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_title">
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline_swap_lane_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_end="26dp" />
+
+        <TextView
+            android:id="@+id/tv_origin_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="34dp"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/inter_medium"
+            android:text="@string/label_origin"
+            android:textColor="@color/green_primary"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toStartOf="@id/guideline_swap_lane_start"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/layout_origin_field"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="34dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_field_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingEnd="10dp"
+            app:layout_constraintEnd_toStartOf="@id/guideline_swap_lane_start"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_origin_label">
+
+            <EditText
+                android:id="@+id/et_origin_search"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:fontFamily="@font/inter_medium"
+                android:hint="@string/hint_choose_origin"
+                android:imeOptions="actionNext"
+                android:inputType="textCapWords"
+                android:maxLines="1"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="13sp" />
+
+            <ImageButton
+                android:id="@+id/btn_clear_origin"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@null"
+                android:padding="6dp"
+                android:src="@drawable/ic_search_close"
+                android:tint="@color/text_hint"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_destination_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="34dp"
+            android:layout_marginTop="20dp"
+            android:fontFamily="@font/inter_medium"
+            android:text="@string/label_destination"
+            android:textColor="@color/green_primary"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toStartOf="@id/guideline_swap_lane_start"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_origin_field" />
+
+        <LinearLayout
+            android:id="@+id/layout_destination_field"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="34dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_field_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingEnd="10dp"
+            app:layout_constraintEnd_toStartOf="@id/guideline_swap_lane_start"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tv_destination_label">
+
+            <EditText
+                android:id="@+id/et_destination_search"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:fontFamily="@font/inter_medium"
+                android:hint="@string/hint_choose_destination"
+                android:imeOptions="actionDone"
+                android:inputType="textCapWords"
+                android:maxLines="1"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="13sp" />
+
+            <ImageButton
+                android:id="@+id/btn_clear_destination"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@null"
+                android:padding="6dp"
+                android:src="@drawable/ic_search_close"
+                android:tint="@color/text_hint"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/view_results_scrim"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <View
+            android:id="@+id/view_origin_dot"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:background="@drawable/bg_direction_origin_dot"
+            app:layout_constraintBottom_toBottomOf="@id/layout_origin_field"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/layout_origin_field" />
+
+        <LinearLayout
+            android:id="@+id/view_direction_connector"
+            android:layout_width="2dp"
+            android:layout_height="0dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toTopOf="@id/view_destination_dot"
+            app:layout_constraintEnd_toEndOf="@id/view_origin_dot"
+            app:layout_constraintStart_toStartOf="@id/view_origin_dot"
+            app:layout_constraintTop_toBottomOf="@id/view_origin_dot">
+
+            <View
+                android:layout_width="2dp"
+                android:layout_height="5dp"
+                android:layout_marginBottom="4dp"
+                android:background="@color/green_primary" />
+
+            <Space
+                android:layout_width="1dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <View
+                android:layout_width="2dp"
+                android:layout_height="5dp"
+                android:layout_marginBottom="4dp"
+                android:background="@color/green_primary" />
+
+            <Space
+                android:layout_width="1dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <View
+                android:layout_width="2dp"
+                android:layout_height="5dp"
+                android:layout_marginBottom="4dp"
+                android:background="@color/green_primary" />
+
+            <Space
+                android:layout_width="1dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <View
+                android:layout_width="2dp"
+                android:layout_height="5dp"
+                android:layout_marginBottom="4dp"
+                android:background="@color/green_primary" />
+
+            <Space
+                android:layout_width="1dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <View
+                android:layout_width="2dp"
+                android:layout_height="5dp"
+                android:layout_marginBottom="4dp"
+                android:background="@color/green_primary" />
+
+            <Space
+                android:layout_width="1dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <View
+                android:layout_width="2dp"
+                android:layout_height="5dp"
+                android:layout_marginBottom="4dp"
+                android:background="@color/green_primary" />
+
+            <Space
+                android:layout_width="1dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <View
+                android:layout_width="2dp"
+                android:layout_height="5dp"
+                android:layout_marginBottom="4dp"
+                android:background="@color/green_primary" />
+
+            <Space
+                android:layout_width="1dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <View
+                android:layout_width="2dp"
+                android:layout_height="5dp"
+                android:background="@color/green_primary" />
+        </LinearLayout>
 
         <ImageButton
-            android:id="@+id/btn_clear_destination"
+            android:id="@+id/btn_swap_direction"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@null"
-            android:padding="6dp"
-            android:src="@drawable/ic_search_close"
-            android:tint="@color/text_hint"
-            android:visibility="gone" />
-    </LinearLayout>
+            android:background="@drawable/bg_direction_swap_button"
+            android:contentDescription="@string/action_swap_direction"
+            android:padding="2dp"
+            android:src="@drawable/ic_direction_swap"
+            android:tint="@color/green_primary"
+            app:layout_constraintBottom_toBottomOf="@id/view_direction_connector"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/guideline_swap_lane_start"
+            app:layout_constraintTop_toTopOf="@id/view_direction_connector" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_start_directions"
-        android:layout_width="0dp"
-        android:layout_height="50dp"
-        android:layout_marginBottom="8dp"
-        android:fontFamily="@font/inter_medium"
-        android:text="@string/action_start_directions"
-        android:textAllCaps="false"
-        android:textColor="@color/green_primary"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        app:backgroundTint="@color/green_pill"
-        app:cornerRadius="25dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:strokeColor="@color/green_light"
-        app:strokeWidth="1dp" />
+        <View
+            android:id="@+id/view_destination_dot"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:background="@drawable/bg_direction_destination_dot"
+            app:layout_constraintBottom_toBottomOf="@id/layout_destination_field"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/layout_destination_field" />
 
-    <View
-        android:id="@+id/view_results_scrim"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:background="@android:color/transparent"
-        android:clickable="true"
-        android:focusable="true"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <LinearLayout
+            android:id="@+id/layout_origin_results"
+            android:layout_width="0dp"
+            android:layout_height="220dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_room_item"
+            android:orientation="vertical"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@id/layout_origin_field"
+            app:layout_constraintStart_toStartOf="@id/layout_origin_field"
+            app:layout_constraintTop_toBottomOf="@id/layout_origin_field">
 
-    <View
-        android:id="@+id/view_origin_dot"
-        android:layout_width="18dp"
-        android:layout_height="18dp"
-        android:background="@drawable/bg_direction_origin_dot"
-        app:layout_constraintBottom_toBottomOf="@id/layout_origin_field"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/layout_origin_field" />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_origin_results"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false" />
 
-    <View
-        android:id="@+id/view_direction_connector"
-        android:layout_width="18dp"
-        android:layout_height="0dp"
-        android:background="@drawable/bg_direction_connector"
-        app:layout_constraintBottom_toTopOf="@id/view_destination_dot"
-        app:layout_constraintStart_toStartOf="@id/view_origin_dot"
-        app:layout_constraintEnd_toEndOf="@id/view_origin_dot"
-        app:layout_constraintTop_toBottomOf="@id/view_origin_dot" />
+            <TextView
+                android:id="@+id/tv_origin_empty"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/inter_regular"
+                android:gravity="center"
+                android:text="@string/label_no_origins"
+                android:textColor="@color/text_hint"
+                android:textSize="12sp"
+                android:visibility="gone" />
+        </LinearLayout>
 
-    <View
-        android:id="@+id/view_destination_dot"
-        android:layout_width="18dp"
-        android:layout_height="18dp"
-        android:background="@drawable/bg_direction_destination_dot"
-        app:layout_constraintBottom_toBottomOf="@id/layout_destination_field"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/layout_destination_field" />
+        <LinearLayout
+            android:id="@+id/layout_destination_results"
+            android:layout_width="0dp"
+            android:layout_height="220dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_room_item"
+            android:orientation="vertical"
+            android:paddingTop="4dp"
+            android:paddingBottom="4dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@id/layout_destination_field"
+            app:layout_constraintStart_toStartOf="@id/layout_destination_field"
+            app:layout_constraintTop_toBottomOf="@id/layout_destination_field">
 
-    <LinearLayout
-        android:id="@+id/layout_origin_results"
-        android:layout_width="0dp"
-        android:layout_height="220dp"
-        android:layout_marginTop="6dp"
-        android:background="@drawable/bg_room_item"
-        android:orientation="vertical"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="@id/layout_origin_field"
-        app:layout_constraintStart_toStartOf="@id/layout_origin_field"
-        app:layout_constraintTop_toBottomOf="@id/layout_origin_field">
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_destination_results"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:clipToPadding="false" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_origin_results"
-            android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tv_destination_empty"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/inter_regular"
+                android:gravity="center"
+                android:text="@string/label_no_rooms"
+                android:textColor="@color/text_hint"
+                android:textSize="12sp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layout_route_content"
+            android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_weight="1"
-            android:clipToPadding="false" />
+            android:alpha="0"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@id/btn_start_directions"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layout_destination_field">
 
-        <TextView
-            android:id="@+id/tv_origin_empty"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:fontFamily="@font/inter_regular"
-            android:gravity="center"
-            android:text="@string/label_no_origins"
-            android:textColor="@color/text_hint"
-            android:textSize="12sp"
-            android:visibility="gone" />
-    </LinearLayout>
+            <ProgressBar
+                android:id="@+id/progress_route_loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
-        android:id="@+id/layout_destination_results"
-        android:layout_width="0dp"
-        android:layout_height="220dp"
-        android:layout_marginTop="6dp"
-        android:background="@drawable/bg_room_item"
-        android:orientation="vertical"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="@id/layout_destination_field"
-        app:layout_constraintStart_toStartOf="@id/layout_destination_field"
-        app:layout_constraintTop_toBottomOf="@id/layout_destination_field">
+            <LinearLayout
+                android:id="@+id/layout_route_empty_state"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="48dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_destination_results"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:clipToPadding="false" />
+                <FrameLayout
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:background="@drawable/bg_search_empty_circle">
 
-        <TextView
-            android:id="@+id/tv_destination_empty"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:fontFamily="@font/inter_regular"
-            android:gravity="center"
-            android:text="@string/label_no_rooms"
-            android:textColor="@color/text_hint"
-            android:textSize="12sp"
-            android:visibility="gone" />
-    </LinearLayout>
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="@string/logo_mark_description"
+                        android:padding="18dp"
+                        android:src="@drawable/logo_vr2"
+                        app:tint="@null" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tv_route_empty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:fontFamily="@font/inter_medium"
+                    android:gravity="center"
+                    android:text="@string/directions_empty_state"
+                    android:textColor="@color/text_hint"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_route_steps"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="18dp"
+                android:clipToPadding="false"
+                android:paddingBottom="18dp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_start_directions"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="@font/inter_medium"
+            android:text="@string/action_start_directions"
+            android:textAllCaps="false"
+            android:textColor="@color/green_primary"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:backgroundTint="@color/green_pill"
+            app:cornerRadius="25dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:strokeColor="@color/green_light"
+            app:strokeWidth="1dp" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

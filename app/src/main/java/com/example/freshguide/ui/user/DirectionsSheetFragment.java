@@ -8,23 +8,30 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.animation.AnimationUtils;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.freshguide.R;
 import com.example.freshguide.database.AppDatabase;
+import com.example.freshguide.model.dto.RouteDto;
+import com.example.freshguide.model.dto.RouteStepDto;
 import com.example.freshguide.model.entity.OriginEntity;
 import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.ui.adapter.DirectionSearchAdapter;
+import com.example.freshguide.ui.adapter.RouteStepAdapter;
+import com.example.freshguide.viewmodel.DirectionsViewModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -32,6 +39,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.Executors;
@@ -50,7 +58,12 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private enum SheetDisplayState {
         FULL,
         HALF,
-        CLOSED
+        SMALL
+    }
+
+    private enum ContentMode {
+        SUMMARY,
+        ROUTE
     }
 
     private final List<OriginEntity> allOrigins = new ArrayList<>();
@@ -58,23 +71,35 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
     private DirectionSearchAdapter originAdapter;
     private DirectionSearchAdapter destinationAdapter;
+    private RouteStepAdapter routeAdapter;
+    private DirectionsViewModel viewModel;
 
     private View sheetRoot;
+    private View summaryContent;
+    private View routeContent;
     private View resultsScrim;
+    private View collapsedSummary;
+    private TextView titleView;
     private View originLabel;
     private View destinationLabel;
     private View originFieldContainer;
     private View destinationFieldContainer;
     private EditText etOrigin;
     private EditText etDestination;
+    private ImageButton btnSwapDirection;
     private ImageButton btnClearOrigin;
     private ImageButton btnClearDestination;
     private LinearLayout originResults;
     private LinearLayout destinationResults;
     private RecyclerView originRecycler;
     private RecyclerView destinationRecycler;
+    private RecyclerView routeRecycler;
     private View originEmpty;
     private View destinationEmpty;
+    private View routeEmptyState;
+    private TextView collapsedOriginText;
+    private TextView collapsedDestinationText;
+    private ProgressBar routeLoading;
     private MaterialButton btnStart;
     private BottomSheetBehavior<View> bottomSheetBehavior;
 
@@ -84,9 +109,11 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private String preselectedRoomName;
     private ActiveField activeField = ActiveField.NONE;
     private SheetDisplayState sheetDisplayState = SheetDisplayState.HALF;
+    private ContentMode contentMode = ContentMode.SUMMARY;
     private boolean dropdownVisible;
     private boolean suppressOriginWatcher;
     private boolean suppressDestinationWatcher;
+    private boolean reverseCurrentRoute;
     private int resultPanelMaxHeightPx;
 
     // -----------------------------------------------------------------------
@@ -109,7 +136,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             BottomSheetDialog dialog = (BottomSheetDialog) getDialog();
             Window window = dialog.getWindow();
             if (window != null) {
-                window.setDimAmount(0.12f);
+                window.setDimAmount(0.16f);
             }
             View sheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
             if (sheet != null) {
@@ -122,11 +149,15 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
                 bottomSheetBehavior = BottomSheetBehavior.from(sheet);
                 bottomSheetBehavior.setFitToContents(false);
                 bottomSheetBehavior.setExpandedOffset(0);
-                bottomSheetBehavior.setHalfExpandedRatio(0.50f);
-                bottomSheetBehavior.setSkipCollapsed(true);
-                bottomSheetBehavior.setHideable(true);
+                bottomSheetBehavior.setHalfExpandedRatio(0.52f);
+                bottomSheetBehavior.setPeekHeight(dpToPx(92), true);
+                bottomSheetBehavior.setSkipCollapsed(false);
+                bottomSheetBehavior.setHideable(false);
                 bottomSheetBehavior.setDraggable(true);
-                sheet.post(() -> bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED));
+                sheet.post(() -> {
+                    if (bottomSheetBehavior == null) return;
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+                });
                 bottomSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
                     @Override
                     public void onStateChanged(@NonNull View bottomSheet, int newState) {
@@ -154,8 +185,15 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         }
 
         FragmentActivity activity = requireActivity();
+        viewModel = new ViewModelProvider(this).get(DirectionsViewModel.class);
 
         sheetRoot = view.findViewById(R.id.sheet_root);
+        titleView = view.findViewById(R.id.tv_title);
+        collapsedSummary = view.findViewById(R.id.layout_collapsed_summary);
+        collapsedOriginText = view.findViewById(R.id.tv_collapsed_origin);
+        collapsedDestinationText = view.findViewById(R.id.tv_collapsed_destination);
+        summaryContent = view.findViewById(R.id.layout_summary_content);
+        routeContent = view.findViewById(R.id.layout_route_content);
         resultsScrim = view.findViewById(R.id.view_results_scrim);
         originLabel = view.findViewById(R.id.tv_origin_label);
         destinationLabel = view.findViewById(R.id.tv_destination_label);
@@ -163,16 +201,20 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         destinationFieldContainer = view.findViewById(R.id.layout_destination_field);
         etOrigin = view.findViewById(R.id.et_origin_search);
         etDestination = view.findViewById(R.id.et_destination_search);
+        btnSwapDirection = view.findViewById(R.id.btn_swap_direction);
         btnClearOrigin = view.findViewById(R.id.btn_clear_origin);
         btnClearDestination = view.findViewById(R.id.btn_clear_destination);
         originResults = view.findViewById(R.id.layout_origin_results);
         destinationResults = view.findViewById(R.id.layout_destination_results);
         originEmpty = view.findViewById(R.id.tv_origin_empty);
         destinationEmpty = view.findViewById(R.id.tv_destination_empty);
+        routeEmptyState = view.findViewById(R.id.layout_route_empty_state);
+        routeLoading = view.findViewById(R.id.progress_route_loading);
         btnStart = view.findViewById(R.id.btn_start_directions);
 
         originAdapter = new DirectionSearchAdapter(this::onSuggestionPicked);
         destinationAdapter = new DirectionSearchAdapter(this::onSuggestionPicked);
+        routeAdapter = new RouteStepAdapter();
 
         originRecycler = view.findViewById(R.id.recycler_origin_results);
         originRecycler.setLayoutManager(new LinearLayoutManager(activity));
@@ -182,23 +224,226 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         destinationRecycler.setLayoutManager(new LinearLayoutManager(activity));
         destinationRecycler.setAdapter(destinationAdapter);
 
+        routeRecycler = view.findViewById(R.id.recycler_route_steps);
+        routeRecycler.setLayoutManager(new LinearLayoutManager(activity));
+        routeRecycler.setAdapter(routeAdapter);
+        routeRecycler.setLayoutAnimation(
+                AnimationUtils.loadLayoutAnimation(requireContext(), R.anim.layout_route_steps_in));
+
         resultPanelMaxHeightPx = dpToPx(200);
         setupInputs();
+        observeDirectionsState(view);
+        updateCollapsedSummary();
+        applySheetChrome(false);
         view.post(this::updateResultPanelHeights);
 
-        btnStart.setOnClickListener(v -> {
-            if (originId == -1) {
-                Snackbar.make(view, R.string.error_origin_missing, Snackbar.LENGTH_LONG).show();
-                return;
-            }
-            if (selectedRoomId == -1) {
-                Snackbar.make(view, R.string.error_destination_missing, Snackbar.LENGTH_LONG).show();
-                return;
-            }
-            navigateToDirections(selectedRoomId, originId);
-        });
+        btnStart.setOnClickListener(v -> startDirectionsInPlace(view));
+        btnSwapDirection.setOnClickListener(v -> swapOriginAndDestination());
 
         loadOriginsAndRooms();
+    }
+
+    private void observeDirectionsState(@NonNull View rootView) {
+        viewModel.getRoute().observe(getViewLifecycleOwner(), route -> {
+            if (route == null) return;
+            renderRoute(route);
+        });
+
+        viewModel.getError().observe(getViewLifecycleOwner(), err -> {
+            if (err == null || err.trim().isEmpty()) return;
+
+            if (contentMode == ContentMode.ROUTE && isMissingRouteError(err)) {
+                showRouteEmptyState();
+                return;
+            }
+
+            clearRouteFeedback(false);
+            Snackbar.make(rootView, err, Snackbar.LENGTH_LONG).show();
+        });
+    }
+
+    private void startDirectionsInPlace(@NonNull View rootView) {
+        String originText = textOf(etOrigin);
+        String destinationText = textOf(etDestination);
+
+        int directOriginId = originId != -1 ? originId : resolveOriginId(originText);
+        int directRoomId = selectedRoomId != -1 ? selectedRoomId : resolveRoomId(destinationText);
+        int swappedRoomId = selectedRoomId != -1 ? selectedRoomId : resolveRoomId(originText);
+        int swappedOriginId = originId != -1 ? originId : resolveOriginId(destinationText);
+
+        int routeOriginId = -1;
+        int routeRoomId = -1;
+
+        if (directOriginId != -1 && directRoomId != -1) {
+            routeOriginId = directOriginId;
+            routeRoomId = directRoomId;
+            reverseCurrentRoute = false;
+        } else if (swappedOriginId != -1 && swappedRoomId != -1) {
+            routeOriginId = swappedOriginId;
+            routeRoomId = swappedRoomId;
+            reverseCurrentRoute = true;
+        }
+
+        if (routeOriginId == -1) {
+            Snackbar.make(rootView, R.string.error_origin_missing, Snackbar.LENGTH_LONG).show();
+            return;
+        }
+        if (routeRoomId == -1) {
+            Snackbar.make(rootView, R.string.error_destination_missing, Snackbar.LENGTH_LONG).show();
+            return;
+        }
+
+        hideResultsAndClearFocus();
+        showRouteLoadingState();
+        expandRouteSheet();
+        viewModel.loadRoute(routeRoomId, routeOriginId);
+    }
+
+    private void showRouteLoadingState() {
+        contentMode = ContentMode.ROUTE;
+        routeAdapter.setSteps(Collections.emptyList());
+        routeContent.setVisibility(View.VISIBLE);
+        routeContent.setAlpha(1f);
+        routeRecycler.setVisibility(View.GONE);
+        routeEmptyState.setVisibility(View.GONE);
+        routeLoading.setVisibility(View.VISIBLE);
+        routeLoading.setAlpha(0f);
+        routeLoading.animate()
+                .alpha(1f)
+                .setDuration(180)
+                .setInterpolator(new DecelerateInterpolator())
+                .start();
+    }
+
+    private void renderRoute(@NonNull RouteDto route) {
+        List<RouteStepDto> steps = route.steps != null ? route.steps : Collections.emptyList();
+        List<RouteStepDto> displaySteps = new ArrayList<>(steps);
+        if (reverseCurrentRoute) {
+            Collections.reverse(displaySteps);
+        }
+
+        routeLoading.animate().cancel();
+        routeLoading.animate()
+                .alpha(0f)
+                .setDuration(120)
+                .withEndAction(() -> routeLoading.setVisibility(View.GONE))
+                .start();
+
+        if (displaySteps.isEmpty()) {
+            showRouteEmptyState();
+            return;
+        }
+
+        routeEmptyState.setVisibility(View.GONE);
+        routeAdapter.setSteps(displaySteps);
+        routeRecycler.scrollToPosition(0);
+        routeRecycler.setAlpha(0f);
+        routeRecycler.setVisibility(View.VISIBLE);
+        routeRecycler.post(() -> {
+            if (!isAdded()) return;
+            routeRecycler.scheduleLayoutAnimation();
+            routeRecycler.animate()
+                    .alpha(1f)
+                    .setDuration(220)
+                    .setInterpolator(new DecelerateInterpolator())
+                    .start();
+        });
+    }
+
+    private void showRouteEmptyState() {
+        routeLoading.animate().cancel();
+        routeLoading.setVisibility(View.GONE);
+        routeAdapter.setSteps(Collections.emptyList());
+        routeContent.setVisibility(View.VISIBLE);
+        routeRecycler.setVisibility(View.GONE);
+        routeEmptyState.setAlpha(0f);
+        routeEmptyState.setVisibility(View.VISIBLE);
+        routeEmptyState.animate()
+                .alpha(1f)
+                .setDuration(180)
+                .setInterpolator(new DecelerateInterpolator())
+                .start();
+    }
+
+    private boolean isMissingRouteError(@Nullable String message) {
+        String normalized = normalizeValue(message);
+        return normalized.contains("route not found")
+                || normalized.contains("no route")
+                || normalized.contains("no directions")
+                || normalized.contains("not available");
+    }
+
+    private void updateCollapsedSummary() {
+        if (collapsedOriginText != null) {
+            collapsedOriginText.setText(getSummaryValue(textOf(etOrigin), getString(R.string.label_origin)));
+        }
+        if (collapsedDestinationText != null) {
+            collapsedDestinationText.setText(getSummaryValue(textOf(etDestination), getString(R.string.label_destination)));
+        }
+    }
+
+    @NonNull
+    private String getSummaryValue(@Nullable String value, @NonNull String fallback) {
+        String trimmed = value != null ? value.trim() : "";
+        return trimmed.isEmpty() ? fallback : trimmed;
+    }
+
+    private void applySheetChrome(boolean collapsed) {
+        if (collapsedSummary != null) {
+            collapsedSummary.setVisibility(collapsed ? View.VISIBLE : View.GONE);
+        }
+        if (summaryContent != null) {
+            summaryContent.setVisibility(collapsed ? View.GONE : View.VISIBLE);
+        }
+        if (resultsScrim != null && collapsed) {
+            hideResults();
+        }
+        if (sheetRoot != null && collapsed) {
+            clearAllFieldFocus();
+        }
+        if (titleView != null) {
+            titleView.setVisibility(collapsed ? View.GONE : View.VISIBLE);
+        }
+        applyWindowDim(collapsed ? 0f : 0.16f);
+    }
+
+    private void applyWindowDim(float dimAmount) {
+        if (!(getDialog() instanceof BottomSheetDialog)) {
+            return;
+        }
+        Window window = ((BottomSheetDialog) getDialog()).getWindow();
+        if (window != null) {
+            window.setDimAmount(dimAmount);
+        }
+    }
+
+    private void expandRouteSheet() {
+        if (bottomSheetBehavior == null) return;
+        sheetRoot.post(() -> {
+            if (bottomSheetBehavior != null) {
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+            }
+        });
+    }
+
+    private void clearRouteFeedback(boolean collapseToSummary) {
+        contentMode = ContentMode.SUMMARY;
+        reverseCurrentRoute = false;
+        routeLoading.animate().cancel();
+        routeLoading.setVisibility(View.GONE);
+        routeRecycler.animate().cancel();
+        routeRecycler.setVisibility(View.GONE);
+        routeEmptyState.animate().cancel();
+        routeEmptyState.setVisibility(View.GONE);
+        routeAdapter.setSteps(Collections.emptyList());
+        routeContent.setVisibility(View.GONE);
+        if (collapseToSummary && bottomSheetBehavior != null) {
+            sheetRoot.post(() -> {
+                if (bottomSheetBehavior != null) {
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+                }
+            });
+        }
     }
 
     private void setupInputs() {
@@ -222,6 +467,32 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         bindFieldInteractions(ActiveField.DESTINATION);
     }
 
+    private void swapOriginAndDestination() {
+        hideResultsAndClearFocus();
+        clearRouteFeedback(false);
+
+        String previousOrigin = textOf(etOrigin);
+        String previousDestination = textOf(etDestination);
+
+        setFieldText(etOrigin, previousDestination, true);
+        setFieldText(etDestination, previousOrigin, false);
+
+        originId = resolveOriginId(previousDestination);
+        selectedRoomId = resolveRoomId(previousOrigin);
+
+        updateClearButtons();
+        updateSuggestionList();
+        updateStartState();
+
+        if (btnSwapDirection != null) {
+            btnSwapDirection.animate()
+                    .rotationBy(180f)
+                    .setDuration(220)
+                    .setInterpolator(new DecelerateInterpolator())
+                    .start();
+        }
+    }
+
     private void onSuggestionPicked(DirectionSearchAdapter.SuggestionItem item) {
 
         activeField = ActiveField.NONE;
@@ -240,7 +511,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
         clearAllFieldFocus();
 
-
+        clearRouteFeedback(false);
         updateClearButtons();
         updateStartState();
     }
@@ -276,6 +547,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         } else {
             suppressDestinationWatcher = false;
         }
+        updateCollapsedSummary();
     }
 
     private void loadOriginsAndRooms() {
@@ -358,7 +630,9 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void showActiveResults() {
-        if (originResults == null || destinationResults == null) return;
+        if (originResults == null || destinationResults == null) {
+            return;
+        }
 
         if (isClosingDropdown) {
             return;
@@ -397,10 +671,6 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         updateClearButtons();
     }
 
-    private void closeDropdown() {
-        hideResultsAndClearFocus();
-    }
-
     private void focusField(ActiveField fieldType) {
         if (fieldType == ActiveField.NONE) {
             hideResultsAndClearFocus();
@@ -427,6 +697,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         if (btnClearDestination != null) {
             btnClearDestination.setVisibility(textOf(etDestination).trim().isEmpty() ? View.GONE : View.VISIBLE);
         }
+        updateCollapsedSummary();
     }
 
     private void bringPersistentControlsToFront() {
@@ -434,6 +705,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         if (originFieldContainer != null) originFieldContainer.bringToFront();
         if (destinationLabel != null) destinationLabel.bringToFront();
         if (destinationFieldContainer != null) destinationFieldContainer.bringToFront();
+        if (btnSwapDirection != null) btnSwapDirection.bringToFront();
         if (btnStart != null) btnStart.bringToFront();
     }
 
@@ -457,7 +729,10 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void updateResultPanelHeights() {
-        if (sheetRoot == null || btnStart == null) return;
+        if (sheetRoot == null || btnStart == null || summaryContent == null
+                || summaryContent.getVisibility() != View.VISIBLE) {
+            return;
+        }
         sheetRoot.post(() -> {
             setHeight(originResults, computeDropdownHeight(etOrigin,
                     originAdapter != null ? originAdapter.getItemCount() : 0));
@@ -500,6 +775,56 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         target.setEnabled(visible);
     }
 
+    private void autoResolveSelection(@NonNull ActiveField fieldType) {
+        if (fieldType == ActiveField.ORIGIN) {
+            originId = resolveOriginId(textOf(etOrigin));
+        } else if (fieldType == ActiveField.DESTINATION) {
+            selectedRoomId = resolveRoomId(textOf(etDestination));
+        }
+    }
+
+    private int resolveOriginId(@Nullable String value) {
+        String normalized = normalizeValue(value);
+        if (normalized.isEmpty()) {
+            return -1;
+        }
+        int fuzzyMatch = -1;
+        int fuzzyCount = 0;
+        for (OriginEntity origin : allOrigins) {
+            if (matchesExact(normalized, origin.name, origin.code, origin.description)) {
+                return origin.id;
+            }
+            if (matches(normalized, origin.name, origin.code, origin.description)) {
+                fuzzyCount++;
+            }
+            if (fuzzyMatch == -1 && matches(normalized, origin.name, origin.code, origin.description)) {
+                fuzzyMatch = origin.id;
+            }
+        }
+        return fuzzyCount == 1 ? fuzzyMatch : -1;
+    }
+
+    private int resolveRoomId(@Nullable String value) {
+        String normalized = normalizeValue(value);
+        if (normalized.isEmpty()) {
+            return -1;
+        }
+        int fuzzyMatch = -1;
+        int fuzzyCount = 0;
+        for (RoomEntity room : allRooms) {
+            if (matchesExact(normalized, room.name, room.code, room.location)) {
+                return room.id;
+            }
+            if (matches(normalized, room.name, room.code, room.location)) {
+                fuzzyCount++;
+            }
+            if (fuzzyMatch == -1 && matches(normalized, room.name, room.code, room.location)) {
+                fuzzyMatch = room.id;
+            }
+        }
+        return fuzzyCount == 1 ? fuzzyMatch : -1;
+    }
+
     private boolean matches(String query, String... values) {
         if (query == null || query.trim().isEmpty()) return true;
         String normalized = query.trim().toLowerCase(Locale.US);
@@ -507,6 +832,20 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             if (value != null && value.toLowerCase(Locale.US).contains(normalized)) return true;
         }
         return false;
+    }
+
+    private boolean matchesExact(@NonNull String query, String... values) {
+        for (String value : values) {
+            if (normalizeValue(value).equals(query)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @NonNull
+    private String normalizeValue(@Nullable String value) {
+        return value == null ? "" : value.trim().toLowerCase(Locale.US);
     }
 
     private String buildRoomSubtitle(RoomEntity room) {
@@ -524,7 +863,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void updateStartState() {
-        boolean enabled = originId != -1 && selectedRoomId != -1;
+        boolean enabled = !textOf(etOrigin).trim().isEmpty() && !textOf(etDestination).trim().isEmpty();
         btnStart.setEnabled(enabled);
         btnStart.setAlpha(enabled ? 1f : 0.7f);
     }
@@ -533,21 +872,19 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         if (newState == BottomSheetBehavior.STATE_EXPANDED) {
             sheetDisplayState = SheetDisplayState.FULL;
             resultPanelMaxHeightPx = dpToPx(360);
+            applySheetChrome(false);
             return;
         }
         if (newState == BottomSheetBehavior.STATE_HALF_EXPANDED) {
             sheetDisplayState = SheetDisplayState.HALF;
             resultPanelMaxHeightPx = dpToPx(200);
+            applySheetChrome(false);
             return;
         }
-        if (newState == BottomSheetBehavior.STATE_HIDDEN) {
-            sheetDisplayState = SheetDisplayState.CLOSED;
-            hideResultsAndClearFocus();
-            dismissAllowingStateLoss();
-            return;
-        }
-        if (newState == BottomSheetBehavior.STATE_COLLAPSED && bottomSheetBehavior != null) {
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
+            sheetDisplayState = SheetDisplayState.SMALL;
+            resultPanelMaxHeightPx = dpToPx(120);
+            applySheetChrome(true);
         }
     }
 
@@ -592,6 +929,8 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         if (isClosingDropdown) return;
         activeField = fieldType;
         clearSelectedId(fieldType);
+        autoResolveSelection(fieldType);
+        clearRouteFeedback(false);
         updateClearButtons();
         updateSuggestionList();
         updateStartState();
@@ -601,6 +940,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         clearSelectedId(fieldType);
         EditText field = getFieldInput(fieldType);
         if (field != null) field.setText("");
+        clearRouteFeedback(false);
         focusField(fieldType);
         updateClearButtons();
         updateStartState();
@@ -658,17 +998,6 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         if (fieldType == ActiveField.ORIGIN) return ActiveField.DESTINATION;
         if (fieldType == ActiveField.DESTINATION) return ActiveField.ORIGIN;
         return ActiveField.NONE;
-    }
-
-    private void navigateToDirections(int roomId, int selectedOriginId) {
-        if (!isAdded()) return;
-        NavController navController =
-                Navigation.findNavController(requireActivity(), R.id.nav_host_fragment);
-        Bundle args = new Bundle();
-        args.putInt("roomId", roomId);
-        args.putInt("originId", selectedOriginId);
-        dismissAllowingStateLoss();
-        navController.navigate(R.id.directionsFragment, args);
     }
 
     private int dpToPx(int dp) {

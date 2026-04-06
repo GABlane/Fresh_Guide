@@ -58,10 +58,12 @@
     <string name="label_no_origins">No origins found</string>
     <string name="label_no_rooms">No rooms available yet</string>
     <string name="label_no_directions">No directions available yet</string>
+    <string name="directions_empty_state">There\'s nothing to show here.</string>
     <string name="default_origin">Entrance</string>
     <string name="hint_origin_missing">No origin data yet</string>
     <string name="error_origin_missing">Origin data not available yet</string>
     <string name="error_destination_missing">Please select a destination</string>
+    <string name="action_swap_direction">Swap origin and destination</string>
 
     <!-- QR Login -->
     <string name="login_hint_qr_mode">Student access requires ID QR scan</string>

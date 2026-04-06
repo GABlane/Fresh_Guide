@@ -30,6 +30,9 @@ public class DirectionsViewModel extends AndroidViewModel {
     public LiveData<String> getError() { return error; }
 
     public void loadRoute(int roomId, int originId) {
+        route.setValue(null);
+        routeTitle.setValue(null);
+        error.setValue(null);
         loading.setValue(true);
         repository.getRouteTitle(roomId, originId, routeTitle::setValue);
         repository.getRoute(roomId, originId, new RoomRepository.RouteCallback() {
@@ -46,4 +49,6 @@ public class DirectionsViewModel extends AndroidViewModel {
             }
         });
     }
+
+
 }

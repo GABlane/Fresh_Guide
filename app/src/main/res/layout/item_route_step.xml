@@ -1,42 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="12dp"
-    android:gravity="center_vertical">
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:paddingBottom="4dp">
+
+    <View
+        android:id="@+id/view_step_connector_top"
+        android:layout_width="2dp"
+        android:layout_height="0dp"
+        android:background="@drawable/bg_route_step_connector"
+        app:layout_constraintBottom_toTopOf="@id/tv_step_number"
+        app:layout_constraintEnd_toEndOf="@id/tv_step_number"
+        app:layout_constraintStart_toStartOf="@id/tv_step_number"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tv_step_number"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
+        android:layout_width="46dp"
+        android:layout_height="46dp"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/bg_route_step_circle"
+        android:fontFamily="@font/inter_medium"
         android:gravity="center"
-        android:textSize="14sp"
+        android:textColor="@color/green_primary"
+        android:textSize="18sp"
         android:textStyle="bold"
-        android:textColor="@color/surface_white"
-        android:background="@drawable/bg_icon_container_green" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="1" />
+
+    <View
+        android:id="@+id/view_step_connector_bottom"
+        android:layout_width="2dp"
+        android:layout_height="0dp"
+        android:background="@drawable/bg_route_step_connector"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/tv_step_number"
+        app:layout_constraintStart_toStartOf="@id/tv_step_number"
+        app:layout_constraintTop_toBottomOf="@id/tv_step_number" />
 
     <LinearLayout
+        android:id="@+id/layout_step_text"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_marginStart="12dp"
-        android:orientation="vertical">
+        android:layout_marginStart="18dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginBottom="12dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/tv_step_number"
+        app:layout_constraintTop_toTopOf="parent">
 
         <TextView
             android:id="@+id/tv_step_instruction"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
-            android:textColor="@color/text_primary" />
+            android:fontFamily="@font/inter_medium"
+            android:textColor="@color/green_primary"
+            android:textSize="17sp"
+            tools:text="To the left" />
 
         <TextView
             android:id="@+id/tv_step_landmark"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textSize="12sp"
-            android:textColor="@color/orange_accent"
-            android:visibility="gone" />
+            android:layout_marginTop="3dp"
+            android:fontFamily="@font/inter_regular"
+            android:textColor="@color/green"
+            android:textSize="14sp"
+            android:visibility="gone"
+            tools:text="Past the faculty office"
+            tools:visibility="visible" />
     </LinearLayout>
-</LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
