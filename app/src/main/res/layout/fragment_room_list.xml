@@ -17,6 +17,7 @@
         android:orientation="horizontal"
         android:paddingStart="10dp"
         android:paddingEnd="10dp"
+        android:layout_marginTop="10dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -139,7 +140,7 @@
                 android:layout_height="match_parent"
                 android:contentDescription="@string/logo_mark_description"
                 android:padding="18dp"
-                android:src="@drawable/logo"
+                android:src="@drawable/logo_vr2"
                 app:tint="@null" />
         </FrameLayout>
 
@@ -148,11 +149,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:fontFamily="@font/instrument_regular"
+            android:fontFamily="@font/inter_medium"
             android:gravity="center"
             android:text="@string/search_empty_default"
             android:textColor="@color/text_hint"
-            android:textSize="17sp" />
+            android:textSize="13sp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
