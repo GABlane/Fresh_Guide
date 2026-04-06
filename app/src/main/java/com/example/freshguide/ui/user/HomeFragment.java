@@ -185,6 +185,7 @@ public class HomeFragment extends Fragment {
         for (Chip chip : floorChips) {
             chip.setCheckable(true);
             chip.setCheckedIconVisible(false);
+            chip.setSaveEnabled(false);
             chip.setChipBackgroundColor(bgColors);
             chip.setTextColor(textColors);
             chip.setChipStrokeColor(ColorStateList.valueOf(stroke));
@@ -197,25 +198,17 @@ public class HomeFragment extends Fragment {
         chip4.setOnClickListener(v -> handleFloorChipClick(chip4, 4, floorChips));
         chip5.setOnClickListener(v -> handleFloorChipClick(chip5, 5, floorChips));
 
-        showOverallMap();
+        setFloorSelection(selectedFloor);
         updateFade();
     }
 
     private void handleFloorChipClick(Chip clickedChip, int floor, Chip[] allChips) {
         if (selectedFloor != null && selectedFloor == floor) {
-            clickedChip.setChecked(false);
-            selectedFloor = null;
-            showOverallMap();
+            setFloorSelection(null);
             return;
         }
 
-        for (Chip chip : allChips) {
-            chip.setChecked(false);
-        }
-
-        clickedChip.setChecked(true);
-        selectedFloor = floor;
-        showFloorMap(floor);
+        setFloorSelection(floor);
     }
 
     private void showOverallMap() {
@@ -329,13 +322,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void openMainBuildingFloor() {
-        selectedFloor = 1;
-        if (floorChips != null) {
-            for (int i = 0; i < floorChips.length; i++) {
-                floorChips[i].setChecked(i == 0);
-            }
-        }
-        showFloorMap(1);
+        setFloorSelection(1);
     }
 
     private void navigateToBuildingRoomList(NavController nav, String buildingCode, String buildingName) {
@@ -569,15 +556,7 @@ public class HomeFragment extends Fragment {
                 new DirectionsSheetFragment().show(getParentFragmentManager(), "directions_sheet"));
 
         fab.setOnLongClickListener(v -> {
-            if (selectedFloor != null) {
-                selectedFloor = null;
-            }
-            if (floorChips != null) {
-                for (Chip chip : floorChips) {
-                    chip.setChecked(false);
-                }
-            }
-            showOverallMap();
+            setFloorSelection(null);
             return true;
         });
     }
@@ -613,19 +592,22 @@ public class HomeFragment extends Fragment {
 
                     pendingFocusedRoomId = roomId;
                     pendingFocusedRoomName = request.getString(KEY_PENDING_ROOM_NAME, "Room");
-                    selectedFloor = floorNumber;
-                    updateSelectedFloorChip(floorNumber);
-                    showFloorMap(floorNumber);
+                    setFloorSelection(floorNumber);
                 });
     }
 
-    private void updateSelectedFloorChip(int floorNumber) {
-        if (floorChips == null) {
+    private void setFloorSelection(@Nullable Integer floorNumber) {
+        selectedFloor = floorNumber;
+        if (floorChips != null) {
+            for (int i = 0; i < floorChips.length; i++) {
+                floorChips[i].setChecked(floorNumber != null && (i + 1) == floorNumber);
+            }
+        }
+        if (floorNumber == null) {
+            showOverallMap();
             return;
         }
-        for (int i = 0; i < floorChips.length; i++) {
-            floorChips[i].setChecked((i + 1) == floorNumber);
-        }
+        showFloorMap(floorNumber);
     }
 
     private void openRoomOnMap(@NonNull RoomEntity room, @NonNull View roomBox, boolean animateCentering) {

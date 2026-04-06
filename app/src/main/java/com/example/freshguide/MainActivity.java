@@ -171,18 +171,45 @@ import androidx.navigation.NavOptions;
             }
 
             private void setupCustomNav(View navHome, View navSchedule, View navSettings, View navProfile) {
-                if (navHome != null) {
-                    navHome.setOnClickListener(v -> animateNavTap(v, () -> navigateTo(R.id.homeFragment)));
+                bindNavItem(navHome, R.id.nav_icon_home, R.id.nav_text_home, this::openHomeTab);
+                bindNavItem(navSchedule, R.id.nav_icon_schedule, R.id.nav_text_schedule,
+                        () -> navigateTo(R.id.scheduleFragment));
+                bindNavItem(navSettings, R.id.nav_icon_settings, R.id.nav_text_settings,
+                        () -> navigateTo(R.id.settingsFragment));
+                bindNavItem(navProfile, R.id.nav_icon_profile, R.id.nav_text_profile,
+                        () -> navigateTo(R.id.profileFragment));
+            }
+
+            private void bindNavItem(View item, @IdRes int iconId, @IdRes int textId, Runnable action) {
+                if (item == null || action == null) {
+                    return;
                 }
-                if (navProfile != null) {
-                    navProfile.setOnClickListener(v -> animateNavTap(v, () -> navigateTo(R.id.profileFragment)));
+                View.OnClickListener clickListener = v -> animateNavTap(item, action);
+                item.setOnClickListener(clickListener);
+
+                View icon = item.findViewById(iconId);
+                if (icon != null) {
+                    icon.setOnClickListener(clickListener);
                 }
-                if (navSchedule != null) {
-                    navSchedule.setOnClickListener(v -> animateNavTap(v, () -> navigateTo(R.id.scheduleFragment)));
+
+                View label = item.findViewById(textId);
+                if (label != null) {
+                    label.setOnClickListener(clickListener);
                 }
-                if (navSettings != null) {
-                    navSettings.setOnClickListener(v -> animateNavTap(v, () -> navigateTo(R.id.settingsFragment)));
+            }
+
+            private void openHomeTab() {
+                if (navController == null || navController.getCurrentDestination() == null) {
+                    return;
                 }
+                if (navController.getCurrentDestination().getId() == R.id.homeFragment) {
+                    return;
+                }
+                if (navController.popBackStack(R.id.homeFragment, false)) {
+                    updateNavSelection(R.id.homeFragment);
+                    return;
+                }
+                navigateTo(R.id.homeFragment);
             }
 
             private void applySystemBarInsets(View root, View navHostView, View navContainer) {
