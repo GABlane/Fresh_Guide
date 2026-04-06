@@ -75,7 +75,7 @@ public class ScheduleFragment extends Fragment {
 
     private static final String TAG = "ScheduleFragment";
 
-    private static final String[] DAY_LABELS = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
+    private static final String[] DAY_LABELS = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
     private static final String[] CLASS_TYPES = {"On-site", "Online"};
     private static final String[] PLATFORMS = {"Zoom", "Google Meet", "Microsoft Teams", "Other"};
     private static final String[] REMINDER_OPTIONS = {
@@ -87,13 +87,16 @@ public class ScheduleFragment extends Fragment {
     private static final int MIN_BLOCK_HEIGHT_DP = 48;
     private static final int LABEL_WIDTH_DP = 36;
     private static final int DAY_COLUMN_WIDTH_DP = 68;
-    private static final int DAY_COLUMN_COUNT = 6;
+    private static final int DAY_COLUMN_COUNT = DAY_LABELS.length;
 
     private View summaryContent;
 
     @Nullable
     private String lastRenderedScheduleSignature = null;
     private int lastRenderedToday = -1;
+    private boolean initialScheduleUiResolved = false;
+    @Nullable
+    private Runnable pendingInitialScheduleUiRunnable = null;
 
 
     private final ActivityResultLauncher<String> notificationPermissionLauncher =
@@ -180,6 +183,7 @@ public class ScheduleFragment extends Fragment {
         tvSummarySubjectCode = view.findViewById(R.id.tv_summary_subject_code);
         tvSummaryLocation = view.findViewById(R.id.tv_summary_location);
 
+        hideScheduleContentUntilResolved();
 
         tvDate.setText(new SimpleDateFormat("EEEE, MMMM d", Locale.getDefault())
                 .format(Calendar.getInstance().getTime()));
@@ -188,7 +192,6 @@ public class ScheduleFragment extends Fragment {
 
         selectedDay = getDefaultDay();
         setupDailyDaySelector();
-        applyDailyDaySelectionUi();
 
         loadRoomOptions();
         observeAllSchedules();
@@ -206,8 +209,7 @@ public class ScheduleFragment extends Fragment {
             if (schedules != null) {
                 allSchedules.addAll(schedules);
             }
-            updateSummaryCard(allSchedules);
-            renderScheduleContent();
+            resolveScheduleUi(allSchedules);
         });
     }
 
@@ -218,7 +220,9 @@ public class ScheduleFragment extends Fragment {
         public void run() {
             if (!isAdded()) return;
 
-            updateSummaryCard(allSchedules);
+            if (initialScheduleUiResolved) {
+                updateSummaryCard(allSchedules);
+            }
             summaryRefreshHandler.postDelayed(this, 60_000L);
         }
     };
@@ -242,8 +246,7 @@ public class ScheduleFragment extends Fragment {
             selectedDay = today;
         }
 
-        renderScheduleContent();
-        updateSummaryCard(allSchedules);
+        resolveScheduleUi(allSchedules);
         startSummaryAutoRefresh();
     }
 
@@ -263,6 +266,56 @@ public class ScheduleFragment extends Fragment {
     public void onPause() {
         super.onPause();
         stopSummaryAutoRefresh();
+        if (pendingInitialScheduleUiRunnable != null) {
+            summaryRefreshHandler.removeCallbacks(pendingInitialScheduleUiRunnable);
+            pendingInitialScheduleUiRunnable = null;
+        }
+    }
+
+    private void hideScheduleContentUntilResolved() {
+        if (cardSummary != null) {
+            cardSummary.setVisibility(View.INVISIBLE);
+        }
+        if (dailyDaySelectorContainer != null) {
+            dailyDaySelectorContainer.setVisibility(View.INVISIBLE);
+        }
+        if (timelineScrollView != null) {
+            timelineScrollView.setVisibility(View.INVISIBLE);
+        }
+        if (emptyState != null) {
+            emptyState.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    private void resolveScheduleUi(@Nullable List<ScheduleEntryEntity> schedules) {
+        boolean hasSchedules = schedules != null && !schedules.isEmpty();
+
+        if (!initialScheduleUiResolved) {
+            if (hasSchedules) {
+                if (pendingInitialScheduleUiRunnable != null) {
+                    summaryRefreshHandler.removeCallbacks(pendingInitialScheduleUiRunnable);
+                    pendingInitialScheduleUiRunnable = null;
+                }
+                initialScheduleUiResolved = true;
+                updateSummaryCard(schedules);
+                renderScheduleContent();
+                return;
+            }
+
+            if (pendingInitialScheduleUiRunnable == null) {
+                pendingInitialScheduleUiRunnable = () -> {
+                    initialScheduleUiResolved = true;
+                    updateSummaryCard(allSchedules);
+                    renderScheduleContent();
+                    pendingInitialScheduleUiRunnable = null;
+                };
+                summaryRefreshHandler.postDelayed(pendingInitialScheduleUiRunnable, 260L);
+            }
+            return;
+        }
+
+        updateSummaryCard(schedules);
+        renderScheduleContent();
     }
 
 
@@ -423,6 +476,10 @@ public class ScheduleFragment extends Fragment {
         if (!isAdded() || timelineContainer == null || entries == null || entries.isEmpty()) return;
 
         timelineContainer.removeAllViews();
+        timelineContainer.setAlpha(0f);
+        if (dailyDaySelectorContainer != null) {
+            dailyDaySelectorContainer.setAlpha(0f);
+        }
 
         int minStart = Integer.MAX_VALUE;
         int maxEnd = Integer.MIN_VALUE;
@@ -570,7 +627,25 @@ public class ScheduleFragment extends Fragment {
         hScroll.post(() -> {
             int targetScroll = todayColIndex * colWidthPx
                     - (hScroll.getWidth() - colWidthPx) / 2;
-            hScroll.scrollTo(Math.max(0, targetScroll), 0);
+            int finalTargetScroll = Math.max(0, targetScroll);
+            int previewOffset = Math.max(0, finalTargetScroll - (int) (12 * density));
+            hScroll.scrollTo(previewOffset, 0);
+
+            timelineContainer.post(() -> {
+                timelineContainer.animate()
+                        .alpha(1f)
+                        .setDuration(220)
+                        .start();
+
+                if (dailyDaySelectorContainer != null) {
+                    dailyDaySelectorContainer.animate()
+                            .alpha(1f)
+                            .setDuration(220)
+                            .start();
+                }
+
+                hScroll.postDelayed(() -> hScroll.smoothScrollTo(finalTargetScroll, 0), 40);
+            });
         });
     }
 
@@ -660,9 +735,13 @@ public class ScheduleFragment extends Fragment {
 
     /**  Summary card **/
     private void updateSummaryCard(@Nullable List<ScheduleEntryEntity> schedules) {
-        cardSummary.setVisibility(View.VISIBLE);
-
+        if (summaryContent != null) {
+            summaryContent.animate().cancel();
+            summaryContent.setAlpha(1f);
+            summaryContent.setTranslationY(0f);
+        }
         SummaryState summaryState = resolveSummaryState(schedules);
+        cardSummary.setVisibility(View.VISIBLE);
 
         if (summaryState.type == SummaryState.NO_SCHEDULE_YET) {
             tvSummaryLabel.setText("NO SCHEDULE YET");
@@ -1163,7 +1242,7 @@ public class ScheduleFragment extends Fragment {
                     return;
                 }
                 for (ScheduleBlockBinding block : scheduleBlocks) {
-                    if (block.selectedDay < 1 || block.selectedDay > 6) {
+                    if (block.selectedDay < 1 || block.selectedDay > DAY_LABELS.length) {
                         Toast.makeText(requireContext(), "Please choose a schedule day", Toast.LENGTH_SHORT).show();
                         return;
                     }
@@ -1724,6 +1803,7 @@ public class ScheduleFragment extends Fragment {
             case Calendar.THURSDAY:  return 4;
             case Calendar.FRIDAY:    return 5;
             case Calendar.SATURDAY:  return 6;
+            case Calendar.SUNDAY:    return 7;
             default:                 return 1;
         }
     }
