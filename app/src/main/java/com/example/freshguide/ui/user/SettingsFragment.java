@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -87,6 +86,14 @@ public class SettingsFragment extends Fragment {
         applyRoleVisibility();
 
         bindSavedValues();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (isAdded()) {
+            setupProfileHeader();
+        }
     }
 
     private void setupNotificationControls() {

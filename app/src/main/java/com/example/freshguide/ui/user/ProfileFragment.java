@@ -1,7 +1,9 @@
 package com.example.freshguide.ui.user;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,9 +32,10 @@ public class ProfileFragment extends Fragment {
     private TextView tvStudentId;
     private TextView tvCourseSection;
     private TextView tvProfileDate;
-
     private ImageView imgProfilePhoto;
     private TextView tvProfileInitial;
+
+    private SessionManager session;
 
     @Nullable
     @Override
@@ -45,61 +48,57 @@ public class ProfileFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        SessionManager session = SessionManager.getInstance(requireContext());
+        session = SessionManager.getInstance(requireContext());
 
         tvName = view.findViewById(R.id.tv_name);
         tvStudentId = view.findViewById(R.id.tv_student_id);
         tvCourseSection = view.findViewById(R.id.tv_course_section);
         tvProfileDate = view.findViewById(R.id.tv_profile_date);
-
         imgProfilePhoto = view.findViewById(R.id.img_profile_photo);
         tvProfileInitial = view.findViewById(R.id.tv_profile_initial);
 
         ImageButton btnEditProfile = view.findViewById(R.id.btn_edit_profile);
         ImageButton btnMore = view.findViewById(R.id.btn_more);
 
-        String studentId = session.getStudentId() != null ? session.getStudentId() : "—";
-        String savedName = session.getUserName() != null ? session.getUserName().trim() : "";
-        String courseSection = "BSCS 3A";
-
-        if (!savedName.isEmpty()) {
-            tvName.setText(savedName.toUpperCase(Locale.getDefault()));
-        } else {
-            tvName.setText("TEST STUDENT");
-        }
-
-        tvStudentId.setText(studentId);
-        tvCourseSection.setText(courseSection);
-
-        updateProfileInitial(tvName.getText().toString());
-
-        imgProfilePhoto.setVisibility(View.GONE);
-        tvProfileInitial.setVisibility(View.VISIBLE);
-
         setCurrentDate();
+        bindProfileData();
 
         btnEditProfile.setOnClickListener(v -> {
             EditProfileBottomSheet bottomSheet = EditProfileBottomSheet.newInstance(
-                    studentId,
+                    getStudentIdText(),
                     tvName.getText().toString(),
-                    tvCourseSection.getText().toString()
+                    tvCourseSection.getText().toString(),
+                    session.getProfilePhotoUri()
             );
 
-            bottomSheet.setOnProfileSavedListener((newFirstName, newMiddleInitial, newLastName, newCourseSection) -> {
-                String updatedName = buildFullName(newFirstName, newMiddleInitial, newLastName);
-                tvName.setText(updatedName);
-                tvCourseSection.setText(newCourseSection);
-
-                updateProfileInitial(updatedName);
-
-                // Next step later:
-                // save to SessionManager / SharedPreferences / database
+            bottomSheet.setOnProfileSavedListener((updatedName, updatedCourseSection, photoUri) -> {
+                tvName.setText(formatDisplayName(updatedName));
+                tvCourseSection.setText(getCourseSectionOrFallback(updatedCourseSection));
+                updateProfilePhoto(photoUri, updatedName);
             });
 
             bottomSheet.show(getParentFragmentManager(), "EditProfileBottomSheet");
         });
 
         btnMore.setOnClickListener(this::showProfileMenu);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (isAdded()) {
+            bindProfileData();
+        }
+    }
+
+    private void bindProfileData() {
+        String savedName = session.getUserName();
+        String courseSection = session.getProfileCourseSection();
+
+        tvName.setText(formatDisplayName(savedName));
+        tvStudentId.setText(getStudentIdText());
+        tvCourseSection.setText(getCourseSectionOrFallback(courseSection));
+        updateProfilePhoto(session.getProfilePhotoUri(), tvName.getText().toString());
     }
 
     private void updateProfileInitial(String displayName) {
@@ -113,6 +112,24 @@ public class ProfileFragment extends Fragment {
         }
 
         tvProfileInitial.setText(initial);
+    }
+
+    private void updateProfilePhoto(@Nullable String photoUri, String displayName) {
+        if (!TextUtils.isEmpty(photoUri)) {
+            try {
+                imgProfilePhoto.setImageURI(Uri.parse(photoUri));
+                imgProfilePhoto.setVisibility(View.VISIBLE);
+                tvProfileInitial.setVisibility(View.GONE);
+                return;
+            } catch (Exception ignored) {
+                session.setProfilePhotoUri(null);
+            }
+        }
+
+        imgProfilePhoto.setImageDrawable(null);
+        imgProfilePhoto.setVisibility(View.GONE);
+        tvProfileInitial.setVisibility(View.VISIBLE);
+        updateProfileInitial(displayName);
     }
 
     private void setCurrentDate() {
@@ -146,31 +163,22 @@ public class ProfileFragment extends Fragment {
         return false;
     }
 
-    private String buildFullName(String firstName, String middleInitial, String lastName) {
-        StringBuilder builder = new StringBuilder();
+    private String getStudentIdText() {
+        String studentId = session.getStudentId();
+        return studentId != null ? studentId : "—";
+    }
 
-        if (firstName != null && !firstName.trim().isEmpty()) {
-            builder.append(firstName.trim());
+    private String formatDisplayName(String rawName) {
+        if (rawName == null || rawName.trim().isEmpty()) {
+            return "TEST STUDENT";
         }
+        return rawName.trim().toUpperCase(Locale.getDefault());
+    }
 
-        if (middleInitial != null && !middleInitial.trim().isEmpty()) {
-            if (builder.length() > 0) {
-                builder.append(" ");
-            }
-            builder.append(middleInitial.trim().replace(".", "")).append(".");
+    private String getCourseSectionOrFallback(String courseSection) {
+        if (courseSection == null || courseSection.trim().isEmpty()) {
+            return "BSCS 3A";
         }
-
-        if (lastName != null && !lastName.trim().isEmpty()) {
-            if (builder.length() > 0) {
-                builder.append(" ");
-            }
-            builder.append(lastName.trim());
-        }
-
-        if (builder.length() == 0) {
-            return "—";
-        }
-
-        return builder.toString().toUpperCase(Locale.getDefault());
+        return courseSection.trim().toUpperCase(Locale.getDefault());
     }
 }

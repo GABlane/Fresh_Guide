@@ -16,6 +16,8 @@ public class SessionManager {
     private static final String KEY_ROLE = "user_role";
     private static final String KEY_STUDENT_ID = "student_id";
     private static final String KEY_USER_NAME = "user_name";
+    private static final String KEY_PROFILE_COURSE_SECTION = "profile_course_section";
+    private static final String KEY_PROFILE_PHOTO_URI = "profile_photo_uri";
     private static final String KEY_SYNC_VERSION = "sync_version";
     private static final String KEY_SCHEDULE_VIEW_MODE = "schedule_view_mode";
     private static final String KEY_SCHEDULE_SELECTED_DAY = "schedule_selected_day";
@@ -85,6 +87,26 @@ public class SessionManager {
 
     public String getUserName() {
         return prefs.getString(KEY_USER_NAME, null);
+    }
+
+    public void setUserName(String userName) {
+        prefs.edit().putString(KEY_USER_NAME, userName).apply();
+    }
+
+    public void setProfileCourseSection(String courseSection) {
+        prefs.edit().putString(KEY_PROFILE_COURSE_SECTION, courseSection).apply();
+    }
+
+    public String getProfileCourseSection() {
+        return prefs.getString(KEY_PROFILE_COURSE_SECTION, null);
+    }
+
+    public void setProfilePhotoUri(String photoUri) {
+        prefs.edit().putString(KEY_PROFILE_PHOTO_URI, photoUri).apply();
+    }
+
+    public String getProfilePhotoUri() {
+        return prefs.getString(KEY_PROFILE_PHOTO_URI, null);
     }
 
     public boolean isLoggedIn() {
@@ -195,6 +217,8 @@ public class SessionManager {
                 .remove(KEY_ROLE)
                 .remove(KEY_STUDENT_ID)
                 .remove(KEY_USER_NAME)
+                .remove(KEY_PROFILE_COURSE_SECTION)
+                .remove(KEY_PROFILE_PHOTO_URI)
                 .apply();
     }
 }

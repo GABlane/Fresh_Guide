@@ -37,6 +37,8 @@ import androidx.navigation.NavOptions;
             private boolean isAdmin;
             private static final long NAV_ITEM_PRESS_DURATION_MS = 55L;
             private static final long NAV_ITEM_RECOVERY_DURATION_MS = 145L;
+            private Runnable pendingNavAction;
+            private View pendingNavActionView;
 
             @Override
             protected void onCreate(Bundle savedInstanceState) {
@@ -170,16 +172,16 @@ import androidx.navigation.NavOptions;
 
             private void setupCustomNav(View navHome, View navSchedule, View navSettings, View navProfile) {
                 if (navHome != null) {
-                    navHome.setOnClickListener(v -> animateNavTap(v, () -> navigateTo(R.id.homeFragment), true));
+                    navHome.setOnClickListener(v -> animateNavTap(v, () -> navigateTo(R.id.homeFragment)));
                 }
                 if (navProfile != null) {
-                    navProfile.setOnClickListener(v -> animateNavTap(v, () -> navigateTo(R.id.profileFragment), false));
+                    navProfile.setOnClickListener(v -> animateNavTap(v, () -> navigateTo(R.id.profileFragment)));
                 }
                 if (navSchedule != null) {
-                    navSchedule.setOnClickListener(v -> animateNavTap(v, () -> navigateTo(R.id.scheduleFragment), false));
+                    navSchedule.setOnClickListener(v -> animateNavTap(v, () -> navigateTo(R.id.scheduleFragment)));
                 }
                 if (navSettings != null) {
-                    navSettings.setOnClickListener(v -> animateNavTap(v, () -> navigateTo(R.id.settingsFragment), false));
+                    navSettings.setOnClickListener(v -> animateNavTap(v, () -> navigateTo(R.id.settingsFragment)));
                 }
             }
 
@@ -250,11 +252,13 @@ import androidx.navigation.NavOptions;
                 navController.navigate(destinationId, null, navOptions);
             }
 
-            private void animateNavTap(View view, Runnable action, boolean prioritizeNavigation) {
+            private void animateNavTap(View view, Runnable action) {
                 if (view == null) {
                     action.run();
                     return;
                 }
+
+                cancelPendingNavAction();
 
                 view.animate()
                         .cancel();
@@ -274,11 +278,15 @@ import androidx.navigation.NavOptions;
                                     .start();
                         })
                         .start();
-                if (prioritizeNavigation) {
-                    action.run();
-                } else {
-                    view.postDelayed(action, 18L);
+                action.run();
+            }
+
+            private void cancelPendingNavAction() {
+                if (pendingNavActionView != null && pendingNavAction != null) {
+                    pendingNavActionView.removeCallbacks(pendingNavAction);
                 }
+                pendingNavAction = null;
+                pendingNavActionView = null;
             }
 
             private NavOptions buildNavigationOptions(@IdRes int currentDestinationId, @IdRes int destinationId) {
