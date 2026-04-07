@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -38,6 +39,10 @@ public class AdminBuildingListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(AdminViewModel.class);
+
+        ((TextView) view.findViewById(R.id.tv_admin_page_title)).setText("Buildings");
+        ((TextView) view.findViewById(R.id.tv_admin_page_subtitle))
+                .setText("Reference structures mirrored on the home map and search experience.");
 
         adapter = new GenericListAdapter();
         adapter.setActionsEnabled(false);

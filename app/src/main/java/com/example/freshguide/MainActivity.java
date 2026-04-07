@@ -89,7 +89,8 @@ import androidx.navigation.NavOptions;
                 isAdmin = session.isAdmin();
 
                 if (isAdmin) {
-                    if (navContainer != null) navContainer.setVisibility(View.GONE);
+                    setupAdminNav(navHome, navSchedule, navSettings, navProfile);
+                    updateNavSelection(R.id.adminDashboardFragment);
                     if (savedInstanceState == null) {
                         NavOptions options = new NavOptions.Builder()
                                 .setPopUpTo(R.id.homeFragment, true)
@@ -165,7 +166,7 @@ import androidx.navigation.NavOptions;
 
             private boolean isTopLevelDestination(@IdRes int destinationId) {
                 if (isAdmin) {
-                    return destinationId == R.id.adminDashboardFragment;
+                    return isAdminTopLevelDestination(destinationId);
                 }
                 return destinationId == R.id.homeFragment;
             }
@@ -178,6 +179,41 @@ import androidx.navigation.NavOptions;
                         () -> navigateTo(R.id.settingsFragment));
                 bindNavItem(navProfile, R.id.nav_icon_profile, R.id.nav_text_profile,
                         () -> navigateTo(R.id.profileFragment));
+            }
+
+            private void setupAdminNav(View navHome, View navSchedule, View navSettings, View navProfile) {
+                configureNavItem(navHome, R.id.nav_icon_home, R.id.nav_text_home,
+                        R.drawable.ic_nav_home, R.string.nav_admin_dashboard);
+                configureNavItem(navSchedule, R.id.nav_icon_schedule, R.id.nav_text_schedule,
+                        R.drawable.ic_find_room, R.string.nav_admin_campus);
+                configureNavItem(navSettings, R.id.nav_icon_settings, R.id.nav_text_settings,
+                        R.drawable.ic_directions, R.string.nav_admin_routes);
+                configureNavItem(navProfile, R.id.nav_icon_profile, R.id.nav_text_profile,
+                        R.drawable.ic_nav_settings, R.string.nav_admin_settings);
+
+                bindNavItem(navHome, R.id.nav_icon_home, R.id.nav_text_home,
+                        () -> navigateTo(R.id.adminDashboardFragment));
+                bindNavItem(navSchedule, R.id.nav_icon_schedule, R.id.nav_text_schedule,
+                        () -> navigateTo(R.id.adminRoomListFragment));
+                bindNavItem(navSettings, R.id.nav_icon_settings, R.id.nav_text_settings,
+                        () -> navigateTo(R.id.adminRouteListFragment));
+                bindNavItem(navProfile, R.id.nav_icon_profile, R.id.nav_text_profile,
+                        () -> navigateTo(R.id.settingsFragment));
+            }
+
+            private void configureNavItem(View item, @IdRes int iconId, @IdRes int textId,
+                                          int iconResId, int labelResId) {
+                if (item == null) {
+                    return;
+                }
+                View iconView = item.findViewById(iconId);
+                if (iconView instanceof android.widget.ImageView) {
+                    ((android.widget.ImageView) iconView).setImageResource(iconResId);
+                }
+                View textView = item.findViewById(textId);
+                if (textView instanceof TextView) {
+                    ((TextView) textView).setText(labelResId);
+                }
             }
 
             private void bindNavItem(View item, @IdRes int iconId, @IdRes int textId, Runnable action) {
@@ -246,7 +282,7 @@ import androidx.navigation.NavOptions;
 
                     if (navHostView != null) {
                         int hostTopInset = systemBars.top + extraTopMargin;
-                        int hostBottomInset = isAdmin ? systemBars.bottom : 0;
+                        int hostBottomInset = 0;
                         navHostView.setPadding(
                                 navHostPaddingLeft,
                                 navHostPaddingTop + hostTopInset,
@@ -320,7 +356,7 @@ import androidx.navigation.NavOptions;
                 NavOptions.Builder builder = new NavOptions.Builder()
                         .setLaunchSingleTop(true);
 
-                if (isUserTopLevelDestination(currentDestinationId) && isUserTopLevelDestination(destinationId)) {
+                if (!isAdmin && isUserTopLevelDestination(currentDestinationId) && isUserTopLevelDestination(destinationId)) {
                     boolean movingForward = getTopLevelIndex(destinationId) > getTopLevelIndex(currentDestinationId);
                     int startDestinationId = navController.getGraph().getStartDestinationId();
                     boolean navigatingHome = destinationId == R.id.homeFragment;
@@ -339,6 +375,25 @@ import androidx.navigation.NavOptions;
                                     : (movingForward ? R.anim.tab_screen_exit_to_right : R.anim.tab_screen_exit_to_left))
                             .setRestoreState(true)
                             .setPopUpTo(startDestinationId, false, true);
+                } else if (isAdmin && isAdminTopLevelDestination(currentDestinationId)
+                        && isAdminTopLevelDestination(destinationId)) {
+                    boolean movingForward = getAdminTopLevelIndex(destinationId) > getAdminTopLevelIndex(currentDestinationId);
+                    boolean navigatingDashboard = destinationId == R.id.adminDashboardFragment;
+                    builder
+                            .setEnterAnim(navigatingDashboard
+                                    ? R.anim.home_tab_enter_from_left
+                                    : (movingForward ? R.anim.tab_screen_enter_from_right : R.anim.tab_screen_enter_from_left))
+                            .setExitAnim(navigatingDashboard
+                                    ? R.anim.home_tab_exit_to_right
+                                    : (movingForward ? R.anim.tab_screen_exit_to_left : R.anim.tab_screen_exit_to_right))
+                            .setPopEnterAnim(navigatingDashboard
+                                    ? R.anim.home_tab_enter_from_left
+                                    : (movingForward ? R.anim.tab_screen_enter_from_left : R.anim.tab_screen_enter_from_right))
+                            .setPopExitAnim(navigatingDashboard
+                                    ? R.anim.home_tab_exit_to_right
+                                    : (movingForward ? R.anim.tab_screen_exit_to_right : R.anim.tab_screen_exit_to_left))
+                            .setRestoreState(true)
+                            .setPopUpTo(R.id.adminDashboardFragment, false, true);
                 }
 
                 return builder.build();
@@ -367,11 +422,43 @@ import androidx.navigation.NavOptions;
                 return 0;
             }
 
+            private boolean isAdminTopLevelDestination(@IdRes int destinationId) {
+                return destinationId == R.id.adminDashboardFragment
+                        || destinationId == R.id.adminRoomListFragment
+                        || destinationId == R.id.adminRouteListFragment
+                        || destinationId == R.id.settingsFragment;
+            }
+
+            private int getAdminTopLevelIndex(@IdRes int destinationId) {
+                if (destinationId == R.id.adminDashboardFragment) {
+                    return 0;
+                }
+                if (destinationId == R.id.adminRoomListFragment) {
+                    return 1;
+                }
+                if (destinationId == R.id.adminRouteListFragment) {
+                    return 2;
+                }
+                if (destinationId == R.id.settingsFragment) {
+                    return 3;
+                }
+                return 0;
+            }
+
             private void updateNavSelection(@IdRes int destinationId) {
                 View navHome = findViewById(R.id.nav_item_home);
                 View navSchedule = findViewById(R.id.nav_item_schedule);
                 View navSettings = findViewById(R.id.nav_item_settings);
                 View navProfile = findViewById(R.id.nav_item_profile);
+
+                if (isAdmin) {
+                    int adminBucket = getAdminNavigationBucket(destinationId);
+                    setNavItemSelected(navHome, R.id.nav_icon_home, R.id.nav_text_home, adminBucket == 0);
+                    setNavItemSelected(navSchedule, R.id.nav_icon_schedule, R.id.nav_text_schedule, adminBucket == 1);
+                    setNavItemSelected(navSettings, R.id.nav_icon_settings, R.id.nav_text_settings, adminBucket == 2);
+                    setNavItemSelected(navProfile, R.id.nav_icon_profile, R.id.nav_text_profile, adminBucket == 3);
+                    return;
+                }
 
                 boolean homeSelected = destinationId == R.id.homeFragment;
                 boolean scheduleSelected = destinationId == R.id.scheduleFragment;
@@ -399,6 +486,32 @@ import androidx.navigation.NavOptions;
                 if (textView instanceof android.widget.TextView) {
                     ((android.widget.TextView) textView).setTextColor(selected ? green : gray);
                 }
+            }
+
+            private int getAdminNavigationBucket(@IdRes int destinationId) {
+                if (destinationId == R.id.adminDashboardFragment || destinationId == R.id.adminPublishFragment) {
+                    return 0;
+                }
+                if (destinationId == R.id.adminRoomListFragment
+                        || destinationId == R.id.adminRoomFormFragment
+                        || destinationId == R.id.adminBuildingListFragment
+                        || destinationId == R.id.adminBuildingFormFragment
+                        || destinationId == R.id.adminFloorListFragment
+                        || destinationId == R.id.adminFloorFormFragment
+                        || destinationId == R.id.adminCampusAreaListFragment
+                        || destinationId == R.id.adminCampusAreaFormFragment) {
+                    return 1;
+                }
+                if (destinationId == R.id.adminRouteListFragment
+                        || destinationId == R.id.adminRouteFormFragment
+                        || destinationId == R.id.adminFacilityListFragment
+                        || destinationId == R.id.adminOriginListFragment) {
+                    return 2;
+                }
+                if (destinationId == R.id.settingsFragment) {
+                    return 3;
+                }
+                return 0;
             }
 
             @Override

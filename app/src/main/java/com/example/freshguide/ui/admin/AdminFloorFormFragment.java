@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -40,10 +41,29 @@ public class AdminFloorFormFragment extends Fragment {
         EditText etNumber = view.findViewById(R.id.et_field2);
         EditText etBuildingId = view.findViewById(R.id.et_field3);
         Button btnSave = view.findViewById(R.id.btn_save);
+        TextView tvTitle = view.findViewById(R.id.tv_admin_form_title);
+        TextView tvSubtitle = view.findViewById(R.id.tv_admin_form_subtitle);
+        TextView tvIntro = view.findViewById(R.id.tv_admin_form_intro_body);
+        TextView tvField1Label = view.findViewById(R.id.tv_field1_label);
+        TextView tvField2Label = view.findViewById(R.id.tv_field2_label);
+        TextView tvField3Label = view.findViewById(R.id.tv_field3_label);
+
+        tvTitle.setText(isEdit ? "Edit Floor" : "New Floor");
+        tvSubtitle.setText("Maintain floor metadata used in campus maps, filters, and room grouping.");
+        tvIntro.setText("Match the building relationship and floor number students expect when moving through the app.");
+        tvField1Label.setText("Floor Name");
+        tvField2Label.setText("Floor Number");
+        tvField3Label.setText("Building ID");
 
         etName.setHint("Floor Name");
         etNumber.setHint("Floor Number");
         etBuildingId.setHint("Building ID");
+        etNumber.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        etBuildingId.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        etBuildingId.setSingleLine(true);
+        etBuildingId.setMinLines(1);
+        etBuildingId.setMinHeight(0);
+        etBuildingId.setGravity(android.view.Gravity.CENTER_VERTICAL | android.view.Gravity.START);
         btnSave.setText(isEdit ? "Update Floor" : "Create Floor");
 
         btnSave.setOnClickListener(v -> {

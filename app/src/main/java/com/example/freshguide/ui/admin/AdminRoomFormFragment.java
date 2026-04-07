@@ -106,6 +106,8 @@ public class AdminRoomFormFragment extends Fragment {
         EditText etFloorId = view.findViewById(R.id.et_floor_id);
         EditText etDescription = view.findViewById(R.id.et_room_description);
         Button btnSave = view.findViewById(R.id.btn_save);
+        TextView tvTitle = view.findViewById(R.id.tv_admin_room_title);
+        TextView tvSubtitle = view.findViewById(R.id.tv_admin_room_subtitle);
 
         // Image handling elements
         ivRoomPreview = view.findViewById(R.id.iv_room_preview);
@@ -113,6 +115,8 @@ public class AdminRoomFormFragment extends Fragment {
         btnRemoveImage = view.findViewById(R.id.btn_remove_image);
         btnSelectImage = view.findViewById(R.id.btn_select_image);
 
+        tvTitle.setText(isEditMode ? "Edit Room" : "New Room");
+        tvSubtitle.setText("Manage room records with the same naming, imagery, and detail structure students see.");
         btnSave.setText(isEditMode ? "Update Room" : "Create Room");
         
         setupImageHandling();

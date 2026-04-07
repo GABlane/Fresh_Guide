@@ -38,6 +38,8 @@ public class GenericListAdapter extends RecyclerView.Adapter<GenericListAdapter.
     private List<Item> items = new ArrayList<>();
     private OnActionListener listener;
     private boolean actionsEnabled = true;
+    private boolean editEnabled = true;
+    private boolean deleteEnabled = true;
 
     public void setItems(List<Item> items) {
         this.items = items != null ? items : new ArrayList<>();
@@ -50,6 +52,16 @@ public class GenericListAdapter extends RecyclerView.Adapter<GenericListAdapter.
 
     public void setActionsEnabled(boolean enabled) {
         actionsEnabled = enabled;
+        notifyDataSetChanged();
+    }
+
+    public void setEditEnabled(boolean enabled) {
+        editEnabled = enabled;
+        notifyDataSetChanged();
+    }
+
+    public void setDeleteEnabled(boolean enabled) {
+        deleteEnabled = enabled;
         notifyDataSetChanged();
     }
 
@@ -66,19 +78,22 @@ public class GenericListAdapter extends RecyclerView.Adapter<GenericListAdapter.
         Item item = items.get(position);
         holder.bind(item);
 
-        int actionVisibility = actionsEnabled ? View.VISIBLE : View.GONE;
-        holder.btnEdit.setVisibility(actionVisibility);
-        holder.btnDelete.setVisibility(actionVisibility);
+        holder.btnEdit.setVisibility(actionsEnabled && editEnabled ? View.VISIBLE : View.GONE);
+        holder.btnDelete.setVisibility(actionsEnabled && deleteEnabled ? View.VISIBLE : View.GONE);
 
-        if (actionsEnabled) {
+        if (actionsEnabled && editEnabled) {
             holder.btnEdit.setOnClickListener(v -> {
                 if (listener != null) listener.onEdit(position, item.id);
             });
+        } else {
+            holder.btnEdit.setOnClickListener(null);
+        }
+
+        if (actionsEnabled && deleteEnabled) {
             holder.btnDelete.setOnClickListener(v -> {
                 if (listener != null) listener.onDelete(position, item.id);
             });
         } else {
-            holder.btnEdit.setOnClickListener(null);
             holder.btnDelete.setOnClickListener(null);
         }
     }

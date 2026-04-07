@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -44,6 +45,10 @@ public class AdminRoomListFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        ((TextView) view.findViewById(R.id.tv_admin_page_title)).setText("Rooms");
+        ((TextView) view.findViewById(R.id.tv_admin_page_subtitle))
+                .setText("Manage the records students see in search, map drill-down, and room detail views.");
 
         adapter = new GenericListAdapter();
         RecyclerView recycler = view.findViewById(R.id.recycler_items);

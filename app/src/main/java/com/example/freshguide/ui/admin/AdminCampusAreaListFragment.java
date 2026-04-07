@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -48,7 +49,12 @@ public class AdminCampusAreaListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        ((TextView) view.findViewById(R.id.tv_admin_page_title)).setText("Campus Areas");
+        ((TextView) view.findViewById(R.id.tv_admin_page_subtitle))
+                .setText("Update mapped landmarks like the court, entrance, and exit with student-facing consistency.");
+
         adapter = new GenericListAdapter();
+        adapter.setDeleteEnabled(false);
         RecyclerView recycler = view.findViewById(R.id.recycler_items);
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         recycler.setAdapter(adapter);

@@ -1,122 +1,226 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_default"
-    android:padding="16dp">
+    android:fillViewport="true"
+    android:overScrollMode="never">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingStart="@dimen/screen_horizontal_gutter"
+        android:paddingTop="20dp"
+        android:paddingEnd="@dimen/screen_horizontal_gutter"
+        android:paddingBottom="40dp">
 
-        <com.google.android.material.card.MaterialCardView
+        <TextView
+            style="@style/Style.FreshGuide.Text.PageTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:padding="0dp">
+            android:text="@string/admin_campus_area_form_title" />
+
+        <TextView
+            style="@style/Style.FreshGuide.Text.PageSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/admin_campus_area_form_subtitle" />
+
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Style.FreshGuide.Card.Section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:paddingStart="18dp"
+                android:paddingTop="18dp"
+                android:paddingEnd="18dp"
+                android:paddingBottom="18dp">
+
+                <TextView
+                    style="@style/Style.FreshGuide.Text.FieldLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Area Name" />
 
                 <EditText
                     android:id="@+id/et_area_name"
+                    style="@style/Style.FreshGuide.Input.Field"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
                     android:hint="Area Name"
                     android:inputType="textCapWords" />
 
                 <TextView
-                    android:id="@+id/tv_area_code"
+                    style="@style/Style.FreshGuide.Text.FieldLabel"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:padding="12dp"
-                    android:background="#EEEEEE"
+                    android:layout_marginTop="14dp"
+                    android:text="Code" />
+
+                <TextView
+                    android:id="@+id/tv_area_code"
+                    style="@style/Style.FreshGuide.Text.FieldValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_input_field"
+                    android:paddingStart="16dp"
+                    android:paddingTop="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="16dp"
                     android:text="Code"
-                    android:textColor="@color/text_hint"
-                    android:textStyle="bold" />
+                    android:textColor="@color/text_hint" />
+
+                <TextView
+                    style="@style/Style.FreshGuide.Text.FieldLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="Floor ID" />
 
                 <EditText
                     android:id="@+id/et_area_floor_id"
+                    style="@style/Style.FreshGuide.Input.Field"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="8dp"
                     android:hint="Floor ID"
                     android:inputType="number" />
 
-                <EditText
-                    android:id="@+id/et_area_facilities"
+                <TextView
+                    style="@style/Style.FreshGuide.Text.FieldLabel"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="14dp"
+                    android:text="Facilities" />
+
+                <EditText
+                    android:id="@+id/et_area_facilities"
+                    style="@style/Style.FreshGuide.Input.Field"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="start|top"
                     android:hint="Facilities information"
                     android:inputType="textCapSentences|textMultiLine"
-                    android:minLines="2"
-                    android:gravity="start|top" />
+                    android:minHeight="88dp" />
+
+                <TextView
+                    style="@style/Style.FreshGuide.Text.FieldLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="Hours" />
 
                 <EditText
                     android:id="@+id/et_area_hours"
+                    style="@style/Style.FreshGuide.Input.Field"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="8dp"
+                    android:gravity="start|top"
                     android:hint="Operating hours"
                     android:inputType="textCapSentences|textMultiLine"
-                    android:minLines="2"
-                    android:gravity="start|top" />
+                    android:minHeight="88dp" />
+
+                <TextView
+                    style="@style/Style.FreshGuide.Text.FieldLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="Booking" />
 
                 <EditText
                     android:id="@+id/et_area_booking"
+                    style="@style/Style.FreshGuide.Input.Field"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="8dp"
+                    android:gravity="start|top"
                     android:hint="Booking information"
                     android:inputType="textCapSentences|textMultiLine"
-                    android:minLines="2"
-                    android:gravity="start|top" />
+                    android:minHeight="88dp" />
+
+                <TextView
+                    style="@style/Style.FreshGuide.Text.FieldLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="Directory" />
 
                 <EditText
                     android:id="@+id/et_area_directory"
+                    style="@style/Style.FreshGuide.Input.Field"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="8dp"
+                    android:gravity="start|top"
                     android:hint="Directory information"
                     android:inputType="textCapSentences|textMultiLine"
-                    android:minLines="2"
-                    android:gravity="start|top" />
+                    android:minHeight="88dp" />
+
+                <TextView
+                    style="@style/Style.FreshGuide.Text.FieldLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="Emergency" />
 
                 <EditText
                     android:id="@+id/et_area_emergency"
+                    style="@style/Style.FreshGuide.Input.Field"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="8dp"
+                    android:gravity="start|top"
                     android:hint="Emergency information"
                     android:inputType="textCapSentences|textMultiLine"
-                    android:minLines="2"
-                    android:gravity="start|top" />
+                    android:minHeight="88dp" />
+
+                <TextView
+                    style="@style/Style.FreshGuide.Text.FieldLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="Campus Info" />
 
                 <EditText
                     android:id="@+id/et_area_campus_info"
+                    style="@style/Style.FreshGuide.Input.Field"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="8dp"
+                    android:gravity="start|top"
                     android:hint="Campus information"
                     android:inputType="textCapSentences|textMultiLine"
-                    android:minLines="2"
-                    android:gravity="start|top" />
+                    android:minHeight="88dp" />
+
+                <TextView
+                    style="@style/Style.FreshGuide.Text.FieldLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="Notes" />
 
                 <EditText
                     android:id="@+id/et_area_notes"
+                    style="@style/Style.FreshGuide.Input.Field"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="8dp"
+                    android:gravity="start|top"
                     android:hint="Additional notes"
                     android:inputType="textCapSentences|textMultiLine"
-                    android:minLines="3"
-                    android:gravity="start|top" />
+                    android:minHeight="104dp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -124,8 +228,12 @@
             android:id="@+id/btn_save_campus_area"
             android:layout_width="match_parent"
             android:layout_height="52dp"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_btn_primary"
+            android:fontFamily="@font/inter_bold"
             android:text="Update Campus Area"
-            android:textColor="@android:color/white"
-            android:backgroundTint="@color/green_primary" />
+            android:textAllCaps="false"
+            android:textColor="@color/surface_white"
+            android:textSize="14sp" />
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

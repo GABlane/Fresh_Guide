@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -40,6 +41,10 @@ public class AdminRouteListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(AdminViewModel.class);
+
+        ((TextView) view.findViewById(R.id.tv_admin_page_title)).setText("Routes");
+        ((TextView) view.findViewById(R.id.tv_admin_page_subtitle))
+                .setText("Review and update the route guidance students follow in directions.");
 
         adapter = new GenericListAdapter();
         RecyclerView recycler = view.findViewById(R.id.recycler_items);

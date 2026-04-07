@@ -55,6 +55,8 @@ public class AdminRouteFormFragment extends Fragment {
     private TextView tvOriginValidation;
     private TextView tvRoomValidation;
     private TextView tvNoSteps;
+    private TextView tvRouteTitle;
+    private TextView tvRouteSubtitle;
     private RecyclerView recyclerSteps;
     private Button btnAddStep;
     private Button btnSave;
@@ -109,9 +111,13 @@ public class AdminRouteFormFragment extends Fragment {
 
         viewModel.loadRouteFormOptions();
         if (isEditMode) {
+            tvRouteTitle.setText("Edit Route");
+            tvRouteSubtitle.setText("Adjust the same turn-by-turn route sequence students will follow in directions.");
             btnSave.setText("Update Route");
             viewModel.loadSingleRoute(routeId);
         } else {
+            tvRouteTitle.setText("New Route");
+            tvRouteSubtitle.setText("Create route guidance that feels native to the existing student directions flow.");
             btnSave.setText("Create Route");
             baselineSignature = buildCurrentSignature();
             baselineReady = true;
@@ -126,6 +132,8 @@ public class AdminRouteFormFragment extends Fragment {
         tvOriginValidation = view.findViewById(R.id.tv_origin_validation);
         tvRoomValidation = view.findViewById(R.id.tv_room_validation);
         tvNoSteps = view.findViewById(R.id.tv_no_steps);
+        tvRouteTitle = view.findViewById(R.id.tv_admin_route_title);
+        tvRouteSubtitle = view.findViewById(R.id.tv_admin_route_subtitle);
         recyclerSteps = view.findViewById(R.id.recycler_steps);
         btnAddStep = view.findViewById(R.id.btn_add_step);
         btnSave = view.findViewById(R.id.btn_save);
@@ -336,7 +344,7 @@ public class AdminRouteFormFragment extends Fragment {
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 requireContext(),
-                android.R.layout.simple_dropdown_item_1line,
+                R.layout.item_dropdown_simple,
                 labels
         );
         spinnerOrigin.setAdapter(adapter);
@@ -365,7 +373,7 @@ public class AdminRouteFormFragment extends Fragment {
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 requireContext(),
-                android.R.layout.simple_dropdown_item_1line,
+                R.layout.item_dropdown_simple,
                 labels
         );
         spinnerRoom.setAdapter(adapter);
@@ -504,7 +512,7 @@ public class AdminRouteFormFragment extends Fragment {
         String[] directions = new String[]{"Straight", "Left", "Right", "Up", "Down"};
         ArrayAdapter<String> directionAdapter = new ArrayAdapter<>(
                 requireContext(),
-                android.R.layout.simple_dropdown_item_1line,
+                R.layout.item_dropdown_simple,
                 directions
         );
         spinnerDirection.setAdapter(directionAdapter);

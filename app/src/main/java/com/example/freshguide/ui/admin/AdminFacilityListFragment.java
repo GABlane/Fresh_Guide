@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -39,7 +40,12 @@ public class AdminFacilityListFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(AdminViewModel.class);
 
+        ((TextView) view.findViewById(R.id.tv_admin_page_title)).setText("Facilities");
+        ((TextView) view.findViewById(R.id.tv_admin_page_subtitle))
+                .setText("Review the facility tags students see in room details and related guidance.");
+
         adapter = new GenericListAdapter();
+        adapter.setEditEnabled(false);
         RecyclerView recycler = view.findViewById(R.id.recycler_items);
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         recycler.setAdapter(adapter);
