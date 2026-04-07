@@ -3,8 +3,7 @@
     android:color="@color/green_pill_pressed">
 
     <item>
-        <shape android:shape="rectangle">
-            <corners android:radius="20dp" />
+        <shape android:shape="oval">
             <solid android:color="@color/green_pill" />
             <stroke
                 android:width="0.9dp"

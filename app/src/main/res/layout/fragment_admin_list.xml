@@ -40,21 +40,24 @@
             android:clipToPadding="false"
             android:overScrollMode="never"
             android:paddingTop="18dp"
-            android:paddingBottom="110dp"
+            android:paddingBottom="104dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tv_admin_page_subtitle" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <Button
+    <ImageButton
         android:id="@+id/fab_add"
-        style="@style/Style.FreshGuide.Button.Admin"
-        android:layout_width="wrap_content"
-        android:layout_height="44dp"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="20dp"
-        android:text="+ Add" />
+        android:background="@drawable/bg_admin_circle_action"
+        android:contentDescription="@string/admin_list_add_item"
+        android:padding="14dp"
+        android:src="@drawable/ic_schedule_add"
+        app:tint="@color/green_primary" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
