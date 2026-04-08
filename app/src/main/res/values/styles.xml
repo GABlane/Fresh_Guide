@@ -97,7 +97,7 @@
     </style>
 
     <style name="Style.FreshGuide.Text.AdminPageSubtitle">
-        <item name="android:fontFamily">@font/inter_regular</item>
+        <item name="android:fontFamily">@font/inter_bold</item>
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/text_hint</item>
     </style>
@@ -138,7 +138,7 @@
 
     <style name="Style.FreshGuide.Text.AdminSummaryNumber">
         <item name="android:fontFamily">@font/inter_bold</item>
-        <item name="android:textSize">24sp</item>
+        <item name="android:textSize">30sp</item>
         <item name="android:textColor">@color/green</item>
     </style>
 

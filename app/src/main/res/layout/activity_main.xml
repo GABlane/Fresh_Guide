@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/background_default"
     android:clipToPadding="false"
     android:clipChildren="false"
@@ -18,8 +17,7 @@
         android:id="@+id/nav_host_fragment"
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
         app:defaultNavHost="true"
         app:navGraph="@navigation/nav_graph" />
 
@@ -28,6 +26,8 @@
         android:id="@+id/nav_bar_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@android:color/transparent"
         android:paddingStart="@dimen/screen_horizontal_gutter"
         android:paddingEnd="@dimen/screen_horizontal_gutter"
         android:paddingTop="8dp"
@@ -189,4 +189,4 @@
         </com.google.android.material.card.MaterialCardView>
     </FrameLayout>
 
-</LinearLayout>
+</FrameLayout>

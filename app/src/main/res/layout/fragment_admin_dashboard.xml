@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingStart="@dimen/screen_horizontal_gutter"
-        android:paddingTop="16dp"
+        android:paddingTop="20dp"
         android:paddingEnd="@dimen/screen_horizontal_gutter"
         android:paddingBottom="36dp">
 
@@ -53,24 +53,24 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:minHeight="70dp"
+                android:minHeight="90dp"
                 android:orientation="horizontal"
-                android:paddingStart="22dp"
+                android:paddingStart="28dp"
                 android:paddingTop="14dp"
-                android:paddingEnd="22dp"
+                android:paddingEnd="40dp"
                 android:paddingBottom="14dp">
 
                 <TextView
                     android:id="@+id/tv_room_count"
                     style="@style/Style.FreshGuide.Text.AdminSummaryNumber"
-                    android:layout_width="52dp"
+                    android:layout_width="62dp"
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="0" />
 
                 <TextView
                     style="@style/Style.FreshGuide.Text.AdminSummaryLabel"
-                    android:layout_width="0dp"
+                    android:layout_width="162dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
                     android:layout_weight="1"
@@ -99,11 +99,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:minHeight="70dp"
+                android:minHeight="90dp"
                 android:orientation="horizontal"
-                android:paddingStart="22dp"
+                android:paddingStart="28dp"
                 android:paddingTop="14dp"
-                android:paddingEnd="22dp"
+                android:paddingEnd="40dp"
                 android:paddingBottom="14dp">
 
                 <TextView
@@ -120,7 +120,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="10dp"
                     android:layout_weight="1"
-                    android:text="Total&#10;Buildings" />
+                    android:text="Total&#10;Buildings"/>
 
                 <ImageView
                     android:layout_width="38dp"
@@ -145,11 +145,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:minHeight="70dp"
+                android:minHeight="90dp"
                 android:orientation="horizontal"
-                android:paddingStart="22dp"
+                android:paddingStart="28dp"
                 android:paddingTop="14dp"
-                android:paddingEnd="22dp"
+                android:paddingEnd="40dp"
                 android:paddingBottom="14dp">
 
                 <TextView
@@ -191,11 +191,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
-                android:minHeight="70dp"
+                android:minHeight="90dp"
                 android:orientation="horizontal"
-                android:paddingStart="22dp"
+                android:paddingStart="28dp"
                 android:paddingTop="14dp"
-                android:paddingEnd="22dp"
+                android:paddingEnd="40dp"
                 android:paddingBottom="14dp">
 
                 <TextView

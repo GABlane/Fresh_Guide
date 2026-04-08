@@ -268,8 +268,31 @@ import androidx.navigation.NavOptions;
                 final int navContainerPaddingRight = navContainer != null ? navContainer.getPaddingRight() : 0;
                 final int navContainerPaddingBottom = navContainer != null ? navContainer.getPaddingBottom() : 0;
 
+                final Runnable[] applyNavHostOverlayInset = new Runnable[1];
+                applyNavHostOverlayInset[0] = () -> {
+                    if (navHostView == null) {
+                        return;
+                    }
+                    int overlayHeight = 0;
+                    if (navContainer != null && navContainer.getVisibility() == View.VISIBLE) {
+                        overlayHeight = navContainer.getHeight();
+                    }
+                    navHostView.setPadding(
+                            navHostPaddingLeft,
+                            navHostView.getPaddingTop(),
+                            navHostPaddingRight,
+                            navHostPaddingBottom + overlayHeight
+                    );
+                };
+
+                if (navContainer != null) {
+                    navContainer.addOnLayoutChangeListener((v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
+                            applyNavHostOverlayInset[0].run());
+                }
+
                 ViewCompat.setOnApplyWindowInsetsListener(root, (v, windowInsets) -> {
                     Insets systemBars = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars());
+                    int hostTopInset = systemBars.top + extraTopMargin;
 
                     v.setPadding(
                             rootPaddingLeft,
@@ -279,13 +302,11 @@ import androidx.navigation.NavOptions;
                     );
 
                     if (navHostView != null) {
-                        int hostTopInset = systemBars.top + extraTopMargin;
-                        int hostBottomInset = 0;
                         navHostView.setPadding(
                                 navHostPaddingLeft,
                                 navHostPaddingTop + hostTopInset,
                                 navHostPaddingRight,
-                                navHostPaddingBottom + hostBottomInset
+                                navHostPaddingBottom
                         );
                     }
 
@@ -296,6 +317,9 @@ import androidx.navigation.NavOptions;
                                 navContainerPaddingRight,
                                 navContainerPaddingBottom + systemBars.bottom
                         );
+                        navContainer.post(applyNavHostOverlayInset[0]);
+                    } else {
+                        applyNavHostOverlayInset[0].run();
                     }
 
                     return windowInsets;
