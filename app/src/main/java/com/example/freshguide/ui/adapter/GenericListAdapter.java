@@ -3,6 +3,7 @@ package com.example.freshguide.ui.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -67,6 +68,7 @@ public class GenericListAdapter extends ListAdapter<GenericListAdapter.Item, Gen
     private boolean actionsEnabled = true;
     private boolean editEnabled = true;
     private boolean deleteEnabled = true;
+    private boolean iconActionsEnabled = false;
 
     public GenericListAdapter() {
         super(DIFF_CALLBACK);
@@ -99,6 +101,13 @@ public class GenericListAdapter extends ListAdapter<GenericListAdapter.Item, Gen
         notifyDataSetChanged();
     }
 
+    public void setIconActionsEnabled(boolean enabled) {
+        if (iconActionsEnabled != enabled) {
+            iconActionsEnabled = enabled;
+            notifyDataSetChanged();
+        }
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -112,35 +121,51 @@ public class GenericListAdapter extends ListAdapter<GenericListAdapter.Item, Gen
         Item item = getItem(position); // Use getItem() from ListAdapter instead of items.get()
         holder.bind(item);
 
-        holder.btnEdit.setVisibility(actionsEnabled && editEnabled ? View.VISIBLE : View.GONE);
-        holder.btnDelete.setVisibility(actionsEnabled && deleteEnabled ? View.VISIBLE : View.GONE);
+        boolean showEdit = actionsEnabled && editEnabled;
+        boolean showDelete = actionsEnabled && deleteEnabled;
+        boolean showAnyAction = showEdit || showDelete;
 
-        if (actionsEnabled && editEnabled) {
-            holder.btnEdit.setOnClickListener(v -> {
-                if (listener != null) listener.onEdit(position, item.id);
-            });
-        } else {
-            holder.btnEdit.setOnClickListener(null);
-        }
+        holder.textActionGroup.setVisibility(!iconActionsEnabled && showAnyAction ? View.VISIBLE : View.GONE);
+        holder.iconActionGroup.setVisibility(iconActionsEnabled && showAnyAction ? View.VISIBLE : View.GONE);
 
-        if (actionsEnabled && deleteEnabled) {
-            holder.btnDelete.setOnClickListener(v -> {
-                if (listener != null) listener.onDelete(position, item.id);
-            });
-        } else {
-            holder.btnDelete.setOnClickListener(null);
-        }
+        holder.btnEdit.setVisibility(!iconActionsEnabled && showEdit ? View.VISIBLE : View.GONE);
+        holder.btnDelete.setVisibility(!iconActionsEnabled && showDelete ? View.VISIBLE : View.GONE);
+        holder.btnEditIcon.setVisibility(iconActionsEnabled && showEdit ? View.VISIBLE : View.GONE);
+        holder.btnDeleteIcon.setVisibility(iconActionsEnabled && showDelete ? View.VISIBLE : View.GONE);
+
+        bindAction(holder.btnEdit, !iconActionsEnabled && showEdit, () -> {
+            if (listener != null) listener.onEdit(position, item.id);
+        });
+        bindAction(holder.btnDelete, !iconActionsEnabled && showDelete, () -> {
+            if (listener != null) listener.onDelete(position, item.id);
+        });
+        bindAction(holder.btnEditIcon, iconActionsEnabled && showEdit, () -> {
+            if (listener != null) listener.onEdit(position, item.id);
+        });
+        bindAction(holder.btnDeleteIcon, iconActionsEnabled && showDelete, () -> {
+            if (listener != null) listener.onDelete(position, item.id);
+        });
+    }
+
+    private void bindAction(View actionView, boolean visible, Runnable action) {
+        actionView.setOnClickListener(visible ? v -> action.run() : null);
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle, tvSubtitle, btnEdit, btnDelete;
+        View textActionGroup, iconActionGroup;
+        ImageButton btnEditIcon, btnDeleteIcon;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTitle = itemView.findViewById(R.id.tv_item_title);
             tvSubtitle = itemView.findViewById(R.id.tv_item_subtitle);
+            textActionGroup = itemView.findViewById(R.id.layout_text_actions);
+            iconActionGroup = itemView.findViewById(R.id.layout_icon_actions);
             btnEdit = itemView.findViewById(R.id.btn_edit);
             btnDelete = itemView.findViewById(R.id.btn_delete);
+            btnEditIcon = itemView.findViewById(R.id.btn_edit_icon);
+            btnDeleteIcon = itemView.findViewById(R.id.btn_delete_icon);
         }
 
         void bind(Item item) {

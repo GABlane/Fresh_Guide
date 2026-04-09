@@ -50,6 +50,7 @@ public class AdminRoomListFragment extends Fragment {
                 .setText("Manage the records students see in search, map drill-down, and room detail views.");
 
         adapter = new GenericListAdapter();
+        adapter.setIconActionsEnabled(true);
         RecyclerView recycler = view.findViewById(R.id.recycler_items);
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         recycler.setAdapter(adapter);

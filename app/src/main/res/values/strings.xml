@@ -36,7 +36,7 @@
     <string name="nav_schedule">Schedule</string>
     <string name="nav_settings">Settings</string>
     <string name="nav_profile">Profile</string>
-    <string name="nav_admin_dashboard">Dashboard</string>
+    <string name="nav_admin_dashboard">Home</string>
     <string name="nav_admin_campus">Campus</string>
     <string name="nav_admin_routes">Routes</string>
     <string name="nav_admin_settings">Settings</string>
@@ -94,6 +94,8 @@
     <string name="admin_dashboard_title">Admin Tools</string>
     <string name="admin_dashboard_subtitle">Manage the same campus experience students see, using the same FreshGuide design language.</string>
     <string name="admin_list_add_item">Add item</string>
+    <string name="admin_action_edit_item">Edit item</string>
+    <string name="admin_action_delete_item">Delete item</string>
     <string name="admin_form_intro_title">Details</string>
     <string name="admin_form_intro_subtitle">Use the same naming, structure, and destination data students rely on throughout the app.</string>
     <string name="admin_publish_title">Publish Updates</string>

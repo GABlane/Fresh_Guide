@@ -144,7 +144,7 @@
     <fragment
         android:id="@+id/adminDashboardFragment"
         android:name="com.example.freshguide.ui.admin.AdminDashboardFragment"
-        android:label="Admin Dashboard"
+        android:label="Home"
         tools:layout="@layout/fragment_admin_dashboard">
         <action
             android:id="@+id/action_adminDashboard_to_adminBuildingList"

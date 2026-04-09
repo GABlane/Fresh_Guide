@@ -46,6 +46,7 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/layout_text_actions"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
@@ -84,6 +85,39 @@
                 android:text="Delete"
                 android:textColor="@color/red_accent"
                 android:textSize="12sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_icon_actions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="14dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageButton
+                android:id="@+id/btn_edit_icon"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_admin_icon_button"
+                android:contentDescription="@string/admin_action_edit_item"
+                android:padding="10dp"
+                android:src="@drawable/ic_edit"
+                android:tooltipText="@string/admin_action_edit_item"
+                app:tint="@color/green_primary" />
+
+            <ImageButton
+                android:id="@+id/btn_delete_icon"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_admin_icon_button_danger"
+                android:contentDescription="@string/admin_action_delete_item"
+                android:padding="10dp"
+                android:src="@drawable/ic_delete"
+                android:tooltipText="@string/admin_action_delete_item"
+                app:tint="@color/red_accent" />
         </LinearLayout>
 
     </LinearLayout>

@@ -17,12 +17,26 @@
         android:paddingEnd="@dimen/screen_horizontal_gutter"
         android:paddingBottom="36dp">
 
-        <TextView
-            android:id="@+id/tv_admin_dashboard_title"
-            style="@style/Style.FreshGuide.Text.AdminPageTitle"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Welcome, Admin" />
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_admin_dashboard_welcome"
+                style="@style/Style.FreshGuide.Text.AdminWelcome"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Welcome," />
+
+            <TextView
+                android:id="@+id/tv_admin_dashboard_name"
+                style="@style/Style.FreshGuide.Text.AdminName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-6dp"
+                android:text="Admin" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tv_admin_dashboard_date"
@@ -30,6 +44,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="3dp"
+            android:fontFamily="@font/inter_bold"
             android:text="Monday, February 26" />
 
         <TextView
@@ -39,189 +54,241 @@
             android:layout_marginTop="26dp"
             android:text="@string/admin_section_overview" />
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card_rooms_overview"
-            style="@style/Style.FreshGuide.Card.AdminSummary"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackgroundBorderless">
+            android:orientation="horizontal">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_rooms_overview"
+                style="@style/Style.FreshGuide.Card.AdminOverviewTile"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:minHeight="80dp"
-                android:orientation="horizontal"
-                android:paddingStart="28dp"
-                android:paddingTop="14dp"
-                android:paddingEnd="40dp"
-                android:paddingBottom="14dp">
+                android:layout_marginEnd="10dp"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless">
 
-                <TextView
-                    android:id="@+id/tv_room_count"
-                    style="@style/Style.FreshGuide.Text.AdminSummaryNumber"
-                    android:layout_width="62dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="0" />
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
-                <TextView
-                    style="@style/Style.FreshGuide.Text.AdminSummaryLabel"
-                    android:layout_width="162dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:layout_weight="1"
-                    android:text="Total&#10;Rooms" />
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:adjustViewBounds="true"
+                        android:contentDescription="@string/admin_summary_rooms_image"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/total_rooms" />
 
-                <ImageView
-                    android:layout_width="38dp"
-                    android:layout_height="38dp"
-                    android:contentDescription="@string/admin_summary_rooms_image"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/total_rooms" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|start"
+                        android:layout_marginStart="18dp"
+                        android:layout_marginTop="18dp"
+                        android:orientation="vertical">
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card_buildings_overview"
-            style="@style/Style.FreshGuide.Card.AdminSummary"
+                        <TextView
+                            style="@style/Style.FreshGuide.Text.AdminSummaryLabelTop"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Total" />
+
+                        <TextView
+                            style="@style/Style.FreshGuide.Text.AdminSummaryLabelBottom"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Rooms" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tv_room_count"
+                        style="@style/Style.FreshGuide.Text.AdminSummaryNumber"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|start"
+                        android:layout_marginStart="18dp"
+                        android:layout_marginBottom="16dp"
+                        android:text="0" />
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_buildings_overview"
+                style="@style/Style.FreshGuide.Card.AdminOverviewTile"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:adjustViewBounds="true"
+                        android:contentDescription="@string/admin_summary_buildings_image"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/total_buildings" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|start"
+                        android:layout_marginStart="18dp"
+                        android:layout_marginTop="18dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/Style.FreshGuide.Text.AdminSummaryLabelTop"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Total" />
+
+                        <TextView
+                            style="@style/Style.FreshGuide.Text.AdminSummaryLabelBottom"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Buildings" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tv_building_count"
+                        style="@style/Style.FreshGuide.Text.AdminSummaryNumber"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|start"
+                        android:layout_marginStart="18dp"
+                        android:layout_marginBottom="16dp"
+                        android:text="0" />
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackgroundBorderless">
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_floors_overview"
+                style="@style/Style.FreshGuide.Card.AdminOverviewTile"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:minHeight="80dp"
-                android:orientation="horizontal"
-                android:paddingStart="28dp"
-                android:paddingTop="14dp"
-                android:paddingEnd="40dp"
-                android:paddingBottom="14dp">
+                android:layout_marginEnd="10dp"
+                android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless">
 
-                <TextView
-                    android:id="@+id/tv_building_count"
-                    style="@style/Style.FreshGuide.Text.AdminSummaryNumber"
-                    android:layout_width="52dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="0" />
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
-                <TextView
-                    style="@style/Style.FreshGuide.Text.AdminSummaryLabel"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:layout_weight="1"
-                    android:text="Total&#10;Buildings"/>
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:adjustViewBounds="true"
+                        android:contentDescription="@string/admin_summary_floors_image"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/total_floors" />
 
-                <ImageView
-                    android:layout_width="38dp"
-                    android:layout_height="38dp"
-                    android:contentDescription="@string/admin_summary_buildings_image"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/total_buildings" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|start"
+                        android:layout_marginStart="18dp"
+                        android:layout_marginTop="18dp"
+                        android:orientation="vertical">
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card_floors_overview"
-            style="@style/Style.FreshGuide.Card.AdminSummary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackgroundBorderless">
+                        <TextView
+                            style="@style/Style.FreshGuide.Text.AdminSummaryLabelTop"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Total" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
+                        <TextView
+                            style="@style/Style.FreshGuide.Text.AdminSummaryLabelBottom"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Floors" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tv_floor_count"
+                        style="@style/Style.FreshGuide.Text.AdminSummaryNumber"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|start"
+                        android:layout_marginStart="18dp"
+                        android:layout_marginBottom="16dp"
+                        android:text="0" />
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_routes_overview"
+                style="@style/Style.FreshGuide.Card.AdminOverviewTile"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:minHeight="80dp"
-                android:orientation="horizontal"
-                android:paddingStart="28dp"
-                android:paddingTop="14dp"
-                android:paddingEnd="40dp"
-                android:paddingBottom="14dp">
+                android:layout_weight="1"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackgroundBorderless">
 
-                <TextView
-                    android:id="@+id/tv_floor_count"
-                    style="@style/Style.FreshGuide.Text.AdminSummaryNumber"
-                    android:layout_width="52dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="0" />
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
-                <TextView
-                    style="@style/Style.FreshGuide.Text.AdminSummaryLabel"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:layout_weight="1"
-                    android:text="Total&#10;Floors" />
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:adjustViewBounds="true"
+                        android:contentDescription="@string/admin_summary_routes_image"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/total_routes" />
 
-                <ImageView
-                    android:layout_width="38dp"
-                    android:layout_height="38dp"
-                    android:contentDescription="@string/admin_summary_floors_image"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/total_floors" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|start"
+                        android:layout_marginStart="18dp"
+                        android:layout_marginTop="18dp"
+                        android:orientation="vertical">
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card_routes_overview"
-            style="@style/Style.FreshGuide.Card.AdminSummary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackgroundBorderless">
+                        <TextView
+                            style="@style/Style.FreshGuide.Text.AdminSummaryLabelTop"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Total" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:minHeight="80dp"
-                android:orientation="horizontal"
-                android:paddingStart="28dp"
-                android:paddingTop="14dp"
-                android:paddingEnd="40dp"
-                android:paddingBottom="14dp">
+                        <TextView
+                            style="@style/Style.FreshGuide.Text.AdminSummaryLabelBottom"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Routes" />
+                    </LinearLayout>
 
-                <TextView
-                    android:id="@+id/tv_route_count"
-                    style="@style/Style.FreshGuide.Text.AdminSummaryNumber"
-                    android:layout_width="52dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="0" />
-
-                <TextView
-                    style="@style/Style.FreshGuide.Text.AdminSummaryLabel"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:layout_weight="1"
-                    android:text="Total&#10;Routes" />
-
-                <ImageView
-                    android:layout_width="38dp"
-                    android:layout_height="38dp"
-                    android:contentDescription="@string/admin_summary_routes_image"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/total_routes" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+                    <TextView
+                        android:id="@+id/tv_route_count"
+                        style="@style/Style.FreshGuide.Text.AdminSummaryNumber"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|start"
+                        android:layout_marginStart="18dp"
+                        android:layout_marginBottom="16dp"
+                        android:text="0" />
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
 
         <TextView
             style="@style/Style.FreshGuide.Text.AdminSectionLabel"

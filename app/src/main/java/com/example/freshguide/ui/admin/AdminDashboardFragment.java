@@ -42,12 +42,15 @@ public class AdminDashboardFragment extends Fragment {
         TextView tvFloors = view.findViewById(R.id.tv_floor_count);
         TextView tvRoutes = view.findViewById(R.id.tv_route_count);
         TextView tvSyncVersion = view.findViewById(R.id.tv_admin_sync_version);
+        TextView tvAdminName = view.findViewById(R.id.tv_admin_dashboard_name);
         TextView tvDashboardDate = view.findViewById(R.id.tv_admin_dashboard_date);
 
         tvDashboardDate.setText(new SimpleDateFormat("EEEE, MMMM d", Locale.getDefault())
                 .format(new Date()));
 
         SessionManager sessionManager = SessionManager.getInstance(requireContext());
+        String adminName = sessionManager.getUserName();
+        tvAdminName.setText(adminName != null && !adminName.trim().isEmpty() ? adminName : "Admin");
         int syncVersion = sessionManager.getSyncVersion();
         tvSyncVersion.setText(syncVersion >= 0
                 ? "Current data version: " + syncVersion

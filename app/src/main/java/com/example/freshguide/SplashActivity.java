@@ -89,7 +89,7 @@ public class SplashActivity extends AppCompatActivity {
                         // ORIGINAL CODE: go to login
                         // Uncomment this after testing is done
                         // =========================================================
-                        // startActivity(new Intent(SplashActivity.this, LoginActivity.class));
+//                         startActivity(new Intent(SplashActivity.this, LoginActivity.class));
 
                         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                         finish();
