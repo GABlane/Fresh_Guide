@@ -2,231 +2,284 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_bottom_sheet_surface"
+    android:background="@drawable/bg_sheet_top_radius"
     android:orientation="vertical">
 
     <View
         android:layout_width="48dp"
         android:layout_height="4dp"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="10dp"
         android:background="@drawable/bg_bottom_sheet_handle" />
 
-    <ScrollView
+    <TextView
+        android:id="@+id/tv_admin_route_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:fontFamily="@font/inter_medium"
+        android:gravity="center"
+        android:text="@string/admin_route_form_title"
+        android:textColor="@color/schedule_form_label"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tv_admin_route_subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:fontFamily="@font/inter_regular"
+        android:gravity="center"
+        android:text="@string/admin_route_form_subtitle"
+        android:textColor="@color/text_hint"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:fillViewport="true"
-        android:overScrollMode="never">
+        android:overScrollMode="never"
+        android:scrollbars="none">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="@dimen/screen_horizontal_gutter"
-            android:paddingTop="18dp"
-            android:paddingEnd="@dimen/screen_horizontal_gutter"
-            android:paddingBottom="28dp">
+            android:paddingStart="30dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="30dp"
+            android:paddingBottom="24dp">
 
             <TextView
-                android:id="@+id/tv_admin_route_title"
-                style="@style/Style.FreshGuide.Text.AdminBottomSheetTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/admin_route_form_title" />
-
-            <TextView
-                android:id="@+id/tv_admin_route_subtitle"
-                style="@style/Style.FreshGuide.Text.AdminPageSubtitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="@string/admin_route_form_subtitle" />
-
-            <com.google.android.material.card.MaterialCardView
-                style="@style/Style.FreshGuide.Card.Section"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="18dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingStart="18dp"
-                    android:paddingTop="18dp"
-                    android:paddingEnd="18dp"
-                    android:paddingBottom="18dp">
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Style.FreshGuide.TextInputLayout.Dropdown"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Origin">
-
-                        <AutoCompleteTextView
-                            android:id="@+id/spinner_origin"
-                            style="@style/Style.FreshGuide.Text.FieldValue"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="none"
-                            android:minHeight="52dp"
-                            android:paddingStart="4dp"
-                            android:paddingEnd="4dp" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <TextView
-                        android:id="@+id/tv_origin_validation"
-                        style="@style/Style.FreshGuide.Text.CardBody"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:layout_marginBottom="12dp"
-                        android:visibility="gone" />
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Style.FreshGuide.TextInputLayout.Dropdown"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Destination room">
-
-                        <AutoCompleteTextView
-                            android:id="@+id/spinner_room"
-                            style="@style/Style.FreshGuide.Text.FieldValue"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="none"
-                            android:minHeight="52dp"
-                            android:paddingStart="4dp"
-                            android:paddingEnd="4dp" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <TextView
-                        android:id="@+id/tv_room_validation"
-                        style="@style/Style.FreshGuide.Text.CardBody"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:layout_marginBottom="12dp"
-                        android:visibility="gone" />
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Style.FreshGuide.TextInputLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"
-                        android:hint="Description (optional)">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/et_description"
-                            style="@style/Style.FreshGuide.TextInputEditText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="top"
-                            android:inputType="textMultiLine|textCapSentences"
-                            android:maxLines="4"
-                            android:minLines="2" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Style.FreshGuide.TextInputLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Instruction (optional)">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/et_instruction"
-                            style="@style/Style.FreshGuide.TextInputEditText"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="top"
-                            android:inputType="textMultiLine|textCapSentences"
-                            android:maxLines="3"
-                            android:minLines="1" />
-                    </com.google.android.material.textfield.TextInputLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                style="@style/Style.FreshGuide.Card.Highlight"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:paddingStart="18dp"
-                    android:paddingTop="18dp"
-                    android:paddingEnd="18dp"
-                    android:paddingBottom="18dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            style="@style/Style.FreshGuide.Text.CardTitle"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Route steps" />
-
-                        <Button
-                            android:id="@+id/btn_add_step"
-                            style="@style/Style.FreshGuide.Button.Admin"
-                            android:layout_width="wrap_content"
-                            android:layout_height="40dp"
-                            android:text="+ Add step"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                    <TextView
-                        style="@style/Style.FreshGuide.Text.CardBody"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="Create the same directional sequence students will see in the route guide." />
-
-                    <TextView
-                        android:id="@+id/tv_no_steps"
-                        style="@style/Style.FreshGuide.Text.CardBody"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="18dp"
-                        android:gravity="center"
-                        android:text="No steps added yet"
-                        android:textAlignment="center" />
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recycler_steps"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:minHeight="120dp"
-                        android:nestedScrollingEnabled="false" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <Button
-                android:id="@+id/btn_save"
-                style="@style/Style.FreshGuide.Button.Admin.Primary"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginTop="18dp"
-                android:text="Save Route"
-                android:textSize="14sp" />
-
-            <ProgressBar
-                android:id="@+id/progress_bar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="14dp"
+                android:fontFamily="@font/inter_regular"
+                android:text="Origin"
+                android:textColor="@color/schedule_form_label"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <AutoCompleteTextView
+                android:id="@+id/spinner_origin"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_field_pill"
+                android:dropDownHeight="wrap_content"
+                android:fontFamily="@font/inter_medium"
+                android:hint="Choose origin"
+                android:inputType="none"
+                android:paddingStart="18dp"
+                android:paddingEnd="18dp"
+                android:singleLine="true"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tv_origin_validation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:fontFamily="@font/inter_regular"
+                android:textColor="@color/text_hint"
+                android:textSize="12sp"
                 android:visibility="gone" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:fontFamily="@font/inter_regular"
+                android:text="Destination Room"
+                android:textColor="@color/schedule_form_label"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <AutoCompleteTextView
+                android:id="@+id/spinner_room"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_field_pill"
+                android:dropDownHeight="wrap_content"
+                android:fontFamily="@font/inter_medium"
+                android:hint="Choose destination room"
+                android:inputType="none"
+                android:paddingStart="18dp"
+                android:paddingEnd="18dp"
+                android:singleLine="true"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tv_room_validation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:fontFamily="@font/inter_regular"
+                android:textColor="@color/text_hint"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:fontFamily="@font/inter_regular"
+                android:text="Description"
+                android:textColor="@color/schedule_form_label"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_description"
+                android:layout_width="match_parent"
+                android:layout_height="96dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_field_pill"
+                android:fontFamily="@font/inter_medium"
+                android:gravity="top|start"
+                android:hint="Enter description"
+                android:inputType="textMultiLine|textCapSentences"
+                android:paddingStart="18dp"
+                android:paddingTop="16dp"
+                android:paddingEnd="18dp"
+                android:paddingBottom="16dp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:fontFamily="@font/inter_regular"
+                android:text="Instruction"
+                android:textColor="@color/schedule_form_label"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/et_instruction"
+                android:layout_width="match_parent"
+                android:layout_height="88dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_field_pill"
+                android:fontFamily="@font/inter_medium"
+                android:gravity="top|start"
+                android:hint="Enter instruction"
+                android:inputType="textMultiLine|textCapSentences"
+                android:paddingStart="18dp"
+                android:paddingTop="16dp"
+                android:paddingEnd="18dp"
+                android:paddingBottom="16dp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_admin_sheet_section"
+                android:orientation="vertical"
+                android:paddingStart="18dp"
+                android:paddingTop="18dp"
+                android:paddingEnd="18dp"
+                android:paddingBottom="18dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/inter_bold"
+                        android:text="Route Steps"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" />
+
+                    <Button
+                        android:id="@+id/btn_add_step"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:background="@drawable/bg_field_pill"
+                        android:fontFamily="@font/inter_medium"
+                        android:minWidth="0dp"
+                        android:paddingStart="16dp"
+                        android:paddingEnd="16dp"
+                        android:text="Add Step"
+                        android:textAllCaps="false"
+                        android:textColor="@color/green_dark"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="@font/inter_regular"
+                    android:text="Build the same turn-by-turn sequence students will follow."
+                    android:textColor="@color/text_hint"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tv_no_steps"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:fontFamily="@font/inter_regular"
+                    android:gravity="center"
+                    android:text="No steps added yet"
+                    android:textAlignment="center"
+                    android:textColor="@color/text_hint"
+                    android:textSize="13sp" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_steps"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:minHeight="120dp"
+                    android:nestedScrollingEnabled="false" />
+            </LinearLayout>
         </LinearLayout>
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/background_card"
+        android:orientation="vertical"
+        android:paddingStart="30dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="30dp"
+        android:paddingBottom="16dp">
+
+        <Button
+            android:id="@+id/btn_save"
+            style="@style/Style.FreshGuide.Button.Admin.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Save Route"
+            android:textSize="15sp" />
+
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="12dp"
+            android:visibility="gone" />
+    </LinearLayout>
 </LinearLayout>
