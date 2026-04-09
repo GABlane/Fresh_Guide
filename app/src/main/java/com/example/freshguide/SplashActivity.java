@@ -20,6 +20,8 @@ public class SplashActivity extends AppCompatActivity {
     private static final int STEP2_DURATION_MS  = 800;
     private static final int SPINNER_FADE_MS    = 400;
     private static final int LOADING_HOLD_MS    = 1200;
+    private static final String TEST_ADMIN_TOKEN = "debug_admin_token";
+    private static final String LEGACY_DEBUG_TOKEN = "debug_token_123";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,32 +66,21 @@ public class SplashActivity extends AppCompatActivity {
 
 
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
-
-                        // =========================================================
-                        // TESTING MODE: auto-create session and skip LoginActivity
-                        // comment this after testing
-                        // =========================================================
                         SessionManager session = SessionManager.getInstance(SplashActivity.this);
-//                        session.saveSession(
-//                                "debug_token_123",
-//                                SessionManager.ROLE_STUDENT,
-//                                "20230372-S",
-//                                "Test Student"
-//                        );
+                        String token = session.getToken();
 
-                        session.saveSession(
-                                "debug_token_123",
-                                SessionManager.ROLE_ADMIN,
-                                "20230372-S",
-                                "Test Student"
-                        );
-                        startActivity(new Intent(SplashActivity.this, MainActivity.class));
+                        if (TEST_ADMIN_TOKEN.equals(token) || LEGACY_DEBUG_TOKEN.equals(token)) {
+                            session.clearSession();
+                        }
 
-                        // =========================================================
-                        // ORIGINAL CODE: go to login
-                        // Uncomment this after testing is done
-                        // =========================================================
-//                         startActivity(new Intent(SplashActivity.this, LoginActivity.class));
+                        Intent nextIntent;
+                        if (session.isLoggedIn()) {
+                            nextIntent = new Intent(SplashActivity.this, MainActivity.class);
+                        } else {
+                            nextIntent = new Intent(SplashActivity.this, LoginActivity.class);
+                        }
+
+                        startActivity(nextIntent);
 
                         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                         finish();

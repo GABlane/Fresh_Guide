@@ -219,6 +219,51 @@
         <item name="android:includeFontPadding">false</item>
     </style>
 
+    <style name="Style.FreshGuide.Button.Admin.BottomSheetPrimary">
+        <item name="android:background">@drawable/bg_admin_bottom_sheet_action_primary</item>
+        <item name="android:backgroundTint">@null</item>
+        <item name="android:fontFamily">@font/inter_extrabold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/green_primary</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:minHeight">64dp</item>
+        <item name="android:paddingStart">28dp</item>
+        <item name="android:paddingEnd">28dp</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:gravity">center</item>
+        <item name="android:letterSpacing">0.03</item>
+    </style>
+
+    <style name="Style.FreshGuide.Button.Admin.BottomSheetSecondary">
+        <item name="android:background">@drawable/bg_admin_bottom_sheet_action_neutral</item>
+        <item name="android:backgroundTint">@null</item>
+        <item name="android:fontFamily">@font/inter_bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/green_primary</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:gravity">center</item>
+        <item name="android:letterSpacing">0.03</item>
+    </style>
+
+    <style name="Style.FreshGuide.Button.Admin.BottomSheetAssist">
+        <item name="android:background">@drawable/bg_admin_bottom_sheet_action_primary</item>
+        <item name="android:backgroundTint">@null</item>
+        <item name="android:fontFamily">@font/inter_bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/green_primary</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:minHeight">46dp</item>
+        <item name="android:paddingStart">18dp</item>
+        <item name="android:paddingEnd">18dp</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:gravity">center</item>
+        <item name="android:letterSpacing">0.03</item>
+    </style>
+
     <style name="Style.FreshGuide.Button.Admin.Neutral">
         <item name="android:background">@drawable/bg_admin_button_neutral</item>
         <item name="android:fontFamily">@font/inter_bold</item>

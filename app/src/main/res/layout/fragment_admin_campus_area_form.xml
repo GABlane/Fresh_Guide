@@ -238,12 +238,11 @@
 
             <Button
                 android:id="@+id/btn_save_campus_area"
-                style="@style/Style.FreshGuide.Button.Admin.Primary"
+                style="@style/Style.FreshGuide.Button.Admin.BottomSheetPrimary"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
-                android:text="Update Campus Area"
-                android:textSize="14sp" />
+                android:text="Update Campus Area" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </LinearLayout>
