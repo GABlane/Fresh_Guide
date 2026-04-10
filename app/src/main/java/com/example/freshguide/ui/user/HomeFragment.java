@@ -435,6 +435,8 @@ public class HomeFragment extends Fragment {
         if (root == null) return;
 
         final NavController navController = Navigation.findNavController(root);
+        RoomEntity pendingRoomToFocus = null;
+        View pendingRoomBoxToFocus = null;
 
         int max = Math.min(floorRooms.size(), ROOM_BOX_IDS.length);
         for (int i = 0; i < max; i++) {
@@ -472,11 +474,23 @@ public class HomeFragment extends Fragment {
                 });
 
                 if (pendingFocusedRoomId != null && pendingFocusedRoomId == room.id) {
-                    openRoomOnMap(room, roomBox, true);
+                    pendingRoomToFocus = room;
+                    pendingRoomBoxToFocus = roomBox;
                 }
             } else {
                 Log.w(TAG, "Room view not found for index=" + i);
             }
+        }
+
+        if (pendingRoomToFocus != null && pendingRoomBoxToFocus != null) {
+            RoomEntity roomToFocus = pendingRoomToFocus;
+            View roomBoxToFocus = pendingRoomBoxToFocus;
+            floorMapContainer.post(() -> {
+                if (!isAdded() || floorMapContainer == null) {
+                    return;
+                }
+                openRoomOnMap(roomToFocus, roomBoxToFocus, true);
+            });
         }
     }
 
@@ -857,8 +871,25 @@ public class HomeFragment extends Fragment {
             return;
         }
         View navBar = requireActivity().findViewById(R.id.nav_bar_container);
+        View navHost = requireActivity().findViewById(R.id.nav_host_fragment);
         if (navBar != null) {
             navBar.setVisibility(visible ? View.VISIBLE : View.GONE);
+            navBar.post(() -> {
+                if (!isAdded()) {
+                    return;
+                }
+                if (navHost != null) {
+                    int bottomPadding = (visible && navBar.getVisibility() == View.VISIBLE)
+                            ? navBar.getHeight()
+                            : 0;
+                    navHost.setPadding(
+                            navHost.getPaddingLeft(),
+                            navHost.getPaddingTop(),
+                            navHost.getPaddingRight(),
+                            bottomPadding
+                    );
+                }
+            });
         }
     }
 
