@@ -35,16 +35,41 @@
             android:gravity="center_horizontal"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/tv_profile_initial"
+            <FrameLayout
                 android:layout_width="88dp"
                 android:layout_height="88dp"
-                android:background="@drawable/bg_profile_circle_gradient"
-                android:fontFamily="@font/inter_bold"
-                android:gravity="center"
-                android:text="J"
-                android:textColor="@android:color/white"
-                android:textSize="34sp" />
+                android:layout_gravity="center_horizontal">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/card_profile_photo"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="gone"
+                    app:cardBackgroundColor="@android:color/white"
+                    app:cardCornerRadius="44dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/profile_ring_stroke"
+                    app:strokeWidth="1dp">
+
+                    <ImageView
+                        android:id="@+id/img_profile_photo"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="Profile photo"
+                        android:scaleType="centerCrop" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <TextView
+                    android:id="@+id/tv_profile_initial"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_profile_circle_gradient"
+                    android:fontFamily="@font/inter_bold"
+                    android:gravity="center"
+                    android:text="J"
+                    android:textColor="@android:color/white"
+                    android:textSize="34sp" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/tv_profile_name"

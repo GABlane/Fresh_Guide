@@ -1,10 +1,12 @@
 package com.example.freshguide.ui.user;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -36,6 +38,8 @@ public class SettingsFragment extends Fragment {
     private TextView tvProfileInitial;
     private TextView tvProfileName;
     private TextView tvProfileSubtitle;
+    private View cardProfilePhoto;
+    private ImageView imgProfilePhoto;
 
     private RadioGroup themeRadioGroup;
 
@@ -72,6 +76,8 @@ public class SettingsFragment extends Fragment {
         tvProfileInitial = view.findViewById(R.id.tv_profile_initial);
         tvProfileName = view.findViewById(R.id.tv_profile_name);
         tvProfileSubtitle = view.findViewById(R.id.tv_profile_subtitle);
+        cardProfilePhoto = view.findViewById(R.id.card_profile_photo);
+        imgProfilePhoto = view.findViewById(R.id.img_profile_photo);
 
         tvAboutContact = view.findViewById(R.id.tv_about_contact);
         tvPrivacyPolicy = view.findViewById(R.id.tv_privacy_policy);
@@ -161,6 +167,7 @@ public class SettingsFragment extends Fragment {
         tvProfileName.setText(displayName);
         tvProfileInitial.setText(getInitial(displayName));
         tvProfileSubtitle.setText(subtitle);
+        updateProfilePhoto(sessionManager.getProfilePhotoUri(), displayName);
     }
 
     private String getInitial(String name) {
@@ -168,6 +175,24 @@ public class SettingsFragment extends Fragment {
             return "U";
         }
         return String.valueOf(Character.toUpperCase(name.trim().charAt(0)));
+    }
+
+    private void updateProfilePhoto(@Nullable String photoUri, String displayName) {
+        if (!TextUtils.isEmpty(photoUri)) {
+            try {
+                imgProfilePhoto.setImageURI(Uri.parse(photoUri));
+                cardProfilePhoto.setVisibility(View.VISIBLE);
+                tvProfileInitial.setVisibility(View.GONE);
+                return;
+            } catch (Exception ignored) {
+                sessionManager.setProfilePhotoUri(null);
+            }
+        }
+
+        imgProfilePhoto.setImageDrawable(null);
+        cardProfilePhoto.setVisibility(View.GONE);
+        tvProfileInitial.setVisibility(View.VISIBLE);
+        tvProfileInitial.setText(getInitial(displayName));
     }
 
     private void setupAboutSection() {
