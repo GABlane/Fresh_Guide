@@ -132,6 +132,8 @@ public class ProfileFragment extends Fragment {
                                     if (!isAdded()) {
                                         return;
                                     }
+                                    currentProfile = profile;
+                                    bindProfileData(profile);
                                     Toast.makeText(requireContext(), "Profile updated.", Toast.LENGTH_SHORT).show();
                                 }
 

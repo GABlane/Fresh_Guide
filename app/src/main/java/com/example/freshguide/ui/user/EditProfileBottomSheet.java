@@ -20,6 +20,8 @@ import androidx.annotation.Nullable;
 import com.example.freshguide.R;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
+import java.io.File;
+
 public class EditProfileBottomSheet extends BottomSheetDialogFragment {
 
     private static final String ARG_STUDENT_ID = "arg_student_id";
@@ -157,21 +159,48 @@ public class EditProfileBottomSheet extends BottomSheetDialogFragment {
     private void bindPhotoState(boolean showError) {
         if (!TextUtils.isEmpty(selectedPhotoUri)) {
             try {
-                imgEditProfilePhoto.setImageURI(Uri.parse(selectedPhotoUri));
-                imgEditProfilePhoto.setVisibility(View.VISIBLE);
-                tvEditProfileInitial.setVisibility(View.GONE);
-                return;
-            } catch (Exception e) {
-                selectedPhotoUri = null;
-                if (showError && isAdded()) {
-                    Toast.makeText(requireContext(), "Unable to use that photo. Please try another image.", Toast.LENGTH_SHORT).show();
+                Uri previewUri = resolvePhotoUri(selectedPhotoUri);
+                if (previewUri != null) {
+                    imgEditProfilePhoto.setImageURI(previewUri);
+                    imgEditProfilePhoto.setVisibility(View.VISIBLE);
+                    tvEditProfileInitial.setVisibility(View.GONE);
+                    return;
                 }
+            } catch (Exception e) {
+                // Fall through to initial avatar below.
+            }
+
+            if (showError && isAdded()) {
+                Toast.makeText(requireContext(), "Unable to use that photo. Please try another image.", Toast.LENGTH_SHORT).show();
             }
         }
 
         imgEditProfilePhoto.setImageDrawable(null);
         imgEditProfilePhoto.setVisibility(View.GONE);
         tvEditProfileInitial.setVisibility(View.VISIBLE);
+    }
+
+    @Nullable
+    private Uri resolvePhotoUri(@NonNull String photoRef) {
+        String trimmed = photoRef.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            return null;
+        }
+
+        if (trimmed.startsWith("content://") || trimmed.startsWith("file://")) {
+            return Uri.parse(trimmed);
+        }
+
+        File file = new File(trimmed);
+        if (file.exists()) {
+            return Uri.fromFile(file);
+        }
+
+        return null;
     }
 
     private String getText(EditText editText) {

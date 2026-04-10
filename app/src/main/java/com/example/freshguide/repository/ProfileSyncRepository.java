@@ -104,16 +104,18 @@ public class ProfileSyncRepository {
                         local.photoRemoteUrl = null;
                     } else {
                         String copiedPath = copyUriOrFileToProfileImage(ownerKey, selected);
-                        if (copiedPath != null) {
-                            local.photoLocalPath = copiedPath;
-                            local.pendingPhotoAction = UserProfileEntity.PHOTO_ACTION_UPLOAD;
+                        if (copiedPath == null) {
+                            throw new IllegalStateException("Unable to process the selected photo");
                         }
+                        local.photoLocalPath = copiedPath;
+                        local.pendingPhotoAction = UserProfileEntity.PHOTO_ACTION_UPLOAD;
                     }
                 }
 
                 local.updatedAt = now;
                 local.syncState = UserProfileEntity.SYNC_STATE_DIRTY;
                 db.userProfileDao().upsert(local);
+                updateSessionProfile(local);
 
                 mainHandler.post(() -> callback.onSuccess(local));
                 syncNowInternal(ownerKey);
@@ -145,8 +147,8 @@ public class ProfileSyncRepository {
             if (local.syncState == UserProfileEntity.SYNC_STATE_DIRTY) {
                 if (pushLocalProfile(local, ownerKey)) {
                     session.setProfileMigrated(ownerKey, true);
+                    pullRemoteProfile(ownerKey);
                 }
-                pullRemoteProfile(ownerKey);
                 return;
             }
 
@@ -211,20 +213,25 @@ public class ProfileSyncRepository {
 
             ProfileDto remote = response.body().getData();
             UserProfileEntity local = ensureLocalProfile(ownerKey);
+            String previousRemoteUrl = normalizeOptional(local.photoRemoteUrl);
+            String nextRemoteUrl = normalizeOptional(remote.profilePhotoUrl);
 
             local.fullName = normalizeName(remote.name, ownerKey);
             local.courseSection = normalizeOptional(remote.courseSection);
-            local.photoRemoteUrl = normalizeOptional(remote.profilePhotoUrl);
+            local.photoRemoteUrl = nextRemoteUrl;
 
-            if (TextUtils.isEmpty(local.photoLocalPath) && !TextUtils.isEmpty(local.photoRemoteUrl)) {
-                String downloaded = downloadRemotePhoto(ownerKey, local.photoRemoteUrl);
+            boolean remotePhotoChanged = !TextUtils.equals(previousRemoteUrl, nextRemoteUrl);
+            if (TextUtils.isEmpty(nextRemoteUrl)) {
+                local.photoLocalPath = null;
+            } else if (remotePhotoChanged || TextUtils.isEmpty(local.photoLocalPath)) {
+                String downloaded = downloadRemotePhoto(ownerKey, nextRemoteUrl);
                 if (!TextUtils.isEmpty(downloaded)) {
                     local.photoLocalPath = downloaded;
                 }
             } else if (!TextUtils.isEmpty(local.photoLocalPath)) {
                 File localPhoto = new File(local.photoLocalPath);
-                if (!localPhoto.exists() && !TextUtils.isEmpty(local.photoRemoteUrl)) {
-                    String downloaded = downloadRemotePhoto(ownerKey, local.photoRemoteUrl);
+                if (!localPhoto.exists()) {
+                    String downloaded = downloadRemotePhoto(ownerKey, nextRemoteUrl);
                     if (!TextUtils.isEmpty(downloaded)) {
                         local.photoLocalPath = downloaded;
                     }
@@ -236,7 +243,7 @@ public class ProfileSyncRepository {
             local.lastSyncedAt = System.currentTimeMillis();
             local.updatedAt = System.currentTimeMillis();
             db.userProfileDao().upsert(local);
-            session.setUserName(local.fullName);
+            updateSessionProfile(local);
             return hasMeaningfulServerData(remote, ownerKey);
         } catch (Exception e) {
             Log.w(TAG, "Pull profile failed", e);
@@ -424,5 +431,11 @@ public class ProfileSyncRepository {
         return response.isSuccessful()
                 && response.body() != null
                 && response.body().isSuccess();
+    }
+
+    private void updateSessionProfile(@NonNull UserProfileEntity profile) {
+        session.setUserName(profile.fullName);
+        session.setProfileCourseSection(profile.courseSection);
+        session.setProfilePhotoUri(getDisplayPhotoRef(profile));
     }
 }
