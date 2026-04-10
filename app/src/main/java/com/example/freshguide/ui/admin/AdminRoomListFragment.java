@@ -9,21 +9,21 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.freshguide.R;
 import com.example.freshguide.database.AppDatabase;
+import com.example.freshguide.model.dto.ApiResponse;
 import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.network.ApiClient;
-import com.example.freshguide.network.ApiService;
-import com.example.freshguide.model.dto.ApiResponse;
 import com.example.freshguide.ui.adapter.GenericListAdapter;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import retrofit2.Call;
@@ -33,6 +33,8 @@ import retrofit2.Response;
 public class AdminRoomListFragment extends Fragment {
 
     private GenericListAdapter adapter;
+    private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
+    private List<RoomEntity> currentRooms = new ArrayList<>();
 
     @Nullable
     @Override
@@ -47,25 +49,23 @@ public class AdminRoomListFragment extends Fragment {
 
         ((TextView) view.findViewById(R.id.tv_admin_page_title)).setText("Rooms");
         ((TextView) view.findViewById(R.id.tv_admin_page_subtitle))
-                .setText("Manage the records students see in search, map drill-down, and room detail views.");
+                .setText("Manage room records students see in search, map drill-down, and room detail views.");
 
         adapter = new GenericListAdapter();
         adapter.setIconActionsEnabled(true);
         RecyclerView recycler = view.findViewById(R.id.recycler_items);
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         recycler.setAdapter(adapter);
-
-        view.findViewById(R.id.fab_add).setOnClickListener(v ->
-                Navigation.findNavController(view)
-                        .navigate(R.id.action_adminRoomList_to_adminRoomForm));
-
+        adapter.setOnItemClickListener((position, item) -> {
+            if (position < 0 || position >= currentRooms.size()) {
+                return;
+            }
+            openRoomForm(currentRooms.get(position).id);
+        });
         adapter.setOnActionListener(new GenericListAdapter.OnActionListener() {
             @Override
             public void onEdit(int position, int id) {
-                Bundle args = new Bundle();
-                args.putInt("roomId", id);
-                Navigation.findNavController(view)
-                        .navigate(R.id.action_adminRoomList_to_adminRoomForm, args);
+                openRoomForm(id);
             }
 
             @Override
@@ -80,33 +80,86 @@ public class AdminRoomListFragment extends Fragment {
             }
         });
 
+        view.findViewById(R.id.fab_add).setOnClickListener(v -> openRoomForm(-1));
+
+        loadRooms();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         loadRooms();
     }
 
     private void loadRooms() {
-        Executors.newSingleThreadExecutor().execute(() -> {
-            List<RoomEntity> rooms = AppDatabase.getInstance(requireContext())
-                    .roomDao().getAllRoomsSync();
+        final android.content.Context appContext = requireContext().getApplicationContext();
+        final AppDatabase db = AppDatabase.getInstance(appContext);
+        ioExecutor.execute(() -> {
+            List<RoomEntity> rooms = db.roomDao().getAllRoomsSync();
+            currentRooms = rooms;
             List<GenericListAdapter.Item> items = new ArrayList<>();
             for (RoomEntity r : rooms) {
                 items.add(new GenericListAdapter.Item(r.id, r.name, r.code + " · " + r.type));
             }
-            requireActivity().runOnUiThread(() -> adapter.setItems(items));
+            if (!isAdded()) {
+                return;
+            }
+            requireActivity().runOnUiThread(() -> {
+                if (isAdded()) {
+                    adapter.setItems(items);
+                }
+            });
         });
     }
 
-    private void deleteRoom(int id, View view) {
+    private void openRoomForm(int roomId) {
+        if (!isAdded()) {
+            return;
+        }
+
+        if (roomId <= 0) {
+            NavHostFragment.findNavController(this)
+                    .navigate(R.id.action_adminRoomList_to_adminRoomForm);
+            return;
+        }
+
+        Bundle args = new Bundle();
+        args.putInt("roomId", roomId);
+        NavHostFragment.findNavController(this)
+                .navigate(R.id.action_adminRoomList_to_adminRoomForm, args);
+    }
+
+    private void deleteRoom(int roomId, @NonNull View view) {
+        final android.content.Context appContext = requireContext().getApplicationContext();
+        final AppDatabase db = AppDatabase.getInstance(appContext);
+
         ApiClient.getInstance(requireContext()).getApiService()
-                .adminDeleteRoom(id).enqueue(new Callback<ApiResponse<Void>>() {
+                .adminDeleteRoom(roomId)
+                .enqueue(new Callback<ApiResponse<Void>>() {
                     @Override
-                    public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> r) {
-                        Snackbar.make(view, "Room deleted", Snackbar.LENGTH_SHORT).show();
-                        loadRooms();
+                    public void onResponse(Call<ApiResponse<Void>> call, Response<ApiResponse<Void>> response) {
+                        if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                            ioExecutor.execute(() -> {
+                                RoomEntity local = db.roomDao().getByIdSync(roomId);
+                                if (local != null) {
+                                    db.roomDao().delete(local);
+                                }
+                                if (!isAdded()) {
+                                    return;
+                                }
+                                requireActivity().runOnUiThread(() -> {
+                                    Snackbar.make(view, "Room deleted", Snackbar.LENGTH_SHORT).show();
+                                    loadRooms();
+                                });
+                            });
+                            return;
+                        }
+                        Snackbar.make(view, "Delete failed", Snackbar.LENGTH_LONG).show();
                     }
 
                     @Override
                     public void onFailure(Call<ApiResponse<Void>> call, Throwable t) {
-                        Snackbar.make(view, "Delete failed", Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(view, "Network error: " + t.getMessage(), Snackbar.LENGTH_LONG).show();
                     }
                 });
     }

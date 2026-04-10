@@ -1,346 +1,326 @@
-//package com.example.freshguide.ui.user;
-//
-//import android.content.res.ColorStateList;
-//import android.graphics.Color;
-//import android.os.Bundle;
-//import android.util.SparseIntArray;
-//import android.view.Gravity;
-//import android.view.LayoutInflater;
-//import android.view.View;
-//import android.view.ViewGroup;
-//import android.widget.FrameLayout;
-//import android.widget.LinearLayout;
-//import android.widget.TextView;
-//
-//import androidx.annotation.NonNull;
-//import androidx.annotation.Nullable;
-//import androidx.fragment.app.Fragment;
-//import androidx.navigation.NavController;
-//import androidx.navigation.Navigation;
-//
-//import com.example.freshguide.R;
-//import com.example.freshguide.database.AppDatabase;
-//import com.example.freshguide.model.entity.BuildingEntity;
-//import com.example.freshguide.model.entity.FloorEntity;
-//import com.example.freshguide.model.entity.RoomEntity;
-//import com.google.android.material.chip.Chip;
-//import com.google.android.material.chip.ChipGroup;
-//
-//import java.util.ArrayList;
-//import java.util.Collections;
-//import java.util.List;
-//import java.util.concurrent.Executor;
-//import java.util.concurrent.Executors;
-//
-//public class FloorLayoutFragment extends Fragment {
-//
-//    private static final int DEFAULT_FLOOR = 1;
-//
-//    private final Executor ioExecutor = Executors.newSingleThreadExecutor();
-//    private final SparseIntArray floorByChipId = new SparseIntArray();
-//
-//    private int currentFloor = DEFAULT_FLOOR;
-//    private String buildingCode = "MAIN";
-//    private String buildingName = "Main Building";
-//    private LinearLayout roomColumnLeft;
-//    private LinearLayout roomColumnRight;
-//
-//    @Nullable
-//    @Override
-//    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-//                             @Nullable Bundle savedInstanceState) {
-//        return inflater.inflate(R.layout.fragment_floor_layout, container, false);
-//    }
-//
-//    @Override
-//    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-//        super.onViewCreated(view, savedInstanceState);
-//
-//        Bundle args = getArguments();
-//        if (args != null) {
-//            buildingCode = args.getString("buildingCode", buildingCode);
-//            buildingName = args.getString("buildingName", buildingName);
-//            int selectedFloor = args.getInt("selectedFloor", DEFAULT_FLOOR);
-//            currentFloor = selectedFloor;
-//        }
-//
-//        roomColumnLeft = view.findViewById(R.id.room_column_left);
-//        roomColumnRight = view.findViewById(R.id.room_column_right);
-//
-//        setupFloorChips(view);
-//    }
-//
-//    private void setupFloorChips(View view) {
-//        ChipGroup chipGroup = view.findViewById(R.id.chip_group_floor);
-//        ioExecutor.execute(() -> {
-//            List<Integer> floorNumbers = getAvailableFloorNumbers();
-//            runOnUiThreadSafely(() -> {
-//                if (!isAdded()) return;
-//
-//                chipGroup.setOnCheckedChangeListener(null);
-//                chipGroup.removeAllViews();
-//                floorByChipId.clear();
-//
-//                for (int floorNumber : floorNumbers) {
-//                    Chip chip = makeFloorChip(floorLabel(floorNumber));
-//                    int chipId = View.generateViewId();
-//                    chip.setId(chipId);
-//                    chipGroup.addView(chip);
-//                    floorByChipId.put(chipId, floorNumber);
-//                }
-//
-//                if (!floorNumbers.contains(currentFloor)) {
-//                    currentFloor = floorNumbers.get(0);
-//                }
-//
-//                int selectedChipId = findChipIdForFloor(currentFloor);
-//                if (selectedChipId != View.NO_ID) {
-//                    chipGroup.check(selectedChipId);
-//                }
-//
-//                chipGroup.setOnCheckedChangeListener((group, checkedId) -> {
-//                    if (checkedId == View.NO_ID) return;
-//                    int selectedFloor = floorByChipId.get(checkedId, -1);
-//                    if (selectedFloor < 1 || selectedFloor == currentFloor) return;
-//                    currentFloor = selectedFloor;
-//                    loadFloor(currentFloor, view);
-//                });
-//
-//                loadFloor(currentFloor, view);
-//            });
-//        });
-//    }
-//
-//    private List<Integer> getAvailableFloorNumbers() {
-//        AppDatabase db = AppDatabase.getInstance(requireContext());
-//        BuildingEntity building = db.buildingDao().getByCodeSync(buildingCode);
-//        if (building == null) {
-//            return Collections.singletonList(DEFAULT_FLOOR);
-//        }
-//
-//        List<FloorEntity> floors = db.floorDao().getByBuildingSync(building.id);
-//        List<Integer> floorNumbers = new ArrayList<>();
-//        for (FloorEntity floor : floors) {
-//            if (floor.number > 0 && !floorNumbers.contains(floor.number)) {
-//                floorNumbers.add(floor.number);
-//            }
-//        }
-//
-//        if (floorNumbers.isEmpty()) {
-//            floorNumbers.add(DEFAULT_FLOOR);
-//        }
-//
-//        Collections.sort(floorNumbers);
-//        return floorNumbers;
-//    }
-//
-//    private int findChipIdForFloor(int floor) {
-//        for (int i = 0; i < floorByChipId.size(); i++) {
-//            int chipId = floorByChipId.keyAt(i);
-//            if (floorByChipId.get(chipId) == floor) {
-//                return chipId;
-//            }
-//        }
-//        return View.NO_ID;
-//    }
-//
-//    private Chip makeFloorChip(String label) {
-//        Chip chip = new Chip(requireContext(), null, com.google.android.material.R.attr.chipStyle);
-//        chip.setText(label);
-//        styleChip(chip);
-//        return chip;
-//    }
-//
-//    private void styleChip(Chip chip) {
-//        if (chip == null) return;
-//        int green = requireContext().getColor(R.color.green_primary);
-//        chip.setCheckable(true);
-//        chip.setCheckedIconVisible(false);
-//
-//        chip.setEnsureMinTouchTargetSize(false);
-//        float density = getResources().getDisplayMetrics().density;
-//        chip.setTextSize(11f);
-//        chip.setChipMinHeight(28f * density);
-//        chip.setChipStartPadding(12f * density);
-//        chip.setChipEndPadding(12f * density);
-//
-//        chip.setChipStrokeColorResource(R.color.green_primary);
-//        chip.setChipStrokeWidth(1.2f * density);
-//
-//        ColorStateList bg = new ColorStateList(
-//                new int[][]{ new int[]{ android.R.attr.state_checked }, new int[]{} },
-//                new int[]{ green, Color.WHITE }
-//        );
-//        chip.setChipBackgroundColor(bg);
-//
-//        ColorStateList tc = new ColorStateList(
-//                new int[][]{ new int[]{ android.R.attr.state_checked }, new int[]{} },
-//                new int[]{ Color.WHITE, green }
-//        );
-//        chip.setTextColor(tc);
-//    }
-//
-//    private void loadFloor(int floorNumber, View view) {
-//        TextView hallway = view.findViewById(R.id.tv_hallway);
-//        hallway.setText(floorNumber + ordinalSuffix(floorNumber) + " Floor Hallway");
-//
-//        TextView guardDesk = view.findViewById(R.id.box_guard);
-//        if (guardDesk != null) {
-//            guardDesk.setVisibility(floorNumber == 1 ? View.VISIBLE : View.GONE);
-//        }
-//
-//        clearRoomColumns();
-//
-//        ioExecutor.execute(() -> {
-//            AppDatabase db = AppDatabase.getInstance(requireContext());
-//            BuildingEntity building = db.buildingDao().getByCodeSync(buildingCode);
-//            if (building == null) {
-//                runOnUiThreadSafely(() -> bindRooms(Collections.emptyList(), view));
-//                return;
-//            }
-//
-//            List<FloorEntity> floors = db.floorDao().getByBuildingSync(building.id);
-//            FloorEntity target = null;
-//            for (FloorEntity f : floors) {
-//                if (f.number == floorNumber) {
-//                    target = f;
-//                    break;
-//                }
-//            }
-//            if (target == null) {
-//                runOnUiThreadSafely(() -> bindRooms(Collections.emptyList(), view));
-//                return;
-//            }
-//
-//            List<RoomEntity> rooms = db.roomDao().getByFloorSync(target.id);
-//            runOnUiThreadSafely(() -> bindRooms(rooms, view));
-//        });
-//    }
-//
-//    private void bindRooms(List<RoomEntity> rooms, View view) {
-//        clearRoomColumns();
-//
-//        if (rooms == null || rooms.isEmpty()) {
-//            addEmptyRoomCard(roomColumnLeft);
-//            return;
-//        }
-//
-//        NavController nav = Navigation.findNavController(view);
-//        int leftCount = 0;
-//        int rightCount = 0;
-//
-//        for (int i = 0; i < rooms.size(); i++) {
-//            RoomEntity room = rooms.get(i);
-//            boolean placeOnLeft = i % 2 == 0;
-//            if (placeOnLeft) {
-//                addRoomCard(roomColumnLeft, room, false, leftCount++, nav);
-//            } else {
-//                addRoomCard(roomColumnRight, room, true, rightCount++, nav);
-//            }
-//        }
-//    }
-//
-//    private void addRoomCard(
-//            LinearLayout container,
-//            RoomEntity room,
-//            boolean markerAtStart,
-//            int positionInColumn,
-//            NavController nav
-//    ) {
-//        if (container == null) return;
-//
-//        FrameLayout card = (FrameLayout) LayoutInflater.from(requireContext())
-//                .inflate(R.layout.item_floor_room_card, container, false);
-//
-//        TextView roomLabel = card.findViewById(R.id.tv_room_dynamic);
-//        View marker = card.findViewById(R.id.view_room_marker);
-//
-//        roomLabel.setText(getRoomDisplayName(room));
-//        roomLabel.setTextColor(requireContext().getColor(R.color.text_hint));
-//
-//        FrameLayout.LayoutParams markerParams = (FrameLayout.LayoutParams) marker.getLayoutParams();
-//        if (markerAtStart) {
-//            markerParams.gravity = Gravity.START | Gravity.CENTER_VERTICAL;
-//            markerParams.setMarginStart(dpToPx(4));
-//            markerParams.setMarginEnd(0);
-//        } else {
-//            markerParams.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
-//            markerParams.setMarginStart(0);
-//            markerParams.setMarginEnd(dpToPx(4));
-//        }
-//        marker.setLayoutParams(markerParams);
-//
-//        LinearLayout.LayoutParams cardParams = (LinearLayout.LayoutParams) card.getLayoutParams();
-//        cardParams.topMargin = dpToPx(positionInColumn == 0 ? 6 : 8);
-//        card.setLayoutParams(cardParams);
-//
-//        card.setOnClickListener(v -> {
-//            Bundle args = new Bundle();
-//            args.putInt("roomId", room.id);
-//            args.putString("roomName", room.name != null ? room.name : "Room");
-//            nav.navigate(R.id.action_floorLayout_to_roomDetail, args);
-//        });
-//
-//        container.addView(card);
-//    }
-//
-//    private void addEmptyRoomCard(LinearLayout container) {
-//        if (container == null) return;
-//
-//        FrameLayout card = (FrameLayout) LayoutInflater.from(requireContext())
-//                .inflate(R.layout.item_floor_room_card, container, false);
-//        TextView roomLabel = card.findViewById(R.id.tv_room_dynamic);
-//        roomLabel.setText("No rooms yet");
-//        card.setAlpha(0.6f);
-//        card.setOnClickListener(null);
-//
-//        LinearLayout.LayoutParams cardParams = (LinearLayout.LayoutParams) card.getLayoutParams();
-//        cardParams.topMargin = dpToPx(6);
-//        card.setLayoutParams(cardParams);
-//
-//        container.addView(card);
-//    }
-//
-//    private String getRoomDisplayName(RoomEntity room) {
-//        if (room == null) return "Room";
-//        if (room.name != null && !room.name.trim().isEmpty()) return room.name;
-//        if (room.code != null && !room.code.trim().isEmpty()) return room.code;
-//        return "Room";
-//    }
-//
-//    private void clearRoomColumns() {
-//        if (roomColumnLeft != null) {
-//            roomColumnLeft.removeAllViews();
-//        }
-//        if (roomColumnRight != null) {
-//            roomColumnRight.removeAllViews();
-//        }
-//    }
-//
-//    private int dpToPx(int dp) {
-//        return Math.round(dp * getResources().getDisplayMetrics().density);
-//    }
-//
-//    private void runOnUiThreadSafely(Runnable task) {
-//        if (!isAdded()) return;
-//        requireActivity().runOnUiThread(() -> {
-//            if (isAdded()) {
-//                task.run();
-//            }
-//        });
-//    }
-//
-//    private String floorLabel(int number) {
-//        return number + ordinalSuffix(number) + " Floor";
-//    }
-//
-//    private String ordinalSuffix(int number) {
-//        if (number >= 11 && number <= 13) return "th";
-//        switch (number % 10) {
-//            case 1: return "st";
-//            case 2: return "nd";
-//            case 3: return "rd";
-//            default: return "th";
-//        }
-//    }
-//}
+package com.example.freshguide.ui.user;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
+
+import com.example.freshguide.R;
+import com.example.freshguide.database.AppDatabase;
+import com.example.freshguide.model.entity.RoomEntity;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class FloorLayoutFragment extends Fragment {
+
+    private static final String ARG_BUILDING_CODE = "buildingCode";
+    private static final String ARG_SELECTED_FLOOR = "selectedFloor";
+
+    private static final String CODE_MAIN = "MAIN";
+    private static final String CODE_COURT = "COURT";
+    private static final String CODE_ENT = "ENT";
+    private static final String CODE_EXIT = "EXIT";
+
+    private static final int[] DEFAULT_ROOM_BOX_IDS = {
+            R.id.room_left_1,
+            R.id.room_left_2,
+            R.id.room_left_3,
+            R.id.room_left_4,
+            R.id.room_left_5,
+            R.id.room_right_1,
+            R.id.room_right_2,
+            R.id.room_right_3,
+            R.id.room_right_4,
+            R.id.room_right_5
+    };
+
+    private static final int[] FLOOR1_ROOM_BOX_IDS = {
+            R.id.room_left_1,
+            R.id.room_left_2,
+            R.id.room_left_3,
+            R.id.room_left_4,
+            R.id.room_left_5,
+            R.id.room_left_6,
+            R.id.room_left_7,
+            R.id.room_right_1,
+            R.id.room_right_2,
+            R.id.room_right_3,
+            R.id.room_right_4,
+            R.id.room_right_5,
+            R.id.room_right_6,
+            R.id.room_right_7,
+            R.id.room_right_8
+    };
+
+    private static final int[] FLOOR5_ROOM_BOX_IDS = {
+            R.id.room_left_1,
+            R.id.room_left_2,
+            R.id.room_left_3,
+            R.id.room_right_1,
+            R.id.room_right_2,
+            R.id.room_right_3,
+            R.id.room_auditorium
+    };
+
+    private static final Map<String, Integer> FLOOR1_ROOM_SLOTS = createFloor1RoomSlots();
+
+    private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
+
+    private String buildingCode = CODE_MAIN;
+    private int selectedFloor = 1;
+    private int floorLayoutResId;
+    private View rootView;
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        Bundle args = getArguments();
+        if (args != null) {
+            buildingCode = args.getString(ARG_BUILDING_CODE, CODE_MAIN);
+            selectedFloor = args.getInt(ARG_SELECTED_FLOOR, 1);
+        }
+
+        floorLayoutResId = resolveFloorLayoutRes(buildingCode, selectedFloor);
+        if (floorLayoutResId == 0) {
+            return new FrameLayout(inflater.getContext());
+        }
+        return inflater.inflate(floorLayoutResId, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        rootView = view;
+
+        if (floorLayoutResId == 0) {
+            Toast.makeText(requireContext(),
+                    "Floor layout not available for this building/floor.",
+                    Toast.LENGTH_SHORT).show();
+            NavHostFragment.findNavController(this).popBackStack();
+            return;
+        }
+
+        bindRoomsToStaticLayout();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        rootView = null;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        ioExecutor.shutdownNow();
+    }
+
+    private void bindRoomsToStaticLayout() {
+        clearRoomBoxes();
+
+        ioExecutor.execute(() -> {
+            List<RoomEntity> rooms = AppDatabase.getInstance(requireContext().getApplicationContext())
+                    .roomDao()
+                    .getRoomsByBuildingAndFloorSync(buildingCode, selectedFloor);
+
+            List<RoomEntity> floorRooms = new ArrayList<>();
+            if (rooms != null) {
+                for (RoomEntity room : rooms) {
+                    if (room == null || isCampusAreaCode(room.code)) {
+                        continue;
+                    }
+                    floorRooms.add(room);
+                }
+            }
+            floorRooms.sort(Comparator.comparingInt(r -> r.id));
+
+            if (!isAdded()) {
+                return;
+            }
+
+            requireActivity().runOnUiThread(() -> applyRoomsToStaticLayout(floorRooms));
+        });
+    }
+
+    private void applyRoomsToStaticLayout(@NonNull List<RoomEntity> floorRooms) {
+        if (!isAdded() || rootView == null) {
+            return;
+        }
+
+        if (selectedFloor == 1) {
+            applyFloorOneRoomsByCode(floorRooms);
+            return;
+        }
+
+        if (selectedFloor == 5) {
+            applyFloorFiveStaticLabels();
+            return;
+        }
+
+        int max = Math.min(floorRooms.size(), DEFAULT_ROOM_BOX_IDS.length);
+        for (int i = 0; i < max; i++) {
+            setRoomLabel(DEFAULT_ROOM_BOX_IDS[i], getRoomDisplayName(floorRooms.get(i)));
+        }
+    }
+
+    private void applyFloorOneRoomsByCode(@NonNull List<RoomEntity> floorRooms) {
+        Map<String, RoomEntity> roomByCode = new HashMap<>();
+        for (RoomEntity room : floorRooms) {
+            String code = normalizeCode(room.code);
+            if (code == null || !FLOOR1_ROOM_SLOTS.containsKey(code)) {
+                continue;
+            }
+            roomByCode.putIfAbsent(code, room);
+        }
+
+        for (Map.Entry<String, Integer> slot : FLOOR1_ROOM_SLOTS.entrySet()) {
+            RoomEntity room = roomByCode.get(slot.getKey());
+            if (room != null) {
+                setRoomLabel(slot.getValue(), getRoomDisplayName(room));
+            }
+        }
+    }
+
+    private void applyFloorFiveStaticLabels() {
+        setRoomLabel(R.id.room_left_1, "V-48");
+        setRoomLabel(R.id.room_left_2, "V-46");
+        setRoomLabel(R.id.room_left_3, "Industrial\nArts\nLaboratory");
+        setRoomLabel(R.id.room_right_1, "Speech\nLaboratory");
+        setRoomLabel(R.id.room_right_2, "Craft /\nSewing\nLaboratory");
+        setRoomLabel(R.id.room_right_3, "Office");
+        setRoomLabel(R.id.room_auditorium, "Auditorium");
+    }
+
+    private void clearRoomBoxes() {
+        for (int roomBoxId : getActiveRoomBoxIds(selectedFloor)) {
+            View roomBox = rootView != null ? rootView.findViewById(roomBoxId) : null;
+            if (roomBox == null) {
+                continue;
+            }
+            TextView roomLabel = roomBox.findViewById(R.id.room_label);
+            if (roomLabel != null) {
+                roomLabel.setText("Room");
+            }
+            disableRoomBoxInteraction(roomBox);
+        }
+    }
+
+    private void setRoomLabel(int roomViewId, @NonNull String label) {
+        if (rootView == null) {
+            return;
+        }
+        View roomBox = rootView.findViewById(roomViewId);
+        if (roomBox == null) {
+            return;
+        }
+        TextView roomLabel = roomBox.findViewById(R.id.room_label);
+        if (roomLabel != null) {
+            roomLabel.setText(label);
+        }
+        disableRoomBoxInteraction(roomBox);
+    }
+
+    private void disableRoomBoxInteraction(@NonNull View roomBox) {
+        roomBox.setOnClickListener(null);
+        roomBox.setClickable(false);
+        roomBox.setFocusable(false);
+        roomBox.setOnTouchListener(null);
+    }
+
+    private int resolveFloorLayoutRes(@Nullable String buildingCode, int floorNumber) {
+        if (buildingCode == null || !CODE_MAIN.equalsIgnoreCase(buildingCode.trim())) {
+            return 0;
+        }
+        switch (floorNumber) {
+            case 1:
+                return R.layout.map_floor_1;
+            case 2:
+                return R.layout.map_floor_2;
+            case 3:
+                return R.layout.map_floor_3;
+            case 4:
+                return R.layout.map_floor_4;
+            case 5:
+                return R.layout.map_floor_5;
+            default:
+                return 0;
+        }
+    }
+
+    private int[] getActiveRoomBoxIds(int floorNumber) {
+        if (floorNumber == 1) {
+            return FLOOR1_ROOM_BOX_IDS;
+        }
+        if (floorNumber == 5) {
+            return FLOOR5_ROOM_BOX_IDS;
+        }
+        return DEFAULT_ROOM_BOX_IDS;
+    }
+
+    private boolean isCampusAreaCode(@Nullable String code) {
+        if (code == null) {
+            return false;
+        }
+        String normalized = code.trim().toUpperCase();
+        return CODE_COURT.equals(normalized)
+                || CODE_ENT.equals(normalized)
+                || CODE_EXIT.equals(normalized);
+    }
+
+    @Nullable
+    private String normalizeCode(@Nullable String rawCode) {
+        if (rawCode == null) {
+            return null;
+        }
+        String normalized = rawCode.trim().toUpperCase();
+        return normalized.isEmpty() ? null : normalized;
+    }
+
+    @NonNull
+    private String getRoomDisplayName(@NonNull RoomEntity room) {
+        if (room.name != null && !room.name.trim().isEmpty()) {
+            return room.name;
+        }
+        if (room.code != null && !room.code.trim().isEmpty()) {
+            return room.code;
+        }
+        return "Room";
+    }
+
+    private static Map<String, Integer> createFloor1RoomSlots() {
+        LinkedHashMap<String, Integer> map = new LinkedHashMap<>();
+        map.put("KITCHEN_LAB", R.id.room_left_1);
+        map.put("BARTENDER_LAB", R.id.room_left_2);
+        map.put("108", R.id.room_left_3);
+        map.put("105", R.id.room_left_4);
+        map.put("104", R.id.room_left_5);
+        map.put("IT_CENTER", R.id.room_left_6);
+        map.put("GUIDANCE", R.id.room_left_7);
+        map.put("PWD_CR", R.id.room_right_1);
+        map.put("109", R.id.room_right_2);
+        map.put("FACULTY", R.id.room_right_3);
+        map.put("HR_OFFICE", R.id.room_right_4);
+        map.put("FINANCE", R.id.room_right_5);
+        map.put("PHOTO_LAB", R.id.room_right_6);
+        map.put("CRIMINOLOGY", R.id.room_right_7);
+        map.put("101", R.id.room_right_8);
+        return Collections.unmodifiableMap(map);
+    }
+}

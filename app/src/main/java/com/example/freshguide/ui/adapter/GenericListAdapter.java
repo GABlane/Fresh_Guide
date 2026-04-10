@@ -24,6 +24,10 @@ public class GenericListAdapter extends ListAdapter<GenericListAdapter.Item, Gen
         void onDelete(int position, int id);
     }
 
+    public interface OnItemClickListener {
+        void onItemClick(int position, Item item);
+    }
+
     public static class Item {
         public int id;
         public String title;
@@ -65,6 +69,7 @@ public class GenericListAdapter extends ListAdapter<GenericListAdapter.Item, Gen
     };
 
     private OnActionListener listener;
+    private OnItemClickListener itemClickListener;
     private boolean actionsEnabled = true;
     private boolean editEnabled = true;
     private boolean deleteEnabled = true;
@@ -82,6 +87,10 @@ public class GenericListAdapter extends ListAdapter<GenericListAdapter.Item, Gen
 
     public void setOnActionListener(OnActionListener l) {
         listener = l;
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.itemClickListener = listener;
     }
 
     public void setActionsEnabled(boolean enabled) {
@@ -120,6 +129,9 @@ public class GenericListAdapter extends ListAdapter<GenericListAdapter.Item, Gen
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Item item = getItem(position); // Use getItem() from ListAdapter instead of items.get()
         holder.bind(item);
+        holder.itemView.setOnClickListener(itemClickListener == null
+                ? null
+                : v -> itemClickListener.onItemClick(position, item));
 
         boolean showEdit = actionsEnabled && editEnabled;
         boolean showDelete = actionsEnabled && deleteEnabled;
