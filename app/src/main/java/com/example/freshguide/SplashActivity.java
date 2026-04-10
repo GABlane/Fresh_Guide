@@ -2,86 +2,95 @@ package com.example.freshguide;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
+import android.view.animation.PathInterpolator;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.freshguide.ui.view.SplashArrowAnimationView;
 import com.example.freshguide.util.SessionManager;
 
 public class SplashActivity extends AppCompatActivity {
 
-    private static final int STEP1_DURATION_MS  = 1000;
-    private static final int STEP2_DURATION_MS  = 800;
-    private static final int SPINNER_FADE_MS    = 400;
-    private static final int LOADING_HOLD_MS    = 1200;
+    private static final boolean ENABLE_STUDENT_TEST_BYPASS = true;
+    private static final String TEST_ADMIN_TOKEN = "debug_admin_token";
+    private static final String TEST_STUDENT_TOKEN = "local_debug_student_token";
+    private static final String LEGACY_DEBUG_TOKEN = "debug_token_123";
+    private static final String TEST_STUDENT_ID = "20230372-S";
+    private static final String TEST_STUDENT_NAME = "Test Student";
+    private static final long SPLASH_EXIT_DURATION_MS = 260L;
+
+    private boolean handoffStarted = false;
+    private View splashRoot;
+    private SplashArrowAnimationView splashArrowView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        ImageView logoMark  = findViewById(R.id.logoMark);
-        ImageView logoFull  = findViewById(R.id.logoFull);
-        ProgressBar spinner = findViewById(R.id.loadingSpinner);
+        splashRoot = findViewById(R.id.splashRoot);
+        splashArrowView = findViewById(R.id.splashArrowView);
+        splashArrowView.post(() -> splashArrowView.startRevealSequence(this::finishSplash));
+    }
 
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+    private void finishSplash() {
+        if (handoffStarted || splashRoot == null || splashArrowView == null) {
+            return;
+        }
+        handoffStarted = true;
 
+        float exitLift = getResources().getDisplayMetrics().density * 12f;
+        PathInterpolator exitInterpolator = new PathInterpolator(0.3f, 0f, 0.2f, 1f);
 
-            AlphaAnimation fadeOut = new AlphaAnimation(1f, 0f);
-            fadeOut.setDuration(STEP2_DURATION_MS);
-            fadeOut.setFillAfter(true);
-            logoMark.startAnimation(fadeOut);
+        splashRoot.animate()
+                .alpha(0f)
+                .setDuration(SPLASH_EXIT_DURATION_MS)
+                .setInterpolator(exitInterpolator)
+                .start();
 
+        splashArrowView.animate()
+                .alpha(0f)
+                .translationY(-exitLift)
+                .scaleX(0.965f)
+                .scaleY(0.965f)
+                .setDuration(SPLASH_EXIT_DURATION_MS)
+                .setInterpolator(exitInterpolator)
+                .withEndAction(this::navigateFromSplash)
+                .start();
+    }
 
-            logoFull.setVisibility(View.VISIBLE);
-            AlphaAnimation fadeIn = new AlphaAnimation(0f, 1f);
-            fadeIn.setDuration(STEP2_DURATION_MS);
-            fadeIn.setFillAfter(true);
-            logoFull.startAnimation(fadeIn);
+    private void navigateFromSplash() {
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
 
+        SessionManager session = SessionManager.getInstance(SplashActivity.this);
+        String token = session.getToken();
 
-            fadeIn.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {}
+        if (TEST_ADMIN_TOKEN.equals(token)
+                || TEST_STUDENT_TOKEN.equals(token)
+                || LEGACY_DEBUG_TOKEN.equals(token)) {
+            session.clearSession();
+        }
 
-                @Override
-                public void onAnimationRepeat(Animation animation) {}
+        Intent nextIntent;
+        if (BuildConfig.DEBUG && ENABLE_STUDENT_TEST_BYPASS) {
+            session.saveSession(
+                    TEST_STUDENT_TOKEN,
+                    SessionManager.ROLE_STUDENT,
+                    TEST_STUDENT_ID,
+                    TEST_STUDENT_NAME
+            );
+            nextIntent = new Intent(SplashActivity.this, MainActivity.class);
+        } else if (session.isLoggedIn()) {
+            nextIntent = new Intent(SplashActivity.this, MainActivity.class);
+        } else {
+            nextIntent = new Intent(SplashActivity.this, LoginActivity.class);
+        }
 
-                @Override
-                public void onAnimationEnd(Animation animation) {
-
-                    spinner.setVisibility(View.VISIBLE);
-                    AlphaAnimation spinnerFadeIn = new AlphaAnimation(0f, 1f);
-                    spinnerFadeIn.setDuration(SPINNER_FADE_MS);
-                    spinnerFadeIn.setFillAfter(true);
-                    spinner.startAnimation(spinnerFadeIn);
-
-
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        SessionManager session = SessionManager.getInstance(SplashActivity.this);
-
-                        Intent nextIntent;
-                        if (session.isLoggedIn()) {
-                            nextIntent = new Intent(SplashActivity.this, MainActivity.class);
-                        } else {
-                            nextIntent = new Intent(SplashActivity.this, LoginActivity.class);
-                        }
-
-                        startActivity(nextIntent);
-
-                        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                        finish();
-
-                    }, LOADING_HOLD_MS);
-                }
-            });
-
-        }, STEP1_DURATION_MS);
+        startActivity(nextIntent);
+        overridePendingTransition(R.anim.splash_next_enter, R.anim.splash_current_exit);
+        finish();
     }
 }
