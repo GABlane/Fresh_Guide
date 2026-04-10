@@ -31,6 +31,8 @@
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
         android:clipToPadding="false"
+        android:paddingStart="@dimen/screen_horizontal_gutter"
+        android:paddingEnd="@dimen/screen_horizontal_gutter"
         android:clipChildren="false">
 
         <com.google.android.material.card.MaterialCardView
