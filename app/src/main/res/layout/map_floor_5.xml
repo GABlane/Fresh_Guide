@@ -6,7 +6,6 @@
     android:orientation="vertical"
     android:background="@color/background_default">
 
-    <!-- Fixed legend -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -78,7 +77,6 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Scrollable floor map -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -90,60 +88,10 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="760dp"
+            android:minHeight="1260dp"
             android:layout_margin="16dp"
             android:background="@color/background_default"
             android:paddingBottom="24dp">
-
-            <View
-                android:id="@+id/top_left_small_room"
-                android:layout_width="48dp"
-                android:layout_height="32dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_room_outline_gray"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/faculty_room"
-                android:layout_width="70dp"
-                android:layout_height="32dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_room_outline_gray"
-                android:gravity="center"
-                android:text="Faculty&#10;Room"
-                android:textColor="@color/floor_room_label"
-                android:textSize="10sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.43"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/storage_room"
-                android:layout_width="82dp"
-                android:layout_height="26dp"
-                android:layout_marginTop="6dp"
-                android:background="@drawable/bg_room_outline_gray"
-                android:gravity="center"
-                android:text="Research Lab"
-                android:textColor="@color/floor_room_label"
-                android:textSize="10sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <TextView
-                android:id="@+id/office_room"
-                android:layout_width="64dp"
-                android:layout_height="26dp"
-                android:layout_marginTop="4dp"
-                android:background="@drawable/bg_room_outline_gray"
-                android:gravity="center"
-                android:text="Office"
-                android:textColor="@color/floor_room_label"
-                android:textSize="10sp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/storage_room" />
 
             <ImageView
                 android:id="@+id/stairs_top"
@@ -153,130 +101,141 @@
                 android:scaleType="fitXY"
                 android:src="@drawable/stairs"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/top_left_small_room" />
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/boys_restroom"
+                android:layout_width="82dp"
+                android:layout_height="26dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_room_outline_gray"
+                android:gravity="center"
+                android:text="Boy's Restroom"
+                android:textColor="@color/floor_room_label"
+                android:textSize="10sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/girls_restroom"
+                android:layout_width="64dp"
+                android:layout_height="26dp"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_room_outline_gray"
+                android:gravity="center"
+                android:text="Girl's&#10;Restroom"
+                android:textColor="@color/floor_room_label"
+                android:textSize="10sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/boys_restroom" />
 
             <include
                 android:id="@+id/room_left_1"
                 layout="@layout/item_floor_room_left"
                 android:layout_width="98dp"
-                android:layout_height="64dp"
-                android:layout_marginTop="4dp"
-                android:tag="room_box_1"
+                android:layout_height="156dp"
+                android:layout_marginTop="8dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/stairs_top" />
-
-            <include
-                android:id="@+id/room_left_2"
-                layout="@layout/item_floor_room_left"
-                android:layout_width="98dp"
-                android:layout_height="64dp"
-                android:layout_marginTop="8dp"
-                android:tag="room_box_2"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/room_left_1" />
-
-            <include
-                android:id="@+id/room_left_3"
-                layout="@layout/item_floor_room_left"
-                android:layout_width="98dp"
-                android:layout_height="64dp"
-                android:layout_marginTop="8dp"
-                android:tag="room_box_3"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/room_left_2" />
-
-            <include
-                android:id="@+id/room_left_4"
-                layout="@layout/item_floor_room_left"
-                android:layout_width="98dp"
-                android:layout_height="64dp"
-                android:layout_marginTop="8dp"
-                android:tag="room_box_4"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/room_left_3" />
-
-            <include
-                android:id="@+id/room_left_5"
-                layout="@layout/item_floor_room_left"
-                android:layout_width="98dp"
-                android:layout_height="64dp"
-                android:layout_marginTop="8dp"
-                android:tag="room_box_5"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/room_left_4" />
 
             <include
                 android:id="@+id/room_right_1"
                 layout="@layout/item_floor_room_right"
                 android:layout_width="98dp"
-                android:layout_height="64dp"
+                android:layout_height="120dp"
                 android:layout_marginTop="6dp"
-                android:tag="room_box_6"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/office_room" />
+                app:layout_constraintTop_toBottomOf="@id/girls_restroom" />
+
+            <include
+                android:id="@+id/room_left_2"
+                layout="@layout/item_floor_room_left"
+                android:layout_width="98dp"
+                android:layout_height="130dp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_left_1" />
 
             <include
                 android:id="@+id/room_right_2"
                 layout="@layout/item_floor_room_right"
                 android:layout_width="98dp"
-                android:layout_height="64dp"
+                android:layout_height="86dp"
                 android:layout_marginTop="8dp"
-                android:tag="room_box_7"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/room_right_1" />
+
+            <include
+                android:id="@+id/room_left_3"
+                layout="@layout/item_floor_room_left"
+                android:layout_width="98dp"
+                android:layout_height="98dp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_left_2" />
 
             <include
                 android:id="@+id/room_right_3"
                 layout="@layout/item_floor_room_right"
                 android:layout_width="98dp"
-                android:layout_height="64dp"
+                android:layout_height="74dp"
                 android:layout_marginTop="8dp"
-                android:tag="room_box_8"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/room_right_2" />
 
-            <include
-                android:id="@+id/room_right_4"
-                layout="@layout/item_floor_room_right"
-                android:layout_width="98dp"
-                android:layout_height="64dp"
-                android:layout_marginTop="8dp"
-                android:tag="room_box_9"
+            <FrameLayout
+                android:id="@+id/room_auditorium"
+                android:layout_width="0dp"
+                android:layout_height="390dp"
+                android:layout_marginTop="56dp"
+                android:background="@drawable/bg_room_classroom"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/room_right_3" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/room_left_3">
 
-            <include
-                android:id="@+id/room_right_5"
-                layout="@layout/item_floor_room_right"
-                android:layout_width="98dp"
-                android:layout_height="64dp"
-                android:layout_marginTop="8dp"
-                android:tag="room_box_10"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/room_right_4" />
+                <ImageView
+                    android:id="@+id/room_pin"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_gravity="top|center_horizontal"
+                    android:layout_marginTop="-12dp"
+                    android:contentDescription="@null"
+                    android:src="@drawable/ic_map_room_pin_red"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/room_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:text="Auditorium"
+                    android:textColor="@color/floor_room_label"
+                    android:textSize="16sp" />
+            </FrameLayout>
 
             <ImageView
                 android:id="@+id/stairs_bottom"
                 android:layout_width="98dp"
                 android:layout_height="30dp"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="14dp"
                 android:scaleType="fitXY"
                 android:src="@drawable/stairs"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/room_left_5" />
+                app:layout_constraintTop_toBottomOf="@id/room_auditorium" />
 
             <TextView
                 android:id="@+id/elevator"
                 android:layout_width="56dp"
                 android:layout_height="40dp"
-                android:layout_marginTop="6dp"
+                android:layout_marginTop="8dp"
                 android:background="@drawable/bg_room_outline_gray"
                 android:gravity="center"
                 android:text="Elevator"
                 android:textColor="@color/floor_room_label"
                 android:textSize="10sp"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/room_right_5" />
+                app:layout_constraintTop_toBottomOf="@id/room_auditorium" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

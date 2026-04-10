@@ -90,6 +90,15 @@ public class HomeFragment extends Fragment {
             R.id.room_right_7,
             R.id.room_right_8
     };
+    private static final int[] FLOOR5_ROOM_BOX_IDS = {
+            R.id.room_left_1,
+            R.id.room_left_2,
+            R.id.room_left_3,
+            R.id.room_right_1,
+            R.id.room_right_2,
+            R.id.room_right_3,
+            R.id.room_auditorium
+    };
     private static final Map<String, Integer> FLOOR1_ROOM_SLOTS = createFloor1RoomSlots();
 
     private ExecutorService ioExecutor;
@@ -414,25 +423,29 @@ public class HomeFragment extends Fragment {
 
         clearFloorRoomViews();
 
-        if (rooms == null || rooms.isEmpty()) {
-            Log.w(TAG, "No rooms to bind for current floor layout");
-            return;
+        List<RoomEntity> floorRooms = new ArrayList<>();
+        if (rooms != null) {
+            for (RoomEntity room : rooms) {
+                if (room == null) continue;
+                if (isCampusAreaCode(room.code)) continue;
+                floorRooms.add(room);
+            }
         }
 
-        List<RoomEntity> floorRooms = new ArrayList<>();
-        for (RoomEntity room : rooms) {
-            if (room == null) continue;
-            if (isCampusAreaCode(room.code)) continue;
-            floorRooms.add(room);
+        if (isFloorOneSelected()) {
+            if (floorRooms.isEmpty()) {
+                Log.w(TAG, "No Floor 1 rooms found for static slot mapping");
+            }
+            applyFloorOneRoomsByCode(floorRooms);
+            return;
+        }
+        if (isFloorFiveSelected()) {
+            applyFloorFiveStaticLayout(floorRooms);
+            return;
         }
 
         if (floorRooms.isEmpty()) {
             Log.w(TAG, "Only campus-area rooms found for current floor; nothing to bind");
-            return;
-        }
-
-        if (isFloorOneSelected()) {
-            applyFloorOneRoomsByCode(floorRooms);
             return;
         }
 
@@ -452,6 +465,74 @@ public class HomeFragment extends Fragment {
                 Log.w(TAG, "Room view not found for index=" + i);
             }
         }
+    }
+
+    private void applyFloorFiveStaticLayout(@NonNull List<RoomEntity> floorRooms) {
+        bindStaticRoomLabel(R.id.room_left_1, "V-48");
+        bindStaticRoomLabel(R.id.room_left_2, "V-46");
+        bindStaticRoomLabel(R.id.room_left_3, "Industrial\nArts\nLaboratory");
+        bindStaticRoomLabel(R.id.room_right_1, "Speech\nLaboratory");
+        bindStaticRoomLabel(R.id.room_right_2, "Craft /\nSewing\nLaboratory");
+        bindStaticRoomLabel(R.id.room_right_3, "Office");
+        bindStaticRoomLabel(R.id.room_auditorium, "Auditorium");
+
+        View auditoriumBox = floorMapContainer.findViewById(R.id.room_auditorium);
+        if (auditoriumBox == null) {
+            return;
+        }
+
+        RoomEntity auditorium = findFloorFiveAuditorium(floorRooms);
+        if (auditorium == null) {
+            disableRoomBoxInteraction(auditoriumBox);
+            return;
+        }
+
+        bindRoomToBox(auditoriumBox, auditorium);
+        TextView auditoriumLabel = auditoriumBox.findViewById(R.id.room_label);
+        if (auditoriumLabel != null) {
+            auditoriumLabel.setText("Auditorium");
+        }
+        if (pendingFocusedRoomId != null && pendingFocusedRoomId == auditorium.id) {
+            openRoomOnMap(auditorium, auditoriumBox, true);
+        }
+    }
+
+    private void bindStaticRoomLabel(int roomViewId, @NonNull String label) {
+        if (floorMapContainer == null) {
+            return;
+        }
+
+        View roomBox = floorMapContainer.findViewById(roomViewId);
+        if (roomBox == null) {
+            return;
+        }
+
+        TextView roomLabel = roomBox.findViewById(R.id.room_label);
+        if (roomLabel != null) {
+            roomLabel.setText(label);
+        }
+
+        disableRoomBoxInteraction(roomBox);
+        applyRoomHighlightState(roomBox, false);
+    }
+
+    private RoomEntity findFloorFiveAuditorium(@NonNull List<RoomEntity> floorRooms) {
+        RoomEntity nameMatch = null;
+        for (RoomEntity room : floorRooms) {
+            if (room == null) {
+                continue;
+            }
+
+            String code = normalizeCode(room.code);
+            if ("MAIN-5-AUDIT".equals(code)) {
+                return room;
+            }
+
+            if (room.name != null && room.name.toUpperCase().contains("AUDITORIUM")) {
+                nameMatch = room;
+            }
+        }
+        return nameMatch;
     }
 
     private void applyFloorOneRoomsByCode(@NonNull List<RoomEntity> floorRooms) {
@@ -544,14 +625,18 @@ public class HomeFragment extends Fragment {
         if (roomLabel != null) {
             roomLabel.setText("Room");
         }
-        roomBox.setOnClickListener(null);
-        roomBox.setClickable(false);
-        roomBox.setFocusable(false);
-        roomBox.setOnTouchListener(null);
+        disableRoomBoxInteraction(roomBox);
         roomBox.setScaleX(1f);
         roomBox.setScaleY(1f);
         roomBox.setTranslationZ(0f);
         applyRoomHighlightState(roomBox, false);
+    }
+
+    private void disableRoomBoxInteraction(@NonNull View roomBox) {
+        roomBox.setOnClickListener(null);
+        roomBox.setClickable(false);
+        roomBox.setFocusable(false);
+        roomBox.setOnTouchListener(null);
     }
 
     private String normalizeCode(String rawCode) {
@@ -766,8 +851,18 @@ public class HomeFragment extends Fragment {
         return selectedFloor != null && selectedFloor == 1;
     }
 
+    private boolean isFloorFiveSelected() {
+        return selectedFloor != null && selectedFloor == 5;
+    }
+
     private int[] getActiveRoomBoxIds() {
-        return isFloorOneSelected() ? FLOOR1_ROOM_BOX_IDS : DEFAULT_ROOM_BOX_IDS;
+        if (isFloorOneSelected()) {
+            return FLOOR1_ROOM_BOX_IDS;
+        }
+        if (isFloorFiveSelected()) {
+            return FLOOR5_ROOM_BOX_IDS;
+        }
+        return DEFAULT_ROOM_BOX_IDS;
     }
 
     private void applyRoomHighlightState(@NonNull View roomBox, boolean highlighted) {
