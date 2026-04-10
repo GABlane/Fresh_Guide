@@ -26,13 +26,15 @@ public class DirectionSearchAdapter extends RecyclerView.Adapter<DirectionSearch
         public final String subtitle;
         public final int iconResId;
         public final boolean isOrigin;
+        public final boolean roomBased;
 
-        public SuggestionItem(int id, String title, String subtitle, int iconResId, boolean isOrigin) {
+        public SuggestionItem(int id, String title, String subtitle, int iconResId, boolean isOrigin, boolean roomBased) {
             this.id = id;
             this.title = title;
             this.subtitle = subtitle;
             this.iconResId = iconResId;
             this.isOrigin = isOrigin;
+            this.roomBased = roomBased;
         }
     }
 

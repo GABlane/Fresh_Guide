@@ -238,18 +238,12 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
 
         // Open the directions modal first (same flow as compass FAB).
         btnDirections.setOnClickListener(v -> {
-            if (roomId <= 0) {
-                Toast.makeText(requireContext(), "Invalid room", Toast.LENGTH_SHORT).show();
+            if (currentRoom == null) {
+                Toast.makeText(requireContext(), "Room location is not ready yet", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            DirectionsSheetFragment sheet = new DirectionsSheetFragment();
-            Bundle sheetArgs = new Bundle();
-            sheetArgs.putInt(DirectionsSheetFragment.ARG_PRESELECTED_ROOM_ID, roomId);
-            sheetArgs.putString(DirectionsSheetFragment.ARG_PRESELECTED_ROOM_NAME, tvName.getText().toString());
-            sheet.setArguments(sheetArgs);
-            sheet.show(getParentFragmentManager(), "directions_sheet");
-            dismissAllowingStateLoss();
+            launchDirectionsOnHome();
         });
 
         if (roomId != -1) {
@@ -356,6 +350,43 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
                 navController.getBackStackEntry(navController.getGraph().getId())
                         .getSavedStateHandle()
                         .set(RoomListFragment.KEY_MAP_FOCUS_REQUEST, resolvedFocusRequest);
+                navController.navigate(R.id.homeFragment);
+            });
+        });
+    }
+
+    private void launchDirectionsOnHome() {
+        if (currentRoom == null) {
+            Toast.makeText(requireContext(), "Room location is not ready yet", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        NavController navController = NavHostFragment.findNavController(this);
+        imageExecutor.execute(() -> {
+            AppDatabase db = AppDatabase.getInstance(requireContext().getApplicationContext());
+            FloorEntity floor = db.floorDao().getByIdSync(currentRoom.floorId);
+            BuildingEntity building = floor != null ? db.buildingDao().getByIdSync(floor.buildingId) : null;
+            int floorNumber = floor != null ? floor.number : -1;
+            String buildingCode = building != null ? building.code : null;
+
+            if (!isAdded()) {
+                return;
+            }
+
+            requireActivity().runOnUiThread(() -> {
+                if (!isAdded()) {
+                    return;
+                }
+
+                Bundle request = new Bundle();
+                request.putInt("roomId", currentRoom.id);
+                request.putInt("floorNumber", floorNumber);
+                request.putString("roomName", currentRoom.name);
+                request.putString("buildingCode", buildingCode);
+
+                navController.getBackStackEntry(navController.getGraph().getId())
+                        .getSavedStateHandle()
+                        .set(HomeFragment.KEY_DIRECTIONS_LAUNCH_REQUEST, request);
                 navController.navigate(R.id.homeFragment);
             });
         });

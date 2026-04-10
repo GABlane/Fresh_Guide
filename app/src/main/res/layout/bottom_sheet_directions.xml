@@ -499,7 +499,6 @@
                 android:id="@+id/recycler_route_steps"
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                android:layout_marginTop="18dp"
                 android:clipToPadding="false"
                 android:paddingBottom="18dp"
                 android:visibility="gone"
