@@ -18,13 +18,19 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.freshguide.LoginActivity;
 import com.example.freshguide.R;
 import com.example.freshguide.model.entity.UserProfileEntity;
 import com.example.freshguide.repository.AuthRepository;
+import com.example.freshguide.ui.adapter.RoomAdapter;
 import com.example.freshguide.util.SessionManager;
 import com.example.freshguide.viewmodel.ProfileViewModel;
+import com.example.freshguide.viewmodel.SavedRoomsViewModel;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -39,10 +45,14 @@ public class ProfileFragment extends Fragment {
     private TextView tvProfileDate;
     private ImageView imgProfilePhoto;
     private TextView tvProfileInitial;
+    private TextView tvSavedLocationsEmpty;
+    private RecyclerView recyclerSavedLocations;
 
     private SessionManager session;
     private ProfileViewModel profileViewModel;
+    private SavedRoomsViewModel savedRoomsViewModel;
     private UserProfileEntity currentProfile;
+    private RoomAdapter savedRoomAdapter;
 
     @Nullable
     @Override
@@ -57,6 +67,7 @@ public class ProfileFragment extends Fragment {
 
         session = SessionManager.getInstance(requireContext());
         profileViewModel = new ViewModelProvider(this).get(ProfileViewModel.class);
+        savedRoomsViewModel = new ViewModelProvider(this).get(SavedRoomsViewModel.class);
 
         tvName = view.findViewById(R.id.tv_name);
         tvStudentId = view.findViewById(R.id.tv_student_id);
@@ -64,9 +75,24 @@ public class ProfileFragment extends Fragment {
         tvProfileDate = view.findViewById(R.id.tv_profile_date);
         imgProfilePhoto = view.findViewById(R.id.img_profile_photo);
         tvProfileInitial = view.findViewById(R.id.tv_profile_initial);
+        tvSavedLocationsEmpty = view.findViewById(R.id.tv_saved_locations_empty);
+        recyclerSavedLocations = view.findViewById(R.id.recycler_saved_locations);
 
         ImageButton btnEditProfile = view.findViewById(R.id.btn_edit_profile);
         ImageButton btnMore = view.findViewById(R.id.btn_more);
+        NavController navController = Navigation.findNavController(view);
+
+        savedRoomAdapter = new RoomAdapter();
+        savedRoomAdapter.setDisplayMode(RoomAdapter.MODE_SAVED);
+        savedRoomAdapter.setOnItemClickListener(room -> {
+            Bundle args = new Bundle();
+            args.putInt("roomId", room.roomId);
+            args.putString("roomName", room.getDisplayName());
+            navController.navigate(R.id.roomDetailFragment, args);
+        });
+        recyclerSavedLocations.setLayoutManager(new LinearLayoutManager(requireContext()));
+        recyclerSavedLocations.setNestedScrollingEnabled(false);
+        recyclerSavedLocations.setAdapter(savedRoomAdapter);
 
         setCurrentDate();
         bindProfileData(null);
@@ -74,6 +100,13 @@ public class ProfileFragment extends Fragment {
         profileViewModel.getProfile().observe(getViewLifecycleOwner(), profile -> {
             currentProfile = profile;
             bindProfileData(profile);
+        });
+
+        savedRoomsViewModel.getSavedRooms().observe(getViewLifecycleOwner(), rooms -> {
+            boolean hasSavedRooms = rooms != null && !rooms.isEmpty();
+            savedRoomAdapter.submitList(rooms);
+            recyclerSavedLocations.setVisibility(hasSavedRooms ? View.VISIBLE : View.GONE);
+            tvSavedLocationsEmpty.setVisibility(hasSavedRooms ? View.GONE : View.VISIBLE);
         });
 
         btnEditProfile.setOnClickListener(v -> {

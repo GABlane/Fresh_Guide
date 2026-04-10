@@ -14,6 +14,7 @@ import com.example.freshguide.database.dao.FloorDao;
 import com.example.freshguide.database.dao.OriginDao;
 import com.example.freshguide.database.dao.RoomDao;
 import com.example.freshguide.database.dao.RouteDao;
+import com.example.freshguide.database.dao.SavedRoomDao;
 import com.example.freshguide.database.dao.ScheduleDao;
 import com.example.freshguide.database.dao.SyncMetaDao;
 import com.example.freshguide.database.dao.UserProfileDao;
@@ -25,6 +26,7 @@ import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.model.entity.RoomFacilityCrossRef;
 import com.example.freshguide.model.entity.RouteEntity;
 import com.example.freshguide.model.entity.RouteStepEntity;
+import com.example.freshguide.model.entity.SavedRoomEntity;
 import com.example.freshguide.model.entity.ScheduleEntryEntity;
 import com.example.freshguide.model.entity.SyncMetaEntity;
 import com.example.freshguide.model.entity.UserProfileEntity;
@@ -36,6 +38,7 @@ import com.example.freshguide.model.entity.UserProfileEntity;
         RoomEntity.class,
         FacilityEntity.class,
         RoomFacilityCrossRef.class,
+        SavedRoomEntity.class,
         OriginEntity.class,
         RouteEntity.class,
         RouteStepEntity.class,
@@ -43,7 +46,7 @@ import com.example.freshguide.model.entity.UserProfileEntity;
         SyncMetaEntity.class,
         UserProfileEntity.class
     },
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -181,9 +184,25 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    private static final Migration MIGRATION_8_9 = new Migration(8, 9) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS saved_rooms ("
+                    + "owner_student_id TEXT NOT NULL, "
+                    + "room_id INTEGER NOT NULL, "
+                    + "saved_at INTEGER NOT NULL DEFAULT 0, "
+                    + "PRIMARY KEY(owner_student_id, room_id), "
+                    + "FOREIGN KEY(room_id) REFERENCES rooms(id) ON DELETE CASCADE)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_saved_rooms_owner_student_id ON saved_rooms(owner_student_id)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_saved_rooms_room_id ON saved_rooms(room_id)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_saved_rooms_owner_student_id_saved_at ON saved_rooms(owner_student_id, saved_at)");
+        }
+    };
+
     public abstract BuildingDao buildingDao();
     public abstract FloorDao floorDao();
     public abstract RoomDao roomDao();
+    public abstract SavedRoomDao savedRoomDao();
     public abstract FacilityDao facilityDao();
     public abstract OriginDao originDao();
     public abstract RouteDao routeDao();
@@ -197,7 +216,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     context.getApplicationContext(),
                     AppDatabase.class,
                     DB_NAME
-            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
+            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
              .build();
         }
         return instance;

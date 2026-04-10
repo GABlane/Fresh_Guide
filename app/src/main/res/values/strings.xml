@@ -50,6 +50,19 @@
     <string name="search_no_results">No matching locations found.</string>
     <string name="search_apply_suggestion">Use this suggestion</string>
     <string name="search_filtered_in">Searching in %1$s</string>
+    <string name="profile_title">Profile</string>
+    <string name="profile_more">More</string>
+    <string name="profile_edit">Edit Profile</string>
+    <string name="profile_student_id_background">Student ID background</string>
+    <string name="profile_photo">Student photo</string>
+    <string name="profile_watermark">Watermark</string>
+    <string name="profile_saved_title">Saves</string>
+    <string name="profile_saved_subtitle">Pinned rooms and locations you want to revisit quickly.</string>
+    <string name="profile_saved_empty">Save a location from its details page and it will appear here.</string>
+    <string name="saved_location_add">Save this location</string>
+    <string name="saved_location_remove">Remove this saved location</string>
+    <string name="saved_location_added">Saved to your profile</string>
+    <string name="saved_location_removed">Removed from your saves</string>
 
     <!-- Directions Sheet -->
     <string name="label_direction">Direction</string>

@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -24,6 +25,7 @@ import com.example.freshguide.R;
 import com.example.freshguide.database.AppDatabase;
 import com.example.freshguide.model.entity.FacilityEntity;
 import com.example.freshguide.model.entity.RoomEntity;
+import com.example.freshguide.repository.SavedRoomRepository;
 import com.example.freshguide.ui.adapter.RoomImageGalleryAdapter;
 import com.example.freshguide.util.RoomImageCacheManager;
 import com.example.freshguide.util.RoomImageUrlResolver;
@@ -58,6 +60,7 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
     private View singleImageCard;
     private ImageView singleImageView;
     private TextView singleImagePlaceholder;
+    private ImageButton btnBookmark;
 
     @Override
     public int getTheme() {
@@ -118,7 +121,7 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
         TextView tvDescription = view.findViewById(R.id.tv_room_description);
         TextView tvFacilities = view.findViewById(R.id.tv_facilities);
         View btnDirections = view.findViewById(R.id.btn_get_directions);
-        ImageButton btnBookmark = view.findViewById(R.id.btn_room_bookmark);
+        btnBookmark = view.findViewById(R.id.btn_room_bookmark);
         RecyclerView galleryRecycler = view.findViewById(R.id.recycler_room_gallery);
         galleryFadeLeft = view.findViewById(R.id.gallery_fade_left);
         galleryFadeRight = view.findViewById(R.id.gallery_fade_right);
@@ -140,7 +143,27 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
         galleryRecycler.post(() -> updateGalleryFades(galleryRecycler));
 
         btnBookmark.setOnClickListener(v ->
-                Toast.makeText(requireContext(), "Favorites coming soon", Toast.LENGTH_SHORT).show());
+                viewModel.toggleSaved(new SavedRoomRepository.ToggleCallback() {
+                    @Override
+                    public void onComplete(boolean isSaved) {
+                        if (!isAdded()) {
+                            return;
+                        }
+                        Toast.makeText(
+                                requireContext(),
+                                isSaved ? R.string.saved_location_added : R.string.saved_location_removed,
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        if (!isAdded()) {
+                            return;
+                        }
+                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                    }
+                }));
 
         viewModel.getRoom().observe(getViewLifecycleOwner(), room -> {
             if (room == null) return;
@@ -189,6 +212,8 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
             Snackbar.make(view, err, Snackbar.LENGTH_LONG).show();
         });
 
+        viewModel.getIsSaved().observe(getViewLifecycleOwner(), saved -> updateBookmarkState(Boolean.TRUE.equals(saved)));
+
         // Open the directions modal first (same flow as compass FAB).
         btnDirections.setOnClickListener(v -> {
             if (roomId <= 0) {
@@ -208,6 +233,19 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
         if (roomId != -1) {
             viewModel.loadRoom(roomId);
         }
+    }
+
+    private void updateBookmarkState(boolean isSaved) {
+        if (btnBookmark == null) {
+            return;
+        }
+        btnBookmark.setImageDrawable(AppCompatResources.getDrawable(
+                requireContext(),
+                isSaved ? R.drawable.ic_bookmark_filled : R.drawable.ic_bookmark_outline
+        ));
+        btnBookmark.setContentDescription(getString(
+                isSaved ? R.string.saved_location_remove : R.string.saved_location_add
+        ));
     }
 
     private String buildSubtitle(String code, String location) {

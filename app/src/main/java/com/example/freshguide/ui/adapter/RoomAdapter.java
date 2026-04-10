@@ -18,6 +18,10 @@ import com.example.freshguide.model.ui.RoomSearchResult;
 
 public class RoomAdapter extends ListAdapter<RoomSearchResult, RoomAdapter.ViewHolder> {
 
+    public static final int MODE_SEARCH = 0;
+    public static final int MODE_RECENT = 1;
+    public static final int MODE_SAVED = 2;
+
     public interface OnItemClickListener {
         void onItemClick(RoomSearchResult room);
     }
@@ -28,7 +32,7 @@ public class RoomAdapter extends ListAdapter<RoomSearchResult, RoomAdapter.ViewH
 
     private OnItemClickListener listener;
     private OnActionClickListener actionClickListener;
-    private boolean recentMode;
+    private int displayMode = MODE_SEARCH;
 
     public RoomAdapter() {
         super(DIFF);
@@ -42,8 +46,8 @@ public class RoomAdapter extends ListAdapter<RoomSearchResult, RoomAdapter.ViewH
         actionClickListener = l;
     }
 
-    public void setRecentMode(boolean recentMode) {
-        this.recentMode = recentMode;
+    public void setDisplayMode(int displayMode) {
+        this.displayMode = displayMode;
         notifyDataSetChanged();
     }
 
@@ -58,7 +62,7 @@ public class RoomAdapter extends ListAdapter<RoomSearchResult, RoomAdapter.ViewH
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         RoomSearchResult room = getItem(position);
-        holder.bind(room, recentMode);
+        holder.bind(room, displayMode);
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onItemClick(room);
@@ -85,14 +89,19 @@ public class RoomAdapter extends ListAdapter<RoomSearchResult, RoomAdapter.ViewH
             actionButton = itemView.findViewById(R.id.btn_item_action);
         }
 
-        void bind(RoomSearchResult room, boolean recentMode) {
+        void bind(RoomSearchResult room, int displayMode) {
             tvName.setText(room.getDisplayName());
             tvCode.setText(room.getSubtitle());
-            leadingIcon.setImageDrawable(AppCompatResources.getDrawable(
-                    itemView.getContext(),
-                    recentMode ? R.drawable.ic_search_history : R.drawable.ic_search_pin
-            ));
-            actionButton.setVisibility(recentMode ? View.GONE : View.VISIBLE);
+            int iconRes;
+            if (displayMode == MODE_RECENT) {
+                iconRes = R.drawable.ic_search_history;
+            } else if (displayMode == MODE_SAVED) {
+                iconRes = R.drawable.ic_bookmark_outline;
+            } else {
+                iconRes = R.drawable.ic_search_pin;
+            }
+            leadingIcon.setImageDrawable(AppCompatResources.getDrawable(itemView.getContext(), iconRes));
+            actionButton.setVisibility(displayMode == MODE_SEARCH ? View.VISIBLE : View.GONE);
         }
     }
 

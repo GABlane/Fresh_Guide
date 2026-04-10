@@ -147,9 +147,7 @@ import androidx.navigation.NavOptions;
             private void updateHeader(NavDestination destination) {
                 if (destination == null) return;
 
-                boolean hideHeader =
-                        destination.getId() == R.id.homeFragment ||
-                                destination.getId() == R.id.adminDashboardFragment;
+                boolean hideHeader = isTopLevelDestination(destination.getId());
 
                 if (headerBar != null) {
                     headerBar.setVisibility(hideHeader ? View.GONE : View.VISIBLE);
@@ -174,7 +172,7 @@ import androidx.navigation.NavOptions;
                 if (isAdmin) {
                     return isAdminTopLevelDestination(destinationId);
                 }
-                return destinationId == R.id.homeFragment;
+                return isUserTopLevelDestination(destinationId);
             }
 
             private void setupCustomNav(View navHome, View navSchedule, View navSettings, View navProfile) {

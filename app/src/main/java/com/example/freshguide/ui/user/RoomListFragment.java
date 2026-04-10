@@ -168,7 +168,7 @@ public class RoomListFragment extends Fragment {
                 ? getRecentRooms(currentRooms)
                 : new ArrayList<>(currentRooms);
 
-        adapter.setRecentMode(showingRecent);
+        adapter.setDisplayMode(showingRecent ? RoomAdapter.MODE_RECENT : RoomAdapter.MODE_SEARCH);
         adapter.submitList(new ArrayList<>(visibleItems));
 
         boolean hasItems = !visibleItems.isEmpty();
