@@ -61,6 +61,7 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
     private ImageView singleImageView;
     private TextView singleImagePlaceholder;
     private ImageButton btnBookmark;
+    private BottomSheetBehavior<View> bottomSheetBehavior;
 
     @Override
     public int getTheme() {
@@ -79,6 +80,8 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
         super.onStart();
         if (getDialog() instanceof BottomSheetDialog) {
             BottomSheetDialog dialog = (BottomSheetDialog) getDialog();
+            dialog.setCancelable(true);
+            dialog.setCanceledOnTouchOutside(false);
             Window window = dialog.getWindow();
             if (window != null) {
                 window.setDimAmount(0f);
@@ -87,21 +90,21 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
             if (sheet != null) {
                 sheet.setBackgroundResource(R.drawable.bg_room_detail_sheet);
                 sheet.setElevation(dpToPx(22));
-                BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(sheet);
+                bottomSheetBehavior = BottomSheetBehavior.from(sheet);
                 ViewGroup.LayoutParams params = sheet.getLayoutParams();
                 if (params != null) {
                     params.height = ViewGroup.LayoutParams.MATCH_PARENT;
                     sheet.setLayoutParams(params);
                 }
                 // Place-details sheet: visible over the map, draggable between collapsed, half, and full.
-                behavior.setFitToContents(false);
-                behavior.setExpandedOffset(dpToPx(14));
-                behavior.setHalfExpandedRatio(0.5f);
-                behavior.setPeekHeight(dpToPx(86), true);
-                behavior.setSkipCollapsed(false);
-                behavior.setHideable(false);
-                behavior.setDraggable(true);
-                behavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+                bottomSheetBehavior.setFitToContents(false);
+                bottomSheetBehavior.setExpandedOffset(dpToPx(14));
+                bottomSheetBehavior.setHalfExpandedRatio(0.5f);
+                bottomSheetBehavior.setPeekHeight(dpToPx(86), true);
+                bottomSheetBehavior.setSkipCollapsed(false);
+                bottomSheetBehavior.setHideable(true);
+                bottomSheetBehavior.setDraggable(true);
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
             }
         }
     }
@@ -232,6 +235,27 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
 
         if (roomId != -1) {
             viewModel.loadRoom(roomId);
+        }
+    }
+
+    public void showRoom(int updatedRoomId, @Nullable String roomName, boolean campusArea) {
+        roomId = updatedRoomId;
+        isCampusArea = campusArea;
+
+        Bundle args = getArguments();
+        if (args != null) {
+            args.putInt(ARG_ROOM_ID, updatedRoomId);
+            args.putString("roomName", roomName);
+            args.putBoolean("isCampusArea", campusArea);
+        }
+
+        latestImageUrl = null;
+        if (bottomSheetBehavior != null) {
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+        }
+
+        if (viewModel != null && updatedRoomId > 0) {
+            viewModel.loadRoom(updatedRoomId);
         }
     }
 

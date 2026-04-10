@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/background_default"
-    android:paddingStart="@dimen/screen_horizontal_gutter"
-    android:paddingEnd="@dimen/screen_horizontal_gutter">
+    tools:ignore="UselessParent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/screen_horizontal_gutter"
+        android:paddingEnd="@dimen/screen_horizontal_gutter">
 
     <!-- Header: full logo + search bar -->
     <LinearLayout
@@ -192,13 +197,15 @@
 
     <!-- MAP AREA -->
 
-    <FrameLayout
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/map_container"
         android:layout_width="match_parent"
         android:layout_height="512dp"
         android:layout_marginTop="6dp"
         android:layout_marginBottom="8dp"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
         <!-- OVERALL MAP -->
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -477,15 +484,26 @@
             android:contentDescription="Directions"
             android:src="@drawable/ic_directions"
             app:backgroundTint="@color/background_card"
-            app:strokeColor="@color/border_subtle"
             app:borderWidth="1dp"
             app:elevation="1dp"
             app:ensureMinTouchTargetSize="false"
             app:fabCustomSize="58dp"
             app:maxImageSize="20dp"
+            app:strokeColor="@color/border_subtle"
             app:tint="@color/green_primary"
             app:useCompatPadding="false" />
 
-    </FrameLayout>
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-</LinearLayout>
+    </LinearLayout>
+
+    <include
+        android:id="@+id/room_detail_sheet"
+        layout="@layout/fragment_room_detail"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="bottom"
+        android:visibility="gone"
+        app:layout_behavior="@string/bottom_sheet_behavior" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

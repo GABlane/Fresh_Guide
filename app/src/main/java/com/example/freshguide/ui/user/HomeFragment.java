@@ -1,6 +1,9 @@
 package com.example.freshguide.ui.user;
 
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
 import android.util.Log;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -11,14 +14,15 @@ import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.graphics.Typeface;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -26,21 +30,33 @@ import androidx.navigation.NavController;
 import androidx.navigation.NavOptions;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.freshguide.R;
 import com.example.freshguide.database.AppDatabase;
 import com.example.freshguide.model.entity.BuildingEntity;
+import com.example.freshguide.model.entity.FacilityEntity;
 import com.example.freshguide.model.entity.FloorEntity;
 import com.example.freshguide.model.entity.RoomEntity;
+import com.example.freshguide.repository.SavedRoomRepository;
+import com.example.freshguide.ui.adapter.RoomImageGalleryAdapter;
+import com.example.freshguide.util.RoomImageCacheManager;
+import com.example.freshguide.util.RoomImageUrlResolver;
 import com.example.freshguide.viewmodel.HomeViewModel;
+import com.example.freshguide.viewmodel.RoomDetailViewModel;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.concurrent.Executor;
+import java.io.File;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -75,6 +91,7 @@ public class HomeFragment extends Fragment {
     private Integer selectedFloor = null;
 
     private HomeViewModel viewModel;
+    private RoomDetailViewModel roomDetailViewModel;
 
     private Chip[] floorChips;
     private HorizontalScrollView floorChipContainer;
@@ -85,6 +102,27 @@ public class HomeFragment extends Fragment {
     private Integer pendingFocusedRoomId;
     private Integer highlightedRoomId;
     private String pendingFocusedRoomName;
+    private View roomDetailSheet;
+    private BottomSheetBehavior<View> roomDetailSheetBehavior;
+    private View roomSummaryLayout;
+    private TextView tvRoomName;
+    private TextView tvRoomSubtitle;
+    private TextView tvRoomType;
+    private TextView tvRoomDescription;
+    private TextView tvFacilities;
+    private View btnDirections;
+    private ImageButton btnBookmark;
+    private RoomImageGalleryAdapter galleryAdapter;
+    private View galleryFadeLeft;
+    private View galleryFadeRight;
+    private View singleImageCard;
+    private ImageView singleImageView;
+    private TextView singleImagePlaceholder;
+    private FloatingActionButton fabCompass;
+    private int activeRoomId = -1;
+    private boolean activeRoomIsCampusArea;
+    private String latestImageUrl;
+    private Runnable pendingAfterRoomSheetHidden;
 
     @Nullable
     @Override
@@ -101,21 +139,25 @@ public class HomeFragment extends Fragment {
         ioExecutor = Executors.newSingleThreadExecutor();
 
         viewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        roomDetailViewModel = new ViewModelProvider(this).get(RoomDetailViewModel.class);
 
         floorChipContainer = view.findViewById(R.id.floor_chip_container);
         floorMapContainer = view.findViewById(R.id.floor_map_container);
         leftFade = view.findViewById(R.id.leftFade);
         rightFade = view.findViewById(R.id.rightFade);
         overallMapContainer = view.findViewById(R.id.overall_map_container);
+        roomDetailSheet = view.findViewById(R.id.room_detail_sheet);
+        fabCompass = view.findViewById(R.id.fab_compass);
 
         NavController nav = Navigation.findNavController(view);
 
         applyBuildingPinOverlays(view);
+        setupRoomDetailSheet(view);
         setupSearch(view, nav);
         setupFloorChips(view);
         setupOverallMapClicks(view, nav);
         setupChipFade();
-        setupFab(view);
+        setupFab();
         observeSync(view);
         observeMapFocusRequests();
 
@@ -143,7 +185,7 @@ public class HomeFragment extends Fragment {
                         v.setScaleX(1f);
                         v.setScaleY(1f);
                         v.setAlpha(1f);
-                        nav.navigate(R.id.action_home_to_roomList, null, options);
+                        closeRoomDetailSheetIfOpen(() -> nav.navigate(R.id.action_home_to_roomList, null, options));
                     })
                     .start();
         });
@@ -525,23 +567,7 @@ public class HomeFragment extends Fragment {
                 return;
             }
 
-            Bundle args = new Bundle();
-            args.putInt("roomId", roomId);
-            args.putString("roomName", areaName != null ? areaName : areaCode);
-            args.putBoolean("isCampusArea", true);
-            nav.navigate(R.id.action_home_to_roomDetail, args);
-        });
-    }
-
-    private void setupFab(View view) {
-        FloatingActionButton fab = view.findViewById(R.id.fab_compass);
-
-        fab.setOnClickListener(v ->
-                new DirectionsSheetFragment().show(getParentFragmentManager(), "directions_sheet"));
-
-        fab.setOnLongClickListener(v -> {
-            setFloorSelection(null);
-            return true;
+            showRoomDetailSheet(roomId, areaName != null ? areaName : areaCode, true);
         });
     }
 
@@ -619,17 +645,399 @@ public class HomeFragment extends Fragment {
     }
 
     private void openRoomDetailSheet(int roomId, String roomName) {
-        Bundle args = new Bundle();
-        args.putInt("roomId", roomId);
-        args.putString("roomName", roomName);
-        try {
-            NavHostFragment.findNavController(this).navigate(R.id.action_home_to_roomDetail, args);
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to open room detail", e);
-            if (isAdded()) {
-                Toast.makeText(requireContext(), "Unable to open room details", Toast.LENGTH_SHORT).show();
+        showRoomDetailSheet(roomId, roomName, false);
+    }
+
+    private void closeRoomDetailSheetIfOpen(@NonNull Runnable afterClose) {
+        if (roomDetailSheetBehavior != null
+                && roomDetailSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN
+                && roomDetailSheet != null
+                && roomDetailSheet.getVisibility() == View.VISIBLE) {
+            pendingAfterRoomSheetHidden = afterClose;
+            hideRoomDetailSheet();
+            return;
+        }
+        afterClose.run();
+    }
+
+    private void setupRoomDetailSheet(@NonNull View root) {
+        if (roomDetailSheet == null) {
+            return;
+        }
+
+        tvRoomName = root.findViewById(R.id.tv_room_name);
+        tvRoomSubtitle = root.findViewById(R.id.tv_room_subtitle);
+        tvRoomType = root.findViewById(R.id.tv_room_type);
+        roomSummaryLayout = root.findViewById(R.id.layout_room_summary);
+        tvRoomDescription = root.findViewById(R.id.tv_room_description);
+        tvFacilities = root.findViewById(R.id.tv_facilities);
+        btnDirections = root.findViewById(R.id.btn_get_directions);
+        btnBookmark = root.findViewById(R.id.btn_room_bookmark);
+        RecyclerView galleryRecycler = root.findViewById(R.id.recycler_room_gallery);
+        galleryFadeLeft = root.findViewById(R.id.gallery_fade_left);
+        galleryFadeRight = root.findViewById(R.id.gallery_fade_right);
+        singleImageCard = root.findViewById(R.id.single_image_card);
+        singleImageView = root.findViewById(R.id.iv_room_image);
+        singleImagePlaceholder = root.findViewById(R.id.tv_image_placeholder);
+
+        galleryAdapter = new RoomImageGalleryAdapter();
+        LinearLayoutManager galleryLayoutManager = new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
+        galleryRecycler.setLayoutManager(galleryLayoutManager);
+        galleryRecycler.setAdapter(galleryAdapter);
+        galleryRecycler.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                updateGalleryFades(recyclerView);
+            }
+        });
+        galleryRecycler.post(() -> updateGalleryFades(galleryRecycler));
+
+        roomDetailSheetBehavior = BottomSheetBehavior.from(roomDetailSheet);
+        roomDetailSheetBehavior.setFitToContents(false);
+        roomDetailSheetBehavior.setExpandedOffset(dpToPx(14));
+        roomDetailSheetBehavior.setHalfExpandedRatio(0.5f);
+        roomDetailSheetBehavior.setPeekHeight(dpToPx(132), true);
+        roomDetailSheetBehavior.setSkipCollapsed(false);
+        roomDetailSheetBehavior.setHideable(true);
+        roomDetailSheetBehavior.setDraggable(true);
+        roomDetailSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        roomDetailSheet.post(this::updateRoomDetailPeekHeight);
+        roomDetailSheetBehavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                if (newState == BottomSheetBehavior.STATE_HIDDEN) {
+                    bottomSheet.setVisibility(View.GONE);
+                    setBottomNavVisible(true);
+                    setDirectionsFabVisible(true);
+                    Runnable afterClose = pendingAfterRoomSheetHidden;
+                    pendingAfterRoomSheetHidden = null;
+                    if (afterClose != null && isAdded()) {
+                        bottomSheet.post(afterClose);
+                    }
+                    return;
+                }
+
+                if (bottomSheet.getVisibility() != View.VISIBLE) {
+                    bottomSheet.setVisibility(View.VISIBLE);
+                }
+                setBottomNavVisible(false);
+                setDirectionsFabVisible(false);
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                // No-op.
+            }
+        });
+
+        btnBookmark.setOnClickListener(v ->
+                roomDetailViewModel.toggleSaved(new SavedRoomRepository.ToggleCallback() {
+                    @Override
+                    public void onComplete(boolean isSaved) {
+                        if (!isAdded()) {
+                            return;
+                        }
+                        Toast.makeText(
+                                requireContext(),
+                                isSaved ? R.string.saved_location_added : R.string.saved_location_removed,
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        if (!isAdded()) {
+                            return;
+                        }
+                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                    }
+                }));
+
+        btnDirections.setOnClickListener(v -> {
+            if (activeRoomId <= 0) {
+                Toast.makeText(requireContext(), "Invalid room", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            DirectionsSheetFragment sheet = new DirectionsSheetFragment();
+            Bundle sheetArgs = new Bundle();
+            sheetArgs.putInt(DirectionsSheetFragment.ARG_PRESELECTED_ROOM_ID, activeRoomId);
+            sheetArgs.putString(DirectionsSheetFragment.ARG_PRESELECTED_ROOM_NAME, tvRoomName.getText().toString());
+            sheet.setArguments(sheetArgs);
+            hideRoomDetailSheet();
+            sheet.show(getParentFragmentManager(), "directions_sheet");
+        });
+
+        roomDetailViewModel.getRoom().observe(getViewLifecycleOwner(), room -> {
+            if (room == null) {
+                return;
+            }
+
+            tvRoomName.setText(room.name);
+            tvRoomSubtitle.setText(buildSubtitle(room.code, room.location));
+
+            if (room.type != null && !room.type.isBlank()) {
+                tvRoomType.setVisibility(View.VISIBLE);
+                tvRoomType.setText(room.type.toUpperCase(java.util.Locale.getDefault()));
+            } else {
+                tvRoomType.setVisibility(View.GONE);
+            }
+
+            String description = room.description != null ? room.description : "";
+            if (description.isBlank()) {
+                description = "No description available.";
+            }
+            tvRoomDescription.setText(description);
+
+            String resolvedImageUrl = RoomImageUrlResolver.resolvePath(requireContext(), room.imageUrl);
+            loadRoomImages(room.cachedImagePath, resolvedImageUrl, galleryRecycler);
+        });
+
+        roomDetailViewModel.getFacilities().observe(getViewLifecycleOwner(), facilities -> {
+            if (facilities == null || facilities.isEmpty()) {
+                tvFacilities.setText("No facilities listed");
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            for (FacilityEntity facility : facilities) {
+                if (sb.length() > 0) {
+                    sb.append(", ");
+                }
+                sb.append(facility.name);
+            }
+            tvFacilities.setText(sb.toString());
+        });
+
+        roomDetailViewModel.getError().observe(getViewLifecycleOwner(), err -> {
+            if (err == null || !isAdded()) {
+                return;
+            }
+
+            if (activeRoomIsCampusArea) {
+                Toast.makeText(requireContext(), err, Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            View rootView = getView();
+            if (rootView != null) {
+                Snackbar.make(rootView, err, Snackbar.LENGTH_LONG).show();
+            }
+        });
+
+        roomDetailViewModel.getIsSaved().observe(getViewLifecycleOwner(),
+                saved -> updateBookmarkState(Boolean.TRUE.equals(saved)));
+    }
+
+    private void showRoomDetailSheet(int roomId, @Nullable String roomName, boolean campusArea) {
+        if (roomDetailSheet == null || roomDetailSheetBehavior == null || roomId <= 0) {
+            return;
+        }
+
+        activeRoomId = roomId;
+        activeRoomIsCampusArea = campusArea;
+        latestImageUrl = null;
+        roomDetailSheet.setVisibility(View.VISIBLE);
+        setBottomNavVisible(false);
+        setDirectionsFabVisible(false);
+        roomDetailSheet.post(this::updateRoomDetailPeekHeight);
+        roomDetailSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+        roomDetailViewModel.loadRoom(roomId);
+    }
+
+    private void hideRoomDetailSheet() {
+        if (roomDetailSheetBehavior == null) {
+            return;
+        }
+        roomDetailSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+    }
+
+    private void setBottomNavVisible(boolean visible) {
+        if (!isAdded()) {
+            return;
+        }
+        View navBar = requireActivity().findViewById(R.id.nav_bar_container);
+        if (navBar != null) {
+            navBar.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    private void setupFab() {
+        if (fabCompass == null) {
+            return;
+        }
+
+        fabCompass.setOnClickListener(v ->
+                new DirectionsSheetFragment().show(getParentFragmentManager(), "directions_sheet"));
+
+        fabCompass.setOnLongClickListener(v -> {
+            setFloorSelection(null);
+            return true;
+        });
+
+        setDirectionsFabVisible(true);
+    }
+
+    private void setDirectionsFabVisible(boolean visible) {
+        if (fabCompass == null) {
+            return;
+        }
+        fabCompass.setVisibility(visible ? View.VISIBLE : View.GONE);
+    }
+
+    private void updateBookmarkState(boolean isSaved) {
+        if (btnBookmark == null || !isAdded()) {
+            return;
+        }
+        btnBookmark.setImageDrawable(AppCompatResources.getDrawable(
+                requireContext(),
+                isSaved ? R.drawable.ic_bookmark_filled : R.drawable.ic_bookmark_outline
+        ));
+        btnBookmark.setContentDescription(getString(
+                isSaved ? R.string.saved_location_remove : R.string.saved_location_add
+        ));
+    }
+
+    private String buildSubtitle(String code, String location) {
+        String c = code != null ? code.trim() : "";
+        String l = location != null ? location.trim() : "";
+        if (!l.isEmpty() && !c.isEmpty()) {
+            return l + " • " + c;
+        }
+        if (!l.isEmpty()) {
+            return l;
+        }
+        if (!c.isEmpty()) {
+            return c;
+        }
+        return "Location details unavailable";
+    }
+
+    private void loadRoomImages(String cachedImagePath, String imageUrl, RecyclerView galleryRecycler) {
+        showSingleImage(null);
+
+        if (cachedImagePath != null && !cachedImagePath.trim().isEmpty()) {
+            File cachedFile = new File(cachedImagePath);
+            if (cachedFile.exists()) {
+                Bitmap cachedBitmap = BitmapFactory.decodeFile(cachedFile.getAbsolutePath());
+                if (cachedBitmap != null) {
+                    showSingleImage(cachedBitmap);
+                    return;
+                }
             }
         }
+
+        latestImageUrl = imageUrl;
+        if (imageUrl == null || imageUrl.trim().isEmpty()) {
+            return;
+        }
+
+        final android.content.Context appContext = requireContext().getApplicationContext();
+        final AppDatabase db = AppDatabase.getInstance(appContext);
+        final int roomId = activeRoomId;
+
+        ioExecutor.execute(() -> {
+            HttpURLConnection connection = null;
+            InputStream inputStream = null;
+            Bitmap bitmap = null;
+
+            try {
+                URL url = new URL(imageUrl);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.setConnectTimeout(8000);
+                connection.setReadTimeout(8000);
+                connection.connect();
+
+                inputStream = connection.getInputStream();
+                bitmap = BitmapFactory.decodeStream(inputStream);
+            } catch (Exception ignored) {
+                bitmap = null;
+            } finally {
+                try {
+                    if (inputStream != null) {
+                        inputStream.close();
+                    }
+                } catch (Exception ignored) {
+                }
+                if (connection != null) {
+                    connection.disconnect();
+                }
+            }
+
+            Bitmap finalBitmap = bitmap;
+            if (finalBitmap != null && roomId > 0) {
+                String cachedPath = RoomImageCacheManager.cacheRoomBitmap(appContext, roomId, finalBitmap);
+                if (cachedPath != null && !cachedPath.isBlank()) {
+                    RoomEntity localRoom = db.roomDao().getByIdSync(roomId);
+                    if (localRoom != null) {
+                        localRoom.cachedImagePath = cachedPath;
+                        if (localRoom.imageUrl == null || localRoom.imageUrl.isBlank()) {
+                            localRoom.imageUrl = imageUrl;
+                        }
+                        db.roomDao().insert(localRoom);
+                    }
+                }
+            }
+
+            runOnUiThreadSafely(() -> {
+                if (latestImageUrl == null || !latestImageUrl.equals(imageUrl) || roomId != activeRoomId) {
+                    return;
+                }
+                showSingleImage(finalBitmap);
+            });
+        });
+    }
+
+    private void showSingleImage(@Nullable Bitmap bitmap) {
+        if (singleImageCard == null || singleImageView == null || singleImagePlaceholder == null) {
+            return;
+        }
+        singleImageCard.setVisibility(View.VISIBLE);
+        if (bitmap != null) {
+            singleImageView.setImageBitmap(bitmap);
+            singleImageView.setVisibility(View.VISIBLE);
+            singleImagePlaceholder.setVisibility(View.GONE);
+        } else {
+            singleImageView.setImageDrawable(null);
+            singleImageView.setVisibility(View.VISIBLE);
+            singleImagePlaceholder.setVisibility(View.VISIBLE);
+        }
+        if (galleryFadeLeft != null) {
+            galleryFadeLeft.setVisibility(View.GONE);
+        }
+        if (galleryFadeRight != null) {
+            galleryFadeRight.setVisibility(View.GONE);
+        }
+    }
+
+    private void updateGalleryFades(@NonNull RecyclerView galleryRecycler) {
+        if (galleryFadeLeft == null || galleryFadeRight == null) {
+            return;
+        }
+        boolean canScrollLeft = galleryRecycler.canScrollHorizontally(-1);
+        boolean canScrollRight = galleryRecycler.canScrollHorizontally(1);
+        galleryFadeLeft.setVisibility(canScrollLeft ? View.VISIBLE : View.GONE);
+        galleryFadeRight.setVisibility(canScrollRight ? View.VISIBLE : View.GONE);
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(dp * getResources().getDisplayMetrics().density);
+    }
+
+    private void updateRoomDetailPeekHeight() {
+        if (roomDetailSheetBehavior == null || roomDetailSheet == null || roomSummaryLayout == null) {
+            return;
+        }
+
+        int fallbackPeekHeight = dpToPx(132);
+        int summaryBottom = roomSummaryLayout.getBottom();
+        if (summaryBottom <= 0) {
+            roomDetailSheetBehavior.setPeekHeight(fallbackPeekHeight, true);
+            return;
+        }
+
+        int desiredPeekHeight = summaryBottom + dpToPx(18);
+        roomDetailSheetBehavior.setPeekHeight(Math.max(desiredPeekHeight, fallbackPeekHeight), true);
     }
 
     private void centerRoomInFloorMap(@NonNull View roomBox) {
@@ -706,6 +1114,8 @@ public class HomeFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        setBottomNavVisible(true);
+        setDirectionsFabVisible(true);
         // Shutdown executor to prevent thread leaks
         if (ioExecutor != null && !ioExecutor.isShutdown()) {
             ioExecutor.shutdown();
