@@ -1,5 +1,6 @@
 package com.example.freshguide.ui.adapter;
 
+import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +10,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.content.res.AppCompatResources;
+import androidx.core.content.ContextCompat;
+import androidx.core.widget.ImageViewCompat;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
@@ -55,8 +58,13 @@ public class RoomAdapter extends ListAdapter<RoomSearchResult, RoomAdapter.ViewH
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_room, parent, false);
+                .inflate(viewType == MODE_SAVED ? R.layout.item_favorite_room : R.layout.item_room, parent, false);
         return new ViewHolder(v);
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        return displayMode == MODE_SAVED ? MODE_SAVED : MODE_SEARCH;
     }
 
     @Override
@@ -68,11 +76,22 @@ public class RoomAdapter extends ListAdapter<RoomSearchResult, RoomAdapter.ViewH
                 listener.onItemClick(room);
             }
         });
-        holder.actionButton.setOnClickListener(v -> {
-            if (actionClickListener != null) {
-                actionClickListener.onActionClick(room);
-            }
-        });
+        if (displayMode == MODE_SAVED) {
+            holder.leadingIcon.setOnClickListener(v -> {
+                if (actionClickListener != null) {
+                    actionClickListener.onActionClick(room);
+                }
+            });
+        } else {
+            holder.leadingIcon.setOnClickListener(null);
+        }
+        if (holder.actionButton != null) {
+            holder.actionButton.setOnClickListener(v -> {
+                if (actionClickListener != null) {
+                    actionClickListener.onActionClick(room);
+                }
+            });
+        }
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
@@ -93,15 +112,27 @@ public class RoomAdapter extends ListAdapter<RoomSearchResult, RoomAdapter.ViewH
             tvName.setText(room.getDisplayName());
             tvCode.setText(room.getSubtitle());
             int iconRes;
+            int iconTint;
             if (displayMode == MODE_RECENT) {
                 iconRes = R.drawable.ic_search_history;
+                iconTint = R.color.text_secondary;
             } else if (displayMode == MODE_SAVED) {
-                iconRes = R.drawable.ic_bookmark_outline;
+                iconRes = R.drawable.ic_star_filled;
+                iconTint = R.color.green_primary;
             } else {
                 iconRes = R.drawable.ic_search_pin;
+                iconTint = R.color.text_secondary;
             }
             leadingIcon.setImageDrawable(AppCompatResources.getDrawable(itemView.getContext(), iconRes));
-            actionButton.setVisibility(displayMode == MODE_SEARCH ? View.VISIBLE : View.GONE);
+            ImageViewCompat.setImageTintList(
+                    leadingIcon,
+                    ColorStateList.valueOf(ContextCompat.getColor(itemView.getContext(), iconTint))
+            );
+            leadingIcon.setClickable(displayMode == MODE_SAVED);
+            leadingIcon.setFocusable(displayMode == MODE_SAVED);
+            if (actionButton != null) {
+                actionButton.setVisibility(displayMode == MODE_SEARCH ? View.VISIBLE : View.GONE);
+            }
         }
     }
 

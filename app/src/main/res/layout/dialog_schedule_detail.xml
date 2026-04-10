@@ -85,7 +85,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="8dp"
-            android:text="Delete"
+            android:text="DELETE"
             android:textColor="@color/orange_accent"
             android:textSize="14sp"
             android:textStyle="bold" />

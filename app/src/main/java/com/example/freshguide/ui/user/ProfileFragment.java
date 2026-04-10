@@ -27,6 +27,7 @@ import com.example.freshguide.LoginActivity;
 import com.example.freshguide.R;
 import com.example.freshguide.model.entity.UserProfileEntity;
 import com.example.freshguide.repository.AuthRepository;
+import com.example.freshguide.repository.SavedRoomRepository;
 import com.example.freshguide.ui.adapter.RoomAdapter;
 import com.example.freshguide.util.ProfilePhotoLoader;
 import com.example.freshguide.util.SessionManager;
@@ -47,6 +48,7 @@ public class ProfileFragment extends Fragment {
     private TextView tvProfileInitial;
     private TextView tvSavedLocationsEmpty;
     private RecyclerView recyclerSavedLocations;
+    private View layoutSavedLocationsEmpty;
 
     private SessionManager session;
     private ProfileViewModel profileViewModel;
@@ -77,6 +79,7 @@ public class ProfileFragment extends Fragment {
         tvProfileInitial = view.findViewById(R.id.tv_profile_initial);
         tvSavedLocationsEmpty = view.findViewById(R.id.tv_saved_locations_empty);
         recyclerSavedLocations = view.findViewById(R.id.recycler_saved_locations);
+        layoutSavedLocationsEmpty = view.findViewById(R.id.layout_saved_locations_empty);
 
         ImageButton btnEditProfile = view.findViewById(R.id.btn_edit_profile);
         ImageButton btnMore = view.findViewById(R.id.btn_more);
@@ -88,8 +91,31 @@ public class ProfileFragment extends Fragment {
             Bundle args = new Bundle();
             args.putInt("roomId", room.roomId);
             args.putString("roomName", room.getDisplayName());
+            args.putBoolean("showGoTo", true);
             navController.navigate(R.id.roomDetailFragment, args);
         });
+        savedRoomAdapter.setOnActionClickListener(room ->
+                savedRoomsViewModel.toggleSaved(room.roomId, new SavedRoomRepository.ToggleCallback() {
+                    @Override
+                    public void onComplete(boolean isSaved) {
+                        if (!isAdded()) {
+                            return;
+                        }
+                        Toast.makeText(
+                                requireContext(),
+                                isSaved ? R.string.saved_location_added : R.string.saved_location_removed,
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        if (!isAdded()) {
+                            return;
+                        }
+                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+                    }
+                }));
         recyclerSavedLocations.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerSavedLocations.setNestedScrollingEnabled(false);
         recyclerSavedLocations.setAdapter(savedRoomAdapter);
@@ -106,7 +132,7 @@ public class ProfileFragment extends Fragment {
             boolean hasSavedRooms = rooms != null && !rooms.isEmpty();
             savedRoomAdapter.submitList(rooms);
             recyclerSavedLocations.setVisibility(hasSavedRooms ? View.VISIBLE : View.GONE);
-            tvSavedLocationsEmpty.setVisibility(hasSavedRooms ? View.GONE : View.VISIBLE);
+            layoutSavedLocationsEmpty.setVisibility(hasSavedRooms ? View.GONE : View.VISIBLE);
         });
 
         btnEditProfile.setOnClickListener(v -> {

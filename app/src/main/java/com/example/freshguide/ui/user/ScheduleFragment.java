@@ -1094,7 +1094,7 @@ public class ScheduleFragment extends Fragment {
             btnCancel.setBackground(ContextCompat.getDrawable(requireContext(),
                     R.drawable.bg_schedule_delete_outline));
             btnCancel.setTextColor(ContextCompat.getColor(requireContext(), R.color.red_accent));
-            btnSave.setText("Save Changes");
+            btnSave.setText("SAVE CHANGES");
         } else {
             tvSheetTitle.setText("New Schedule");
             btnSave.setText("Create Schedule");

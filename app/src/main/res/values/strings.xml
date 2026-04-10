@@ -56,13 +56,15 @@
     <string name="profile_student_id_background">Student ID background</string>
     <string name="profile_photo">Student photo</string>
     <string name="profile_watermark">Watermark</string>
-    <string name="profile_saved_title">Saves</string>
-    <string name="profile_saved_subtitle">Pinned rooms and locations you want to revisit quickly.</string>
-    <string name="profile_saved_empty">Save a location from its details page and it will appear here.</string>
-    <string name="saved_location_add">Save this location</string>
-    <string name="saved_location_remove">Remove this saved location</string>
-    <string name="saved_location_added">Saved to your profile</string>
-    <string name="saved_location_removed">Removed from your saves</string>
+    <string name="profile_saved_title">Your Favorites</string>
+    <string name="profile_saved_subtitle">Favorite rooms and locations you want to revisit quickly.</string>
+    <string name="profile_saved_empty">There\'s nothing to show here..</string>
+    <string name="saved_location_add">Add to favorites</string>
+    <string name="saved_location_remove">Remove from favorites</string>
+    <string name="saved_location_added">Added to favorites</string>
+    <string name="saved_location_removed">Removed from favorites</string>
+    <string name="room_detail_go_to">GO TO</string>
+    <string name="room_detail_directions">DIRECTIONS</string>
 
     <!-- Directions Sheet -->
     <string name="label_direction">Direction</string>
@@ -71,7 +73,7 @@
     <string name="hint_choose_origin">Choose your origin</string>
     <string name="hint_choose_destination">Choose your destination</string>
     <string name="label_select_destination">Select destination</string>
-    <string name="action_start_directions">Start Directions</string>
+    <string name="action_start_directions">START DIRECTIONS</string>
     <string name="label_guide">Guide</string>
     <string name="label_no_origins">No origins found</string>
     <string name="label_no_rooms">No rooms available yet</string>

@@ -81,7 +81,7 @@ public class RoomListFragment extends Fragment {
         NavController nav = Navigation.findNavController(view);
         adapter.setOnItemClickListener(room -> {
             saveRecentRoom(room.roomId);
-            if (canOpenIndoorMap(room) && nav.getPreviousBackStackEntry() != null) {
+            if (canOpenIndoorMap(room)) {
                 Bundle focusRequest = new Bundle();
                 focusRequest.putInt("roomId", room.roomId);
                 focusRequest.putInt("floorNumber", room.floorNumber);
@@ -89,7 +89,7 @@ public class RoomListFragment extends Fragment {
                 focusRequest.putString("buildingCode", room.buildingCode);
                 focusRequest.putString("buildingName", room.buildingName);
                 focusRequest.putBoolean("fromSearch", true);
-                nav.getPreviousBackStackEntry()
+                nav.getBackStackEntry(nav.getGraph().getId())
                         .getSavedStateHandle()
                         .set(KEY_MAP_FOCUS_REQUEST, focusRequest);
                 nav.popBackStack();

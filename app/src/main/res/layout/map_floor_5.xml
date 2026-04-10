@@ -81,6 +81,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:fillViewport="true"
         android:scrollbars="none"
         android:background="@color/background_default">
@@ -88,9 +90,11 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="1260dp"
             android:layout_margin="16dp"
             android:background="@color/background_default"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:minHeight="1260dp"
             android:paddingBottom="24dp">
 
             <ImageView
@@ -188,6 +192,8 @@
                 android:layout_width="0dp"
                 android:layout_height="390dp"
                 android:layout_marginTop="56dp"
+                android:clipChildren="false"
+                android:clipToPadding="false"
                 android:background="@drawable/bg_room_classroom"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -195,10 +201,10 @@
 
                 <ImageView
                     android:id="@+id/room_pin"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
                     android:layout_gravity="top|center_horizontal"
-                    android:layout_marginTop="-12dp"
+                    android:layout_marginTop="-9dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_map_room_pin_red"
                     android:visibility="gone" />

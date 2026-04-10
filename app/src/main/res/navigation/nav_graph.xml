@@ -93,6 +93,10 @@
             android:name="isCampusArea"
             app:argType="boolean"
             android:defaultValue="false" />
+        <argument
+            android:name="showGoTo"
+            app:argType="boolean"
+            android:defaultValue="false" />
         <action
             android:id="@+id/action_roomDetail_to_originPicker"
             app:destination="@id/originPickerFragment" />

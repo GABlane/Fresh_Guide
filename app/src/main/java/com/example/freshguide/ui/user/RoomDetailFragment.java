@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,7 +24,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.freshguide.R;
 import com.example.freshguide.database.AppDatabase;
+import com.example.freshguide.model.entity.BuildingEntity;
 import com.example.freshguide.model.entity.FacilityEntity;
+import com.example.freshguide.model.entity.FloorEntity;
 import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.repository.SavedRoomRepository;
 import com.example.freshguide.ui.adapter.RoomImageGalleryAdapter;
@@ -33,6 +36,7 @@ import com.example.freshguide.viewmodel.RoomDetailViewModel;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
@@ -52,6 +56,7 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
     private RoomDetailViewModel viewModel;
     private int roomId;
     private boolean isCampusArea;
+    private boolean showGoTo;
     private final ExecutorService imageExecutor = Executors.newSingleThreadExecutor();
     private String latestImageUrl;
     private RoomImageGalleryAdapter galleryAdapter;
@@ -60,7 +65,12 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
     private View singleImageCard;
     private ImageView singleImageView;
     private TextView singleImagePlaceholder;
+    private View roomSummaryLayout;
+    private MaterialButton btnGoToMap;
+    private MaterialButton btnDirections;
     private ImageButton btnBookmark;
+    private BottomSheetBehavior<View> bottomSheetBehavior;
+    private RoomEntity currentRoom;
 
     @Override
     public int getTheme() {
@@ -79,6 +89,8 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
         super.onStart();
         if (getDialog() instanceof BottomSheetDialog) {
             BottomSheetDialog dialog = (BottomSheetDialog) getDialog();
+            dialog.setCancelable(true);
+            dialog.setCanceledOnTouchOutside(false);
             Window window = dialog.getWindow();
             if (window != null) {
                 window.setDimAmount(0f);
@@ -87,21 +99,22 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
             if (sheet != null) {
                 sheet.setBackgroundResource(R.drawable.bg_room_detail_sheet);
                 sheet.setElevation(dpToPx(22));
-                BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(sheet);
+                bottomSheetBehavior = BottomSheetBehavior.from(sheet);
                 ViewGroup.LayoutParams params = sheet.getLayoutParams();
                 if (params != null) {
                     params.height = ViewGroup.LayoutParams.MATCH_PARENT;
                     sheet.setLayoutParams(params);
                 }
                 // Place-details sheet: visible over the map, draggable between collapsed, half, and full.
-                behavior.setFitToContents(false);
-                behavior.setExpandedOffset(dpToPx(14));
-                behavior.setHalfExpandedRatio(0.5f);
-                behavior.setPeekHeight(dpToPx(86), true);
-                behavior.setSkipCollapsed(false);
-                behavior.setHideable(false);
-                behavior.setDraggable(true);
-                behavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+                bottomSheetBehavior.setFitToContents(false);
+                bottomSheetBehavior.setExpandedOffset(dpToPx(14));
+                bottomSheetBehavior.setHalfExpandedRatio(0.5f);
+                bottomSheetBehavior.setPeekHeight(dpToPx(132), true);
+                bottomSheetBehavior.setSkipCollapsed(false);
+                bottomSheetBehavior.setHideable(true);
+                bottomSheetBehavior.setDraggable(true);
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+                sheet.post(this::updatePeekHeight);
             }
         }
     }
@@ -113,6 +126,7 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
         // Checklist 5.2: receive data from args
         roomId = requireArguments().getInt(ARG_ROOM_ID, -1);
         isCampusArea = requireArguments().getBoolean("isCampusArea", false);
+        showGoTo = requireArguments().getBoolean("showGoTo", false);
         viewModel = new ViewModelProvider(this).get(RoomDetailViewModel.class);
 
         TextView tvName = view.findViewById(R.id.tv_room_name);
@@ -120,7 +134,9 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
         TextView tvType = view.findViewById(R.id.tv_room_type);
         TextView tvDescription = view.findViewById(R.id.tv_room_description);
         TextView tvFacilities = view.findViewById(R.id.tv_facilities);
-        View btnDirections = view.findViewById(R.id.btn_get_directions);
+        roomSummaryLayout = view.findViewById(R.id.layout_room_summary);
+        btnGoToMap = view.findViewById(R.id.btn_go_to_map);
+        btnDirections = view.findViewById(R.id.btn_get_directions);
         btnBookmark = view.findViewById(R.id.btn_room_bookmark);
         RecyclerView galleryRecycler = view.findViewById(R.id.recycler_room_gallery);
         galleryFadeLeft = view.findViewById(R.id.gallery_fade_left);
@@ -141,6 +157,8 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
             }
         });
         galleryRecycler.post(() -> updateGalleryFades(galleryRecycler));
+        view.post(this::updatePeekHeight);
+        configureActionButtons(showGoTo);
 
         btnBookmark.setOnClickListener(v ->
                 viewModel.toggleSaved(new SavedRoomRepository.ToggleCallback() {
@@ -165,8 +183,11 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
                     }
                 }));
 
+        btnGoToMap.setOnClickListener(v -> goToCurrentRoomOnMap());
+
         viewModel.getRoom().observe(getViewLifecycleOwner(), room -> {
             if (room == null) return;
+            currentRoom = room;
             tvName.setText(room.name);
             tvSubtitle.setText(buildSubtitle(room.code, room.location));
 
@@ -185,6 +206,7 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
 
             String resolvedImageUrl = RoomImageUrlResolver.resolvePath(requireContext(), room.imageUrl);
             loadRoomImages(room.cachedImagePath, resolvedImageUrl, galleryRecycler);
+            view.post(this::updatePeekHeight);
         });
 
         viewModel.getFacilities().observe(getViewLifecycleOwner(), facilities -> {
@@ -235,13 +257,133 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
         }
     }
 
+    public void showRoom(int updatedRoomId, @Nullable String roomName, boolean campusArea) {
+        roomId = updatedRoomId;
+        isCampusArea = campusArea;
+
+        Bundle args = getArguments();
+        if (args != null) {
+            args.putInt(ARG_ROOM_ID, updatedRoomId);
+            args.putString("roomName", roomName);
+            args.putBoolean("isCampusArea", campusArea);
+            args.putBoolean("showGoTo", showGoTo);
+        }
+
+        latestImageUrl = null;
+        if (bottomSheetBehavior != null) {
+            updatePeekHeight();
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HALF_EXPANDED);
+        }
+
+        if (viewModel != null && updatedRoomId > 0) {
+            viewModel.loadRoom(updatedRoomId);
+        }
+    }
+
+    private void configureActionButtons(boolean shouldShowGoTo) {
+        if (btnGoToMap == null || btnDirections == null) {
+            return;
+        }
+
+        LinearLayout.LayoutParams goToParams = (LinearLayout.LayoutParams) btnGoToMap.getLayoutParams();
+        LinearLayout.LayoutParams directionsParams = (LinearLayout.LayoutParams) btnDirections.getLayoutParams();
+
+        if (shouldShowGoTo) {
+            btnGoToMap.setVisibility(View.VISIBLE);
+            goToParams.width = 0;
+            goToParams.weight = 1f;
+            goToParams.setMarginEnd(dpToPx(6));
+            btnGoToMap.setLayoutParams(goToParams);
+
+            directionsParams.width = 0;
+            directionsParams.weight = 1f;
+            directionsParams.setMarginStart(dpToPx(6));
+            btnDirections.setLayoutParams(directionsParams);
+            btnDirections.setText(R.string.room_detail_directions);
+            return;
+        }
+
+        btnGoToMap.setVisibility(View.GONE);
+        goToParams.width = 0;
+        goToParams.weight = 0f;
+        goToParams.setMarginEnd(0);
+        btnGoToMap.setLayoutParams(goToParams);
+
+        directionsParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+        directionsParams.weight = 0f;
+        directionsParams.setMarginStart(0);
+        btnDirections.setLayoutParams(directionsParams);
+        btnDirections.setText("DIRECTIONS");
+    }
+
+    private void goToCurrentRoomOnMap() {
+        if (currentRoom == null) {
+            Toast.makeText(requireContext(), "Room location is not ready yet", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        NavController navController = NavHostFragment.findNavController(this);
+        imageExecutor.execute(() -> {
+            AppDatabase db = AppDatabase.getInstance(requireContext().getApplicationContext());
+            FloorEntity floor = db.floorDao().getByIdSync(currentRoom.floorId);
+            BuildingEntity building = floor != null ? db.buildingDao().getByIdSync(floor.buildingId) : null;
+            int floorNumber = floor != null ? floor.number : -1;
+            String buildingCode = building != null ? building.code : null;
+            String buildingName = building != null ? building.name : "";
+
+            if (!isAdded()) {
+                return;
+            }
+
+            requireActivity().runOnUiThread(() -> {
+                if (!isAdded()) {
+                    return;
+                }
+                if (floorNumber <= 0
+                        || buildingCode == null
+                        || !"MAIN".equalsIgnoreCase(buildingCode.trim())) {
+                    Toast.makeText(requireContext(), "Map pin is not available for this location yet", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                Bundle resolvedFocusRequest = new Bundle();
+                resolvedFocusRequest.putInt("roomId", currentRoom.id);
+                resolvedFocusRequest.putInt("floorNumber", floorNumber);
+                resolvedFocusRequest.putString("roomName", currentRoom.name);
+                resolvedFocusRequest.putString("buildingCode", buildingCode);
+                resolvedFocusRequest.putString("buildingName", buildingName);
+
+                navController.getBackStackEntry(navController.getGraph().getId())
+                        .getSavedStateHandle()
+                        .set(RoomListFragment.KEY_MAP_FOCUS_REQUEST, resolvedFocusRequest);
+                navController.navigate(R.id.homeFragment);
+            });
+        });
+    }
+
+    private void updatePeekHeight() {
+        if (bottomSheetBehavior == null || roomSummaryLayout == null) {
+            return;
+        }
+
+        int fallbackPeekHeight = dpToPx(132);
+        int summaryBottom = roomSummaryLayout.getBottom();
+        if (summaryBottom <= 0) {
+            bottomSheetBehavior.setPeekHeight(fallbackPeekHeight, true);
+            return;
+        }
+
+        int desiredPeekHeight = summaryBottom + dpToPx(18);
+        bottomSheetBehavior.setPeekHeight(Math.max(desiredPeekHeight, fallbackPeekHeight), true);
+    }
+
     private void updateBookmarkState(boolean isSaved) {
         if (btnBookmark == null) {
             return;
         }
         btnBookmark.setImageDrawable(AppCompatResources.getDrawable(
                 requireContext(),
-                isSaved ? R.drawable.ic_bookmark_filled : R.drawable.ic_bookmark_outline
+                isSaved ? R.drawable.ic_star_filled : R.drawable.ic_star_outline
         ));
         btnBookmark.setContentDescription(getString(
                 isSaved ? R.string.saved_location_remove : R.string.saved_location_add

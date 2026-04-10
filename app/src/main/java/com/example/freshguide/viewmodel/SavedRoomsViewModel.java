@@ -13,14 +13,20 @@ import java.util.List;
 
 public class SavedRoomsViewModel extends AndroidViewModel {
 
+    private final SavedRoomRepository savedRoomRepository;
     private final LiveData<List<RoomSearchResult>> savedRooms;
 
     public SavedRoomsViewModel(@NonNull Application application) {
         super(application);
-        savedRooms = new SavedRoomRepository(application).observeSavedRooms();
+        savedRoomRepository = new SavedRoomRepository(application);
+        savedRooms = savedRoomRepository.observeSavedRooms();
     }
 
     public LiveData<List<RoomSearchResult>> getSavedRooms() {
         return savedRooms;
+    }
+
+    public void toggleSaved(int roomId, @NonNull SavedRoomRepository.ToggleCallback callback) {
+        savedRoomRepository.toggleSaved(roomId, callback);
     }
 }

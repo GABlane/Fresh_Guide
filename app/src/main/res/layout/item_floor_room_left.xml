@@ -2,14 +2,16 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="98dp"
     android:layout_height="64dp"
+    android:clipChildren="false"
+    android:clipToPadding="false"
     android:background="@drawable/bg_room_classroom_right_door">
 
     <ImageView
         android:id="@+id/room_pin"
-        android:layout_width="22dp"
-        android:layout_height="22dp"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
         android:layout_gravity="top|center_horizontal"
-        android:layout_marginTop="-12dp"
+        android:layout_marginTop="-9dp"
         android:contentDescription="@null"
         android:src="@drawable/ic_map_room_pin_red"
         android:visibility="gone" />
