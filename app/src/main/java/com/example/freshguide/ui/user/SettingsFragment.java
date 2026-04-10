@@ -15,6 +15,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.freshguide.BuildConfig;
 import com.example.freshguide.R;
+import com.example.freshguide.util.ScheduleReminderHelper;
 import com.example.freshguide.util.SessionManager;
 import com.example.freshguide.util.ThemePreferenceManager;
 
@@ -100,6 +101,7 @@ public class SettingsFragment extends Fragment {
         switchScheduleNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (bindingValues) return;
             sessionManager.setScheduleNotificationsEnabled(isChecked);
+            ScheduleReminderHelper.syncAllReminders(requireContext());
         });
 
         switchSyncAlerts.setOnCheckedChangeListener((buttonView, isChecked) -> {

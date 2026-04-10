@@ -1,6 +1,7 @@
 package com.example.freshguide.ui.user;
 
 import android.Manifest;
+import android.app.Dialog;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -35,6 +36,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import com.example.freshguide.BuildConfig;
 import com.example.freshguide.R;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
@@ -81,6 +83,16 @@ public class ScheduleFragment extends Fragment {
     private static final String[] REMINDER_OPTIONS = {
             "No reminder", "5 mins before", "10 mins before", "15 mins before", "30 mins before"
     };
+    private static final int HOUR_WHEEL_VALUE_COUNT = 12;
+    private static final int MINUTE_WHEEL_VALUE_COUNT = 60;
+    private static final int HOUR_WHEEL_REPEAT_COUNT = 200;
+    private static final int MIN_CLASS_START_MINUTES = 6 * 60;
+    private static final int MAX_CLASS_END_MINUTES = 23 * 60;
+    private static final int MIN_CLASS_DURATION_MINUTES = 3 * 60;
+    private static final int SUNDAY_DAY_VALUE = 7;
+    private static final String INVALID_CLASS_SCHEDULE_MESSAGE = "Invalid class schedule.";
+    private static final String DUPLICATE_SCHEDULE_MESSAGE = "Schedule already exists.";
+    private static final String SUNDAY_NOT_ALLOWED_MESSAGE = "Sunday classes are not allowed.";
 
     // ── Timeline sizing constants ──────────────────────────────────────────────
     private static final float DP_PER_MINUTE = 1.5f;
@@ -1078,6 +1090,10 @@ public class ScheduleFragment extends Fragment {
 
         if (existing != null) {
             tvSheetTitle.setText("Edit Schedule");
+            btnCancel.setText("Delete");
+            btnCancel.setBackground(ContextCompat.getDrawable(requireContext(),
+                    R.drawable.bg_schedule_delete_outline));
+            btnCancel.setTextColor(ContextCompat.getColor(requireContext(), R.color.red_accent));
             btnSave.setText("Save Changes");
         } else {
             tvSheetTitle.setText("New Schedule");
@@ -1095,6 +1111,13 @@ public class ScheduleFragment extends Fragment {
             boolean online = position == 1;
             roomGroup.setVisibility(online ? View.GONE : View.VISIBLE);
             onlineGroup.setVisibility(online ? View.VISIBLE : View.GONE);
+            if (online) {
+                etRoomSearch.setText("");
+                etRoomSearch.setTag(null);
+                btnClearRoomSearch.setVisibility(View.GONE);
+            } else {
+                dropdownPlatform.setText("", false);
+            }
         });
 
         recyclerRoomDropdown.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -1189,17 +1212,23 @@ public class ScheduleFragment extends Fragment {
                             sessionManager.getDefaultReminderMinutes())], false);
             roomGroup.setVisibility(View.VISIBLE);
             onlineGroup.setVisibility(View.GONE);
-            addScheduleBlock(scheduleContainer, selectedDay, -1, -1, false);
+            addScheduleBlock(scheduleContainer, getDefaultSchedulableDay(), -1, -1, false);
         }
 
         btnAddScheduleBlock.setOnClickListener(v ->
-                addScheduleBlock(scheduleContainer, getDefaultDay(), -1, -1, true));
+                addScheduleBlock(scheduleContainer, getDefaultSchedulableDay(), -1, -1, true));
 
         BottomSheetDialog dialog = new BottomSheetDialog(
                 requireContext(), R.style.ThemeOverlay_FreshGuide_BottomSheet);
         dialog.setContentView(formView);
 
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnCancel.setOnClickListener(v -> {
+            if (existing == null) {
+                dialog.dismiss();
+                return;
+            }
+            confirmDeleteSchedule(existing, dialog);
+        });
 
         btnSave.setOnClickListener(v -> {
             try {
@@ -1250,18 +1279,32 @@ public class ScheduleFragment extends Fragment {
                     return;
                 }
                 for (ScheduleBlockBinding block : scheduleBlocks) {
-                    if (block.selectedDay < 1 || block.selectedDay > DAY_LABELS.length) {
-                        Toast.makeText(requireContext(), "Please choose a schedule day", Toast.LENGTH_SHORT).show();
+                    if (!isValidScheduleDay(block.selectedDay)) {
+                        Toast.makeText(requireContext(), SUNDAY_NOT_ALLOWED_MESSAGE, Toast.LENGTH_SHORT).show();
                         return;
                     }
                     if (block.startMinutes < 0 || block.endMinutes < 0) {
                         Toast.makeText(requireContext(), "Please select start and end time", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    if (block.endMinutes <= block.startMinutes) {
-                        Toast.makeText(requireContext(), "End time must be later than start time", Toast.LENGTH_SHORT).show();
+                    if (!isValidClassSchedule(block.startMinutes, block.endMinutes)) {
+                        Toast.makeText(requireContext(),
+                                INVALID_CLASS_SCHEDULE_MESSAGE,
+                                Toast.LENGTH_SHORT).show();
                         return;
                     }
+                }
+                if (hasExactDuplicateSchedule(title, existing)) {
+                    Toast.makeText(requireContext(),
+                            DUPLICATE_SCHEDULE_MESSAGE,
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (hasScheduleOverlap(existing)) {
+                    Toast.makeText(requireContext(),
+                            "You already have a class at that time.",
+                            Toast.LENGTH_SHORT).show();
+                    return;
                 }
 
                 long now = System.currentTimeMillis();
@@ -1306,8 +1349,18 @@ public class ScheduleFragment extends Fragment {
                                 savedCount[0]++;
                                 if (savedCount[0] == totalToSave && !errorShown[0]) {
                                     dialog.dismiss();
+                                    String successMessage = totalToSave > 1
+                                            ? "Schedules saved"
+                                            : "Schedule saved";
+                                    if (BuildConfig.DEBUG
+                                            && totalToSave == 1
+                                            && savedEntry.reminderMinutes > 0
+                                            && sessionManager.isScheduleNotificationsEnabled()) {
+                                        successMessage = successMessage + "\n"
+                                                + ScheduleReminderHelper.buildReminderScheduledMessage(savedEntry);
+                                    }
                                     Toast.makeText(requireContext(),
-                                            totalToSave > 1 ? "Schedules saved" : "Schedule saved",
+                                            successMessage,
                                             Toast.LENGTH_SHORT).show();
                                 }
                             });
@@ -1424,6 +1477,7 @@ public class ScheduleFragment extends Fragment {
             chip.setTypeface(interMedium);
 
             boolean selected = dayValue == binding.selectedDay;
+            boolean enabled = isValidScheduleDay(dayValue);
             chip.setBackgroundResource(selected
                     ? R.drawable.bg_form_chip_selected
                     : R.drawable.bg_form_chip_unselected);
@@ -1431,8 +1485,14 @@ public class ScheduleFragment extends Fragment {
                     selected ? android.R.color.white : R.color.green_primary));
             chip.setScaleX(selected ? 1.05f : 1f);
             chip.setScaleY(selected ? 1.05f : 1f);
+            chip.setEnabled(enabled);
+            chip.setAlpha(enabled ? 1f : 0.35f);
 
             chip.setOnClickListener(v -> {
+                if (!isValidScheduleDay(dayValue)) {
+                    Toast.makeText(requireContext(), SUNDAY_NOT_ALLOWED_MESSAGE, Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 binding.selectedDay = dayValue;
                 updateBlockDaySelection(binding);
             });
@@ -1446,12 +1506,16 @@ public class ScheduleFragment extends Fragment {
     private void updateBlockDaySelection(ScheduleBlockBinding binding) {
         for (int i = 0; i < binding.dayChips.size(); i++) {
             TextView chip = binding.dayChips.get(i);
-            boolean selected = (i + 1) == binding.selectedDay;
+            int dayValue = i + 1;
+            boolean selected = dayValue == binding.selectedDay;
+            boolean enabled = isValidScheduleDay(dayValue);
             chip.setBackgroundResource(selected
                     ? R.drawable.bg_form_chip_selected
                     : R.drawable.bg_form_chip_unselected);
             chip.setTextColor(ContextCompat.getColor(requireContext(),
                     selected ? android.R.color.white : R.color.green_primary));
+            chip.setEnabled(enabled);
+            chip.setAlpha(enabled ? 1f : 0.35f);
             chip.animate()
                     .scaleX(selected ? 1.05f : 1f)
                     .scaleY(selected ? 1.05f : 1f)
@@ -1464,9 +1528,6 @@ public class ScheduleFragment extends Fragment {
     private void showTimePickerForBlock(ScheduleBlockBinding binding, boolean isStart) {
         if (!isAdded()) return;
 
-        final int minTotalMinutes = (!isStart && binding.startMinutes >= 0)
-                ? binding.startMinutes : -1;
-
         int savedValue = isStart ? binding.startMinutes : binding.endMinutes;
         Calendar now = Calendar.getInstance();
         int nowTotal  = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE);
@@ -1474,11 +1535,12 @@ public class ScheduleFragment extends Fragment {
         int initialTotalMinutes;
         if (savedValue >= 0) {
             initialTotalMinutes = savedValue;
-        } else if (minTotalMinutes >= 0 && nowTotal <= minTotalMinutes) {
-            initialTotalMinutes = Math.min(minTotalMinutes + 1, 24 * 60 - 1);
+        } else if (!isStart && binding.startMinutes >= 0) {
+            initialTotalMinutes = binding.startMinutes + MIN_CLASS_DURATION_MINUTES;
         } else {
             initialTotalMinutes = nowTotal;
         }
+        initialTotalMinutes = clampInitialTimeSelection(binding, isStart, initialTotalMinutes);
 
         int initialHour24 = initialTotalMinutes / 60;
         int initialMinute = initialTotalMinutes % 60;
@@ -1497,60 +1559,76 @@ public class ScheduleFragment extends Fragment {
 
         final int[] selectedAmPm = {initialAmPm};
 
-        List<String> hourItems = Arrays.asList(
-                "01","02","03","04","05","06","07","08","09","10","11","12");
-        List<String> minuteItems = new ArrayList<>();
-        for (int i = 0; i < 60; i++)
-            minuteItems.add(String.format(Locale.getDefault(), "%02d", i));
+        List<String> hourItems = buildLoopingHourItems();
+        List<String> minuteItems = buildLoopingMinuteItems();
 
         TimeWheelAdapter hourAdapter   = new TimeWheelAdapter(hourItems);
         TimeWheelAdapter minuteAdapter = new TimeWheelAdapter(minuteItems);
 
-        LinearSnapHelper hourSnapHelper   = setupWheelRecycler(rvHour,   hourAdapter,   initialHour12 - 1);
-        LinearSnapHelper minuteSnapHelper = setupWheelRecycler(rvMinute, minuteAdapter, initialMinute);
+        int initialHourPosition = getLoopingHourInitialPosition(initialHour12);
+        int initialMinutePosition = getLoopingMinuteInitialPosition(initialMinute);
+        LinearSnapHelper hourSnapHelper   = setupWheelRecycler(rvHour,   hourAdapter,   initialHourPosition);
+        LinearSnapHelper minuteSnapHelper = setupWheelRecycler(rvMinute, minuteAdapter, initialMinutePosition);
 
         updateAmPmButtons(btnAm, btnPm, selectedAmPm[0]);
-        btnAm.setOnClickListener(v -> { selectedAmPm[0] = 0; updateAmPmButtons(btnAm, btnPm, 0); });
-        btnPm.setOnClickListener(v -> { selectedAmPm[0] = 1; updateAmPmButtons(btnAm, btnPm, 1); });
 
-        final int[] snappedHourIdx   = {initialHour12 - 1};
-        final int[] snappedMinuteIdx = {initialMinute};
+        final int[] snappedHourIdx   = {initialHourPosition};
+        final int[] snappedMinuteIdx = {initialMinutePosition};
+        final boolean[] lastEndTimeValidity = {
+                isValidTimeSelectionForBlock(binding, isStart, initialTotalMinutes)
+        };
+        final boolean[] hasUserInteracted = {false};
+        final boolean[] invalidToastShown = {false};
 
-        if (minTotalMinutes >= 0) {
-            RecyclerView.OnScrollListener correctionListener = new RecyclerView.OnScrollListener() {
-                @Override
-                public void onScrollStateChanged(@NonNull RecyclerView rv, int newState) {
-                    if (newState != RecyclerView.SCROLL_STATE_IDLE) return;
+        Runnable refreshConfirmState = () -> {
+            normalizeLoopingHourWheel(rvHour, hourAdapter, hourSnapHelper);
+            normalizeLoopingMinuteWheel(rvMinute, minuteAdapter, minuteSnapHelper);
+            snappedHourIdx[0] = getSnappedAdapterPosition(rvHour, hourSnapHelper);
+            snappedMinuteIdx[0] = getSnappedAdapterPosition(rvMinute, minuteSnapHelper);
+
+            int totalMinutes = getTotalMinutesForSelection(
+                    snappedHourIdx[0], snappedMinuteIdx[0], selectedAmPm[0]);
+            boolean validSelection = isValidTimeSelectionForBlock(binding, isStart, totalMinutes);
+
+            updateConfirmButtonState(btnConfirm, validSelection);
+            if (validSelection) {
+                invalidToastShown[0] = false;
+            }
+            lastEndTimeValidity[0] = validSelection;
+        };
+
+        btnAm.setOnClickListener(v -> {
+            hasUserInteracted[0] = true;
+            selectedAmPm[0] = 0;
+            updateAmPmButtons(btnAm, btnPm, 0);
+            refreshConfirmState.run();
+            maybeShowInvalidEndTimeToast(hasUserInteracted[0],
+                    lastEndTimeValidity[0], invalidToastShown);
+        });
+        btnPm.setOnClickListener(v -> {
+            hasUserInteracted[0] = true;
+            selectedAmPm[0] = 1;
+            updateAmPmButtons(btnAm, btnPm, 1);
+            refreshConfirmState.run();
+            maybeShowInvalidEndTimeToast(hasUserInteracted[0],
+                    lastEndTimeValidity[0], invalidToastShown);
+        });
+
+        RecyclerView.OnScrollListener validationListener = new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView rv, int newState) {
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    hasUserInteracted[0] = true;
                     rv.post(() -> {
-                        snappedHourIdx[0]   = getSnappedAdapterPosition(rvHour,   hourSnapHelper);
-                        snappedMinuteIdx[0] = getSnappedAdapterPosition(rvMinute, minuteSnapHelper);
-
-                        int hour12   = snappedHourIdx[0] + 1;
-                        int hour24   = (selectedAmPm[0] == 0)
-                                ? (hour12 == 12 ? 0  : hour12)
-                                : (hour12 == 12 ? 12 : hour12 + 12);
-                        int combined = hour24 * 60 + snappedMinuteIdx[0];
-                        if (combined > minTotalMinutes) return;
-
-                        int minHour24 = minTotalMinutes / 60;
-                        if (hour24 == minHour24) {
-                            int correctedMinute = (minTotalMinutes % 60) + 1;
-                            if (correctedMinute < 60) {
-                                LinearLayoutManager lm =
-                                        (LinearLayoutManager) rvMinute.getLayoutManager();
-                                if (lm != null) {
-                                    lm.scrollToPositionWithOffset(correctedMinute, 0);
-                                    minuteAdapter.setSelectedPosition(correctedMinute);
-                                    snappedMinuteIdx[0] = correctedMinute;
-                                }
-                            }
-                        }
+                        refreshConfirmState.run();
+                        maybeShowInvalidEndTimeToast(hasUserInteracted[0],
+                                lastEndTimeValidity[0], invalidToastShown);
                     });
                 }
-            };
-            rvHour.addOnScrollListener(correctionListener);
-            rvMinute.addOnScrollListener(correctionListener);
-        }
+            }
+        };
+        rvHour.addOnScrollListener(validationListener);
+        rvMinute.addOnScrollListener(validationListener);
 
         BottomSheetDialog dialog = new BottomSheetDialog(
                 requireContext(), R.style.CustomBottomSheetDialog);
@@ -1571,20 +1649,23 @@ public class ScheduleFragment extends Fragment {
             behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
             behavior.setSkipCollapsed(true);
             behavior.setDraggable(true);
+            refreshConfirmState.run();
         });
 
         btnConfirm.setOnClickListener(v -> {
+            if (!btnConfirm.isEnabled()) {
+                return;
+            }
+            normalizeLoopingHourWheel(rvHour, hourAdapter, hourSnapHelper);
+            normalizeLoopingMinuteWheel(rvMinute, minuteAdapter, minuteSnapHelper);
             int selectedHourIndex   = getSnappedAdapterPosition(rvHour,   hourSnapHelper);
             int selectedMinuteIndex = getSnappedAdapterPosition(rvMinute, minuteSnapHelper);
-            int selectedHour12      = selectedHourIndex + 1;
-            int hour24 = (selectedAmPm[0] == 0)
-                    ? (selectedHour12 == 12 ? 0  : selectedHour12)
-                    : (selectedHour12 == 12 ? 12 : selectedHour12 + 12);
-            int totalMinutes = hour24 * 60 + selectedMinuteIndex;
+            int totalMinutes = getTotalMinutesForSelection(
+                    selectedHourIndex, selectedMinuteIndex, selectedAmPm[0]);
 
-            if (minTotalMinutes >= 0 && totalMinutes <= minTotalMinutes) {
+            if (!isValidTimeSelectionForBlock(binding, isStart, totalMinutes)) {
                 Toast.makeText(requireContext(),
-                        "End time must be after " + formatMinutes(minTotalMinutes),
+                        INVALID_CLASS_SCHEDULE_MESSAGE,
                         Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -1666,6 +1747,325 @@ public class ScheduleFragment extends Fragment {
     //  Schedule detail dialog  (UNCHANGED from original)
     // ══════════════════════════════════════════════════════════════════════════
 
+    private List<String> buildLoopingHourItems() {
+        List<String> items = new ArrayList<>(HOUR_WHEEL_VALUE_COUNT * HOUR_WHEEL_REPEAT_COUNT);
+        for (int cycle = 0; cycle < HOUR_WHEEL_REPEAT_COUNT; cycle++) {
+            for (int hour = 1; hour <= HOUR_WHEEL_VALUE_COUNT; hour++) {
+                items.add(String.format(Locale.getDefault(), "%02d", hour));
+            }
+        }
+        return items;
+    }
+
+    private List<String> buildLoopingMinuteItems() {
+        List<String> items = new ArrayList<>(MINUTE_WHEEL_VALUE_COUNT * HOUR_WHEEL_REPEAT_COUNT);
+        for (int cycle = 0; cycle < HOUR_WHEEL_REPEAT_COUNT; cycle++) {
+            for (int minute = 0; minute < MINUTE_WHEEL_VALUE_COUNT; minute++) {
+                items.add(String.format(Locale.getDefault(), "%02d", minute));
+            }
+        }
+        return items;
+    }
+
+    private int getLoopingHourInitialPosition(int hour12) {
+        int middleCycle = HOUR_WHEEL_REPEAT_COUNT / 2;
+        return (middleCycle * HOUR_WHEEL_VALUE_COUNT) + (hour12 - 1);
+    }
+
+    private int getLoopingMinuteInitialPosition(int minute) {
+        int middleCycle = HOUR_WHEEL_REPEAT_COUNT / 2;
+        return (middleCycle * MINUTE_WHEEL_VALUE_COUNT) + minute;
+    }
+
+    private int getHourValueFromLoopPosition(int adapterPosition) {
+        int normalizedPosition = adapterPosition % HOUR_WHEEL_VALUE_COUNT;
+        if (normalizedPosition < 0) {
+            normalizedPosition += HOUR_WHEEL_VALUE_COUNT;
+        }
+        return normalizedPosition + 1;
+    }
+
+    private int getMinuteValueFromLoopPosition(int adapterPosition) {
+        int normalizedPosition = adapterPosition % MINUTE_WHEEL_VALUE_COUNT;
+        if (normalizedPosition < 0) {
+            normalizedPosition += MINUTE_WHEEL_VALUE_COUNT;
+        }
+        return normalizedPosition;
+    }
+
+    private void normalizeLoopingHourWheel(RecyclerView recyclerView,
+                                           TimeWheelAdapter adapter,
+                                           LinearSnapHelper snapHelper) {
+        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+        if (!(layoutManager instanceof LinearLayoutManager)) {
+            return;
+        }
+
+        int snappedPosition = getSnappedAdapterPosition(recyclerView, snapHelper);
+        int normalizedPosition = getLoopingHourInitialPosition(
+                getHourValueFromLoopPosition(snappedPosition));
+        if (snappedPosition == normalizedPosition) {
+            return;
+        }
+
+        ((LinearLayoutManager) layoutManager).scrollToPositionWithOffset(normalizedPosition, 0);
+        adapter.setSelectedPosition(normalizedPosition);
+    }
+
+    private void normalizeLoopingMinuteWheel(RecyclerView recyclerView,
+                                             TimeWheelAdapter adapter,
+                                             LinearSnapHelper snapHelper) {
+        RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
+        if (!(layoutManager instanceof LinearLayoutManager)) {
+            return;
+        }
+
+        int snappedPosition = getSnappedAdapterPosition(recyclerView, snapHelper);
+        int normalizedPosition = getLoopingMinuteInitialPosition(
+                getMinuteValueFromLoopPosition(snappedPosition));
+        if (snappedPosition == normalizedPosition) {
+            return;
+        }
+
+        ((LinearLayoutManager) layoutManager).scrollToPositionWithOffset(normalizedPosition, 0);
+        adapter.setSelectedPosition(normalizedPosition);
+    }
+
+    private int getTotalMinutesForSelection(int selectedHourIndex,
+                                            int selectedMinuteIndex,
+                                            int selectedAmPm) {
+        int selectedHour12 = getHourValueFromLoopPosition(selectedHourIndex);
+        int selectedMinute = getMinuteValueFromLoopPosition(selectedMinuteIndex);
+        int hour24 = (selectedAmPm == 0)
+                ? (selectedHour12 == 12 ? 0 : selectedHour12)
+                : (selectedHour12 == 12 ? 12 : selectedHour12 + 12);
+        return hour24 * 60 + selectedMinute;
+    }
+
+    private void updateConfirmButtonState(TextView btnConfirm, boolean enabled) {
+        btnConfirm.setEnabled(enabled);
+        btnConfirm.setClickable(enabled);
+        btnConfirm.setBackgroundResource(enabled
+                ? R.drawable.bg_time_picker_confirm
+                : R.drawable.bg_time_picker_confirm_disabled);
+        btnConfirm.setTextColor(ContextCompat.getColor(requireContext(),
+                enabled ? R.color.time_picker_confirm_text : R.color.time_picker_confirm_disabled_text));
+        btnConfirm.setAlpha(enabled ? 1f : 0.9f);
+    }
+
+    private void maybeShowInvalidEndTimeToast(boolean hasUserInteracted,
+                                              boolean currentSelectionValid,
+                                              boolean[] invalidToastShown) {
+        if (!hasUserInteracted || currentSelectionValid || invalidToastShown[0]) {
+            return;
+        }
+
+        Toast.makeText(requireContext(),
+                INVALID_CLASS_SCHEDULE_MESSAGE,
+                Toast.LENGTH_SHORT).show();
+        invalidToastShown[0] = true;
+    }
+
+    private int clampInitialTimeSelection(ScheduleBlockBinding binding, boolean isStart, int totalMinutes) {
+        int minAllowed = isStart ? MIN_CLASS_START_MINUTES : MIN_CLASS_START_MINUTES + MIN_CLASS_DURATION_MINUTES;
+        int maxAllowed = isStart ? getLatestAllowedStartMinutes(binding) : MAX_CLASS_END_MINUTES;
+        if (maxAllowed < minAllowed) {
+            return minAllowed;
+        }
+        return Math.max(minAllowed, Math.min(maxAllowed, totalMinutes));
+    }
+
+    private int getLatestAllowedStartMinutes(@NonNull ScheduleBlockBinding binding) {
+        int latestAllowed = MAX_CLASS_END_MINUTES - MIN_CLASS_DURATION_MINUTES;
+        if (binding.endMinutes >= 0) {
+            latestAllowed = Math.min(latestAllowed, binding.endMinutes - MIN_CLASS_DURATION_MINUTES);
+        }
+        return latestAllowed;
+    }
+
+    private boolean isValidTimeSelectionForBlock(@NonNull ScheduleBlockBinding binding,
+                                                 boolean isStart,
+                                                 int totalMinutes) {
+        if (isStart) {
+            if (totalMinutes < MIN_CLASS_START_MINUTES) {
+                return false;
+            }
+            if (totalMinutes > MAX_CLASS_END_MINUTES - MIN_CLASS_DURATION_MINUTES) {
+                return false;
+            }
+            return binding.endMinutes < 0 || isValidScheduleRange(totalMinutes, binding.endMinutes);
+        }
+
+        if (totalMinutes > MAX_CLASS_END_MINUTES) {
+            return false;
+        }
+        if (totalMinutes < MIN_CLASS_START_MINUTES + MIN_CLASS_DURATION_MINUTES) {
+            return false;
+        }
+        return binding.startMinutes < 0 || isValidScheduleRange(binding.startMinutes, totalMinutes);
+    }
+
+    private boolean isValidScheduleDay(int dayOfWeek) {
+        return dayOfWeek >= 1 && dayOfWeek < SUNDAY_DAY_VALUE;
+    }
+
+    private boolean isValidClassSchedule(int startMinutes, int endMinutes) {
+        return startMinutes >= MIN_CLASS_START_MINUTES
+                && endMinutes <= MAX_CLASS_END_MINUTES
+                && isValidScheduleRange(startMinutes, endMinutes);
+    }
+
+    private boolean isValidScheduleRange(int startMinutes, int endMinutes) {
+        return endMinutes > startMinutes
+                && (endMinutes - startMinutes) >= MIN_CLASS_DURATION_MINUTES;
+    }
+
+    private boolean hasExactDuplicateSchedule(@NonNull String title,
+                                              @Nullable ScheduleEntryEntity existing) {
+        String normalizedTitle = normalizeKey(title);
+        if (normalizedTitle == null) {
+            return false;
+        }
+
+        List<PendingScheduleBlock> pendingBlocks = buildPendingScheduleBlocks(existing);
+        for (int i = 0; i < pendingBlocks.size(); i++) {
+            PendingScheduleBlock pendingBlock = pendingBlocks.get(i);
+
+            for (ScheduleEntryEntity schedule : allSchedules) {
+                if (pendingBlock.existingEntryId != null && schedule.id == pendingBlock.existingEntryId) {
+                    continue;
+                }
+                if (isExactDuplicateSchedule(
+                        normalizedTitle,
+                        pendingBlock.dayOfWeek,
+                        pendingBlock.startMinutes,
+                        pendingBlock.endMinutes,
+                        schedule
+                )) {
+                    return true;
+                }
+            }
+
+            for (int j = i + 1; j < pendingBlocks.size(); j++) {
+                PendingScheduleBlock otherBlock = pendingBlocks.get(j);
+                if (pendingBlock.dayOfWeek == otherBlock.dayOfWeek
+                        && pendingBlock.startMinutes == otherBlock.startMinutes
+                        && pendingBlock.endMinutes == otherBlock.endMinutes) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean hasScheduleOverlap(@Nullable ScheduleEntryEntity existing) {
+        List<PendingScheduleBlock> pendingBlocks = buildPendingScheduleBlocks(existing);
+
+        for (int i = 0; i < pendingBlocks.size(); i++) {
+            PendingScheduleBlock pendingBlock = pendingBlocks.get(i);
+
+            for (ScheduleEntryEntity schedule : allSchedules) {
+                if (pendingBlock.existingEntryId != null && schedule.id == pendingBlock.existingEntryId) {
+                    continue;
+                }
+                if (isTimeOverlap(
+                        pendingBlock.dayOfWeek,
+                        pendingBlock.startMinutes,
+                        pendingBlock.endMinutes,
+                        schedule.dayOfWeek,
+                        schedule.startMinutes,
+                        schedule.endMinutes
+                )) {
+                    return true;
+                }
+            }
+
+            for (int j = i + 1; j < pendingBlocks.size(); j++) {
+                PendingScheduleBlock otherBlock = pendingBlocks.get(j);
+                if (isTimeOverlap(
+                        pendingBlock.dayOfWeek,
+                        pendingBlock.startMinutes,
+                        pendingBlock.endMinutes,
+                        otherBlock.dayOfWeek,
+                        otherBlock.startMinutes,
+                        otherBlock.endMinutes
+                )) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    @NonNull
+    private List<PendingScheduleBlock> buildPendingScheduleBlocks(@Nullable ScheduleEntryEntity existing) {
+        List<PendingScheduleBlock> pendingBlocks = new ArrayList<>();
+        for (int i = 0; i < scheduleBlocks.size(); i++) {
+            ScheduleBlockBinding block = scheduleBlocks.get(i);
+            Integer editingEntryId = (existing != null && i == 0) ? existing.id : null;
+            pendingBlocks.add(new PendingScheduleBlock(
+                    block.selectedDay,
+                    block.startMinutes,
+                    block.endMinutes,
+                    editingEntryId
+            ));
+        }
+        return pendingBlocks;
+    }
+
+    private boolean isTimeOverlap(int firstDay,
+                                  int firstStartMinutes,
+                                  int firstEndMinutes,
+                                  int secondDay,
+                                  int secondStartMinutes,
+                                  int secondEndMinutes) {
+        return firstDay == secondDay
+                && firstStartMinutes < secondEndMinutes
+                && secondStartMinutes < firstEndMinutes;
+    }
+
+    private boolean isExactDuplicateSchedule(@NonNull String normalizedTitle,
+                                             int dayOfWeek,
+                                             int startMinutes,
+                                             int endMinutes,
+                                             @NonNull ScheduleEntryEntity schedule) {
+        return dayOfWeek == schedule.dayOfWeek
+                && startMinutes == schedule.startMinutes
+                && endMinutes == schedule.endMinutes
+                && normalizedTitle.equals(normalizeKey(schedule.title));
+    }
+
+    private void confirmDeleteSchedule(@NonNull ScheduleEntryEntity entry,
+                                       @NonNull Dialog hostDialog) {
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Delete schedule")
+                .setMessage("Remove this class from your schedule?")
+                .setNegativeButton("Cancel", null)
+                .setPositiveButton("Delete", (dialog, which) ->
+                        viewModel.deleteSchedule(entry, new ScheduleViewModel.SimpleCallback() {
+                            @Override
+                            public void onSuccess() {
+                                if (!isAdded()) return;
+                                requireActivity().runOnUiThread(() -> {
+                                    hostDialog.dismiss();
+                                    Toast.makeText(requireContext(),
+                                            "Schedule deleted", Toast.LENGTH_SHORT).show();
+                                });
+                            }
+
+                            @Override
+                            public void onError(String message) {
+                                if (!isAdded()) return;
+                                requireActivity().runOnUiThread(() ->
+                                        Toast.makeText(requireContext(),
+                                                message, Toast.LENGTH_SHORT).show());
+                            }
+                        }))
+                .show();
+    }
+
     private void showScheduleDetailDialog(ScheduleEntryEntity entry) {
         if (!isAdded()) return;
 
@@ -1716,31 +2116,7 @@ public class ScheduleFragment extends Fragment {
             showScheduleFormDialog(entry);
         });
 
-        btnDelete.setOnClickListener(v ->
-                new MaterialAlertDialogBuilder(requireContext())
-                        .setTitle("Delete schedule")
-                        .setMessage("Remove this class from your schedule?")
-                        .setNegativeButton("Cancel", null)
-                        .setPositiveButton("Delete", (dialog, which) ->
-                                viewModel.deleteSchedule(entry, new ScheduleViewModel.SimpleCallback() {
-                                    @Override
-                                    public void onSuccess() {
-                                        if (!isAdded()) return;
-                                        requireActivity().runOnUiThread(() -> {
-                                            detailDialog.dismiss();
-                                            Toast.makeText(requireContext(),
-                                                    "Schedule deleted", Toast.LENGTH_SHORT).show();
-                                        });
-                                    }
-                                    @Override
-                                    public void onError(String message) {
-                                        if (!isAdded()) return;
-                                        requireActivity().runOnUiThread(() ->
-                                                Toast.makeText(requireContext(),
-                                                        message, Toast.LENGTH_SHORT).show());
-                                    }
-                                }))
-                        .show());
+        btnDelete.setOnClickListener(v -> confirmDeleteSchedule(entry, detailDialog));
 
         btnDirections.setOnClickListener(v -> {
             if (entry.roomId == null) return;
@@ -1816,6 +2192,11 @@ public class ScheduleFragment extends Fragment {
         }
     }
 
+    private int getDefaultSchedulableDay() {
+        int defaultDay = getDefaultDay();
+        return isValidScheduleDay(defaultDay) ? defaultDay : 1;
+    }
+
     private String buildRoomDisplay(RoomEntity room) {
         String name = room.name != null ? room.name : "Room";
         if (room.code != null && !room.code.isBlank())
@@ -1864,6 +2245,13 @@ public class ScheduleFragment extends Fragment {
         if (value == null) return null;
         String t = value.trim();
         return t.isEmpty() ? null : t;
+    }
+
+    private String normalizeKey(String value) {
+        String normalizedValue = normalize(value);
+        return normalizedValue != null
+                ? normalizedValue.toLowerCase(Locale.ROOT)
+                : null;
     }
 
     private String formatMinutes(int minutes) {
@@ -2050,5 +2438,23 @@ public class ScheduleFragment extends Fragment {
         int selectedDay  = 1;
         int startMinutes = -1;
         int endMinutes   = -1;
+    }
+
+    private static class PendingScheduleBlock {
+        final int dayOfWeek;
+        final int startMinutes;
+        final int endMinutes;
+        @Nullable
+        final Integer existingEntryId;
+
+        private PendingScheduleBlock(int dayOfWeek,
+                                     int startMinutes,
+                                     int endMinutes,
+                                     @Nullable Integer existingEntryId) {
+            this.dayOfWeek = dayOfWeek;
+            this.startMinutes = startMinutes;
+            this.endMinutes = endMinutes;
+            this.existingEntryId = existingEntryId;
+        }
     }
 }

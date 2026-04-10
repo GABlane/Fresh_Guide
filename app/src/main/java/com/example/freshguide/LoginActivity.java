@@ -180,6 +180,11 @@ public class LoginActivity extends AppCompatActivity {
             btnCreateAccount.setEnabled(!loading);
 
             if (state == LoginViewModel.State.SUCCESS_STUDENT || state == LoginViewModel.State.SUCCESS_ADMIN) {
+                int messageRes = state == LoginViewModel.State.SUCCESS_ADMIN
+                        ? R.string.toast_login_success_admin
+                        : R.string.toast_login_success_student;
+                Toast.makeText(this, messageRes, Toast.LENGTH_SHORT).show();
+
                 boolean onboardingDone = getSharedPreferences(
                         OnboardingActivity.PREFS_NAME, MODE_PRIVATE)
                         .getBoolean(OnboardingActivity.KEY_ONBOARDING_COMPLETE, false);

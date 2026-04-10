@@ -64,32 +64,16 @@ public class SplashActivity extends AppCompatActivity {
 
 
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
-
-                        // =========================================================
-                        // TESTING MODE: auto-create session and skip LoginActivity
-                        // comment this after testing
-                        // =========================================================
                         SessionManager session = SessionManager.getInstance(SplashActivity.this);
-//                        session.saveSession(
-//                                "debug_token_123",
-//                                SessionManager.ROLE_STUDENT,
-//                                "20230372-S",
-//                                "Test Student"
-//                        );
 
-                        session.saveSession(
-                                "debug_token_123",
-                                SessionManager.ROLE_ADMIN,
-                                "20230372-S",
-                                "Test Student"
-                        );
-                        startActivity(new Intent(SplashActivity.this, MainActivity.class));
+                        Intent nextIntent;
+                        if (session.isLoggedIn()) {
+                            nextIntent = new Intent(SplashActivity.this, MainActivity.class);
+                        } else {
+                            nextIntent = new Intent(SplashActivity.this, LoginActivity.class);
+                        }
 
-                        // =========================================================
-                        // ORIGINAL CODE: go to login
-                        // Uncomment this after testing is done
-                        // =========================================================
-//                         startActivity(new Intent(SplashActivity.this, LoginActivity.class));
+                        startActivity(nextIntent);
 
                         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                         finish();

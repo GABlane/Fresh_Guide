@@ -144,12 +144,11 @@
 
             <Button
                 android:id="@+id/btn_save"
-                style="@style/Style.FreshGuide.Button.Admin.Primary"
+                style="@style/Style.FreshGuide.Button.Admin.BottomSheetPrimary"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
-                android:text="Save"
-                android:textSize="14sp" />
+                android:text="Save" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </LinearLayout>

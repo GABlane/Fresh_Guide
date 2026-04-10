@@ -422,7 +422,7 @@
 
             <View
                 android:id="@+id/line_left_bottom"
-                android:layout_width="4dp"
+                android:layout_width="6dp"
                 android:layout_height="70dp"
                 android:layout_marginTop="4dp"
                 android:background="@color/map_orange"
@@ -452,7 +452,7 @@
 
             <View
                 android:id="@+id/line_left_top"
-                android:layout_width="4dp"
+                android:layout_width="6dp"
                 android:layout_height="110dp"
                 android:background="@color/map_orange"
                 app:layout_constraintStart_toStartOf="parent"

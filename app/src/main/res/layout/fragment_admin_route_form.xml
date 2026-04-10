@@ -210,18 +210,11 @@
 
                     <Button
                         android:id="@+id/btn_add_step"
+                        style="@style/Style.FreshGuide.Button.Admin.BottomSheetAssist"
                         android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:background="@drawable/bg_field_pill"
-                        android:fontFamily="@font/inter_medium"
+                        android:layout_height="wrap_content"
                         android:minWidth="0dp"
-                        android:paddingStart="16dp"
-                        android:paddingEnd="16dp"
-                        android:text="Add Step"
-                        android:textAllCaps="false"
-                        android:textColor="@color/green_dark"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
+                        android:text="Add Step" />
                 </LinearLayout>
 
                 <TextView
@@ -268,11 +261,10 @@
 
         <Button
             android:id="@+id/btn_save"
-            style="@style/Style.FreshGuide.Button.Admin.Primary"
+            style="@style/Style.FreshGuide.Button.Admin.BottomSheetPrimary"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="Save Route"
-            android:textSize="15sp" />
+            android:layout_height="wrap_content"
+            android:text="Save Route" />
 
         <ProgressBar
             android:id="@+id/progress_bar"

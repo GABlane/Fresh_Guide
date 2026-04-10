@@ -7,16 +7,24 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.util.Log;
 
+import com.example.freshguide.database.AppDatabase;
 import com.example.freshguide.model.entity.ScheduleEntryEntity;
 import com.example.freshguide.receiver.ScheduleReminderReceiver;
 
 import java.util.Calendar;
+import java.util.Locale;
+import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public final class ScheduleReminderHelper {
 
     public static final String CHANNEL_ID = "schedule_reminders";
     public static final String EXTRA_SCHEDULE_ID = "schedule_id";
+    private static final String TAG = "ScheduleReminderHelper";
+    private static final Executor REMINDER_EXECUTOR = Executors.newSingleThreadExecutor();
 
     private ScheduleReminderHelper() {
     }
@@ -49,6 +57,9 @@ public final class ScheduleReminderHelper {
         if (entry == null || entry.id <= 0 || entry.reminderMinutes <= 0) {
             return;
         }
+        if (!SessionManager.getInstance(context).isScheduleNotificationsEnabled()) {
+            return;
+        }
 
         long triggerAtMillis = computeNextReminderMillis(entry.dayOfWeek, entry.startMinutes, entry.reminderMinutes);
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
@@ -58,6 +69,7 @@ public final class ScheduleReminderHelper {
 
         PendingIntent pendingIntent = buildReminderPendingIntent(context, entry.id);
         alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
+        Log.d(TAG, "Scheduled reminder: " + buildReminderScheduledMessage(entry));
     }
 
     public static void cancelReminder(Context context, int scheduleId) {
@@ -70,6 +82,45 @@ public final class ScheduleReminderHelper {
         }
         PendingIntent pendingIntent = buildReminderPendingIntent(context, scheduleId);
         alarmManager.cancel(pendingIntent);
+    }
+
+    public static void syncAllReminders(Context context) {
+        Context appContext = context.getApplicationContext();
+        REMINDER_EXECUTOR.execute(() -> {
+            SessionManager sessionManager = SessionManager.getInstance(appContext);
+            String ownerKey = sessionManager.getStudentId();
+            if (ownerKey == null || ownerKey.isBlank()) {
+                return;
+            }
+
+            List<ScheduleEntryEntity> schedules = AppDatabase.getInstance(appContext)
+                    .scheduleDao()
+                    .getVisibleByOwnerSync(ownerKey);
+
+            for (ScheduleEntryEntity entry : schedules) {
+                cancelReminder(appContext, entry.id);
+                if (sessionManager.isScheduleNotificationsEnabled()) {
+                    scheduleReminder(appContext, entry);
+                }
+            }
+        });
+    }
+
+    public static String buildReminderScheduledMessage(ScheduleEntryEntity entry) {
+        if (entry == null || entry.reminderMinutes <= 0) {
+            return "Reminder is off";
+        }
+
+        long triggerAtMillis = computeNextReminderMillis(
+                entry.dayOfWeek, entry.startMinutes, entry.reminderMinutes);
+        Calendar trigger = Calendar.getInstance();
+        trigger.setTimeInMillis(triggerAtMillis);
+
+        return String.format(
+                Locale.getDefault(),
+                "Reminder set for %tA %tI:%tM %Tp",
+                trigger, trigger, trigger, trigger
+        );
     }
 
     private static PendingIntent buildReminderPendingIntent(Context context, int scheduleId) {

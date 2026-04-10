@@ -86,6 +86,8 @@
     <string name="label_student_id">Enter Student ID</string>
     <string name="hint_student_id_manual">e.g. 20230054-S</string>
     <string name="btn_sign_in_student">SIGN IN</string>
+    <string name="toast_login_success_student">Student login successful</string>
+    <string name="toast_login_success_admin">Admin login successful</string>
 
     <string name="qr_scanner_hint">Position school ID QR code within the frame</string>
     <string name="qr_scanner_status_success">QR scanned successfully!</string>

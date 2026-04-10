@@ -113,6 +113,9 @@ public class ScheduleSyncRepository {
                     db.scheduleDao().update(entry);
                 }
 
+                ScheduleReminderHelper.cancelReminder(appContext, entry.id);
+                ScheduleReminderHelper.scheduleReminder(appContext, entry);
+
                 mainHandler.post(() -> callback.onSuccess(entry));
                 syncNow();
             } catch (Exception e) {

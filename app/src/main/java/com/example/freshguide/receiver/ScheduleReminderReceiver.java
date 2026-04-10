@@ -7,11 +7,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import com.example.freshguide.BuildConfig;
 import com.example.freshguide.MainActivity;
 import com.example.freshguide.R;
 import com.example.freshguide.database.AppDatabase;
@@ -45,6 +49,7 @@ public class ScheduleReminderReceiver extends BroadcastReceiver {
 
             ScheduleReminderHelper.ensureNotificationChannel(context);
             showNotification(context, entry);
+            showDebugToast(context, entry);
             ScheduleReminderHelper.scheduleReminder(context, entry);
         });
     }
@@ -80,6 +85,16 @@ public class ScheduleReminderReceiver extends BroadcastReceiver {
 
         NotificationManagerCompat manager = NotificationManagerCompat.from(context);
         manager.notify(10000 + entry.id, builder.build());
+    }
+
+    private void showDebugToast(Context context, ScheduleEntryEntity entry) {
+        if (!BuildConfig.DEBUG) {
+            return;
+        }
+
+        String message = "Reminder fired: " + entry.title + " at " + formatMinutes(entry.startMinutes);
+        new Handler(Looper.getMainLooper()).post(() ->
+                Toast.makeText(context.getApplicationContext(), message, Toast.LENGTH_LONG).show());
     }
 
     private String formatMinutes(int minutes) {

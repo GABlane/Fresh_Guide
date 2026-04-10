@@ -132,6 +132,9 @@
     <color name="time_picker_confirm_bg">#DFF5DF</color>
     <color name="time_picker_confirm_stroke">#12770E</color>
     <color name="time_picker_confirm_text">#12770E</color>
+    <color name="time_picker_confirm_disabled_bg">#F3F3F3</color>
+    <color name="time_picker_confirm_disabled_stroke">#D9D9D9</color>
+    <color name="time_picker_confirm_disabled_text">#9E9E9E</color>
     <color name="time_picker_text_primary">#12770E</color>
     <color name="time_picker_text_secondary">#A9D9A7</color>
     <color name="time_picker_divider">#6612770E</color>
