@@ -150,6 +150,7 @@
     <color name="bg_profile_start">#CFCFCF</color>
     <color name="bg_profile_end">#9E9E9E</color>
 
+    <color name="splash_reveal_surface">#FFFFFF</color>
 
 
     <color name="label">#188114</color>

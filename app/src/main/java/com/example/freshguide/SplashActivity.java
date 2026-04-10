@@ -1,87 +1,100 @@
 package com.example.freshguide;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
+import android.view.ViewAnimationUtils;
+import android.view.ViewGroup;
+import android.view.animation.PathInterpolator;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
+import com.example.freshguide.ui.view.SplashArrowAnimationView;
 import com.example.freshguide.util.SessionManager;
 
 public class SplashActivity extends AppCompatActivity {
 
-    private static final int STEP1_DURATION_MS  = 1000;
-    private static final int STEP2_DURATION_MS  = 800;
-    private static final int SPINNER_FADE_MS    = 400;
-    private static final int LOADING_HOLD_MS    = 1200;
+    private static final long CIRCLE_REVEAL_DURATION_MS = 460L;
+
+    private boolean handoffStarted = false;
+    private View splashRoot;
+    private SplashArrowAnimationView splashArrowView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        ImageView logoMark  = findViewById(R.id.logoMark);
-        ImageView logoFull  = findViewById(R.id.logoFull);
-        ProgressBar spinner = findViewById(R.id.loadingSpinner);
+        splashRoot      = findViewById(R.id.splashRoot);
+        splashArrowView = findViewById(R.id.splashArrowView);
 
-        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-
-
-            AlphaAnimation fadeOut = new AlphaAnimation(1f, 0f);
-            fadeOut.setDuration(STEP2_DURATION_MS);
-            fadeOut.setFillAfter(true);
-            logoMark.startAnimation(fadeOut);
+        splashArrowView.post(() ->
+                splashArrowView.startRevealSequence(this::finishSplash));
+    }
 
 
-            logoFull.setVisibility(View.VISIBLE);
-            AlphaAnimation fadeIn = new AlphaAnimation(0f, 1f);
-            fadeIn.setDuration(STEP2_DURATION_MS);
-            fadeIn.setFillAfter(true);
-            logoFull.startAnimation(fadeIn);
+    private void finishSplash() {
+        if (handoffStarted || splashRoot == null || splashArrowView == null) {
+            return;
+        }
+        handoffStarted = true;
+
+        int[] loc = new int[2];
+        splashArrowView.getLocationInWindow(loc);
+        int cx = loc[0] + splashArrowView.getWidth()  / 2;
+        int cy = loc[1] + splashArrowView.getHeight() / 2;
+
+        View revealOverlay = new View(this);
+        revealOverlay.setBackgroundColor(
+                ContextCompat.getColor(this, R.color.splash_reveal_surface));
+
+        ViewGroup decor = (ViewGroup) getWindow().getDecorView();
+        decor.addView(revealOverlay, new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+
+        float maxRadius = (float) Math.hypot(decor.getWidth(), decor.getHeight());
+        Animator reveal = ViewAnimationUtils.createCircularReveal(
+                revealOverlay, cx, cy, 0f, maxRadius);
+        reveal.setDuration(CIRCLE_REVEAL_DURATION_MS);
+        reveal.setInterpolator(new PathInterpolator(0.4f, 0f, 0.2f, 1f));
+
+        splashArrowView.animate()
+                .alpha(0f)
+                .setDuration(CIRCLE_REVEAL_DURATION_MS / 2)
+                .start();
+
+        reveal.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                navigateFromSplash();
+            }
+        });
+
+        reveal.start();
+    }
 
 
-            fadeIn.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {}
+    private void navigateFromSplash() {
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
 
-                @Override
-                public void onAnimationRepeat(Animation animation) {}
+        SessionManager session = SessionManager.getInstance(SplashActivity.this);
 
-                @Override
-                public void onAnimationEnd(Animation animation) {
+        Intent nextIntent;
+        if (session.isLoggedIn()) {
+            nextIntent = new Intent(SplashActivity.this, MainActivity.class);
+        } else {
+            nextIntent = new Intent(SplashActivity.this, LoginActivity.class);
+        }
 
-                    spinner.setVisibility(View.VISIBLE);
-                    AlphaAnimation spinnerFadeIn = new AlphaAnimation(0f, 1f);
-                    spinnerFadeIn.setDuration(SPINNER_FADE_MS);
-                    spinnerFadeIn.setFillAfter(true);
-                    spinner.startAnimation(spinnerFadeIn);
+        startActivity(nextIntent);
 
-
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        SessionManager session = SessionManager.getInstance(SplashActivity.this);
-
-                        Intent nextIntent;
-                        if (session.isLoggedIn()) {
-                            nextIntent = new Intent(SplashActivity.this, MainActivity.class);
-                        } else {
-                            nextIntent = new Intent(SplashActivity.this, LoginActivity.class);
-                        }
-
-                        startActivity(nextIntent);
-
-                        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
-                        finish();
-
-                    }, LOADING_HOLD_MS);
-                }
-            });
-
-        }, STEP1_DURATION_MS);
+        overridePendingTransition(0, 0);
+        finish();
     }
 }
