@@ -42,6 +42,8 @@ public class AdminViewModel extends AndroidViewModel {
 
     private static final Set<String> EXCLUDED_DASHBOARD_ROOM_CODES = new HashSet<>(Arrays.asList(
             "COURT",
+            "REG",
+            "LIB",
             "ENT",
             "EXIT",
             "MAIN-3-STUDENT-AFFAIRS",

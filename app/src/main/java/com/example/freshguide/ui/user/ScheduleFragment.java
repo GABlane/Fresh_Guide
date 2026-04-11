@@ -2458,7 +2458,11 @@ public class ScheduleFragment extends Fragment {
     private boolean isCampusAreaCode(String code) {
         if (code == null) return false;
         String n = code.trim().toUpperCase(Locale.ROOT);
-        return "COURT".equals(n) || "ENT".equals(n) || "EXIT".equals(n);
+        return "COURT".equals(n)
+                || "REG".equals(n)
+                || "LIB".equals(n)
+                || "ENT".equals(n)
+                || "EXIT".equals(n);
     }
 
     private int positionToReminder(int position) {

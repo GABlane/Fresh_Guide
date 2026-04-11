@@ -20,6 +20,9 @@ import androidx.core.content.ContextCompat;
 
 import com.example.freshguide.R;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class RoutePathOverlayView extends View {
 
     private final Paint routePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -43,6 +46,8 @@ public class RoutePathOverlayView extends View {
     private PointF endPoint;
     @Nullable
     private Float bendX;
+    @NonNull
+    private final List<PointF> routeWaypoints = new ArrayList<>();
     @Nullable
     private PointF interactiveAnchorPoint;
     @Nullable
@@ -101,6 +106,7 @@ public class RoutePathOverlayView extends View {
         startPoint = null;
         endPoint = null;
         bendX = null;
+        routeWaypoints.clear();
         interactiveAnchorPoint = null;
         stopRouteAnimation();
         invalidate();
@@ -117,6 +123,27 @@ public class RoutePathOverlayView extends View {
         this.startPoint = startPoint;
         this.endPoint = endPoint;
         this.bendX = bendX;
+        routeWaypoints.clear();
+        this.interactiveAnchorPoint = interactiveAnchorPoint;
+        updateRouteAnimationState();
+        invalidate();
+    }
+
+    public void setRouteWithWaypoints(@Nullable PointF startPoint,
+                                      @Nullable PointF endPoint,
+                                      @Nullable List<PointF> waypoints,
+                                      @Nullable PointF interactiveAnchorPoint) {
+        this.startPoint = startPoint;
+        this.endPoint = endPoint;
+        this.bendX = null;
+        routeWaypoints.clear();
+        if (waypoints != null) {
+            for (PointF point : waypoints) {
+                if (point != null) {
+                    routeWaypoints.add(new PointF(point.x, point.y));
+                }
+            }
+        }
         this.interactiveAnchorPoint = interactiveAnchorPoint;
         updateRouteAnimationState();
         invalidate();
@@ -132,7 +159,11 @@ public class RoutePathOverlayView extends View {
         routePath.reset();
         routePath.moveTo(startPoint.x, startPoint.y);
 
-        if (bendX != null
+        if (!routeWaypoints.isEmpty()) {
+            for (PointF point : routeWaypoints) {
+                routePath.lineTo(point.x, point.y);
+            }
+        } else if (bendX != null
                 && (Math.abs(startPoint.x - bendX) > dpToPx(4)
                 || Math.abs(endPoint.x - bendX) > dpToPx(4))) {
             routePath.lineTo(bendX, startPoint.y);

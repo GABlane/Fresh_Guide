@@ -43,6 +43,8 @@ public class RoutePreviewMapView extends LinearLayout {
 
     private static final String CODE_MAIN = "MAIN";
     private static final String CODE_COURT = "COURT";
+    private static final String CODE_REG = "REG";
+    private static final String CODE_LIB = "LIB";
     private static final String CODE_ENT = "ENT";
     private static final String CODE_EXIT = "EXIT";
 
@@ -672,6 +674,8 @@ public class RoutePreviewMapView extends LinearLayout {
         }
         String normalized = code.trim().toUpperCase(Locale.US);
         return CODE_COURT.equals(normalized)
+                || CODE_REG.equals(normalized)
+                || CODE_LIB.equals(normalized)
                 || CODE_ENT.equals(normalized)
                 || CODE_EXIT.equals(normalized);
     }

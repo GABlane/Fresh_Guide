@@ -34,7 +34,7 @@ import retrofit2.Response;
 public class AdminCampusAreaListFragment extends Fragment {
 
     private static final Set<String> CAMPUS_AREA_CODES =
-            new HashSet<>(Arrays.asList("COURT", "ENT", "EXIT"));
+            new HashSet<>(Arrays.asList("COURT", "REG", "LIB", "ENT", "EXIT"));
 
     private GenericListAdapter adapter;
 
@@ -51,7 +51,7 @@ public class AdminCampusAreaListFragment extends Fragment {
 
         ((TextView) view.findViewById(R.id.tv_admin_page_title)).setText("Campus Areas");
         ((TextView) view.findViewById(R.id.tv_admin_page_subtitle))
-                .setText("Update mapped landmarks like the court, entrance, and exit with student-facing consistency.");
+                .setText("Update mapped landmarks like court, registrar, library, entrance, and exit with student-facing consistency.");
 
         adapter = new GenericListAdapter();
         adapter.setDeleteEnabled(false);
@@ -135,8 +135,10 @@ public class AdminCampusAreaListFragment extends Fragment {
         if (subtitle == null) return 99;
         String upper = subtitle.toUpperCase(Locale.ROOT);
         if (upper.startsWith("COURT")) return 1;
-        if (upper.startsWith("ENT")) return 2;
-        if (upper.startsWith("EXIT")) return 3;
+        if (upper.startsWith("REG")) return 2;
+        if (upper.startsWith("LIB")) return 3;
+        if (upper.startsWith("ENT")) return 4;
+        if (upper.startsWith("EXIT")) return 5;
         return 99;
     }
 }
