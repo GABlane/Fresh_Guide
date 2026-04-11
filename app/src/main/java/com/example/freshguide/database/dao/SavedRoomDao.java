@@ -14,10 +14,10 @@ import java.util.List;
 @Dao
 public interface SavedRoomDao {
 
-    @Query("SELECT EXISTS(SELECT 1 FROM saved_rooms WHERE owner_student_id = :ownerStudentId AND room_id = :roomId)")
+    @Query("SELECT EXISTS(SELECT 1 FROM saved_rooms WHERE owner_student_id = :ownerStudentId AND room_id = :roomId AND pending_delete = 0)")
     LiveData<Boolean> observeIsSaved(String ownerStudentId, int roomId);
 
-    @Query("SELECT EXISTS(SELECT 1 FROM saved_rooms WHERE owner_student_id = :ownerStudentId AND room_id = :roomId)")
+    @Query("SELECT EXISTS(SELECT 1 FROM saved_rooms WHERE owner_student_id = :ownerStudentId AND room_id = :roomId AND pending_delete = 0)")
     boolean isSavedSync(String ownerStudentId, int roomId);
 
     @Query("SELECT r.id AS roomId, " +
@@ -32,12 +32,22 @@ public interface SavedRoomDao {
             "JOIN floors f ON r.floor_id = f.id " +
             "JOIN buildings b ON f.building_id = b.id " +
             "WHERE s.owner_student_id = :ownerStudentId " +
+            "AND s.pending_delete = 0 " +
             "ORDER BY s.saved_at DESC, roomName ASC")
     LiveData<List<RoomSearchResult>> observeSavedRooms(String ownerStudentId);
+
+    @Query("SELECT * FROM saved_rooms WHERE owner_student_id = :ownerStudentId AND room_id = :roomId LIMIT 1")
+    SavedRoomEntity getByOwnerAndRoomSync(String ownerStudentId, int roomId);
+
+    @Query("SELECT * FROM saved_rooms WHERE owner_student_id = :ownerStudentId ORDER BY updated_at ASC")
+    List<SavedRoomEntity> getAllByOwnerSync(String ownerStudentId);
+
+    @Query("SELECT * FROM saved_rooms WHERE owner_student_id = :ownerStudentId AND sync_state != :cleanState ORDER BY updated_at ASC")
+    List<SavedRoomEntity> getPendingForSync(String ownerStudentId, int cleanState);
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void upsert(SavedRoomEntity savedRoom);
 
     @Query("DELETE FROM saved_rooms WHERE owner_student_id = :ownerStudentId AND room_id = :roomId")
-    void delete(String ownerStudentId, int roomId);
+    void deleteByOwnerAndRoom(String ownerStudentId, int roomId);
 }

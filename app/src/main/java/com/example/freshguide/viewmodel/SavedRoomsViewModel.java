@@ -20,6 +20,7 @@ public class SavedRoomsViewModel extends AndroidViewModel {
         super(application);
         savedRoomRepository = new SavedRoomRepository(application);
         savedRooms = savedRoomRepository.observeSavedRooms();
+        savedRoomRepository.syncNow();
     }
 
     public LiveData<List<RoomSearchResult>> getSavedRooms() {

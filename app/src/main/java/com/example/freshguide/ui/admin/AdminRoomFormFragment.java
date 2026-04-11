@@ -397,17 +397,27 @@ public class AdminRoomFormFragment extends BaseAdminBottomSheetFragment {
     
     private void loadRoomForEdit(int roomId) {
         ApiService api = ApiClient.getInstance(requireContext()).getApiService();
-        // Use the existing user room endpoint since it returns the same data
-        api.getRoom(roomId).enqueue(new Callback<ApiResponse<RoomDto>>() {
+        api.adminGetRoom(roomId).enqueue(new Callback<ApiResponse<RoomDto>>() {
             @Override
             public void onResponse(Call<ApiResponse<RoomDto>> call, Response<ApiResponse<RoomDto>> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
                     RoomDto room = response.body().getData();
+                    if (room == null) {
+                        showSnackbar("Room not found");
+                        return;
+                    }
                     populateFormFields(room);
 
                     imageExecutor.execute(() -> {
                         RoomEntity localRoom = db.roomDao().getByIdSync(room.id);
-                        String localCachedPath = localRoom != null ? localRoom.cachedImagePath : null;
+                        String localPath = null;
+                        if (localRoom != null
+                                && localRoom.code != null
+                                && room.code != null
+                                && localRoom.code.equalsIgnoreCase(room.code)) {
+                            localPath = localRoom.cachedImagePath;
+                        }
+                        final String localCachedPath = localPath;
 
                         if (localCachedPath != null && !localCachedPath.isBlank()) {
                             requireActivity().runOnUiThread(() -> loadExistingImage(localCachedPath));

@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
+import android.view.MotionEvent;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
@@ -156,6 +157,12 @@ public class RoutePathOverlayView extends View {
     protected void onDetachedFromWindow() {
         stopRouteAnimation();
         super.onDetachedFromWindow();
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        // Overlay is visual-only; never consume touch so map scrolling stays available.
+        return false;
     }
 
     private void drawOriginMarker(@NonNull Canvas canvas, @NonNull PointF anchor) {

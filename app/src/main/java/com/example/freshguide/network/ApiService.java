@@ -4,6 +4,7 @@ import com.example.freshguide.model.dto.ApiResponse;
 import com.example.freshguide.model.dto.BootstrapResponse;
 import com.example.freshguide.model.dto.BuildingDto;
 import com.example.freshguide.model.dto.FacilityDto;
+import com.example.freshguide.model.dto.FavoriteRoomDto;
 import com.example.freshguide.model.dto.FloorDto;
 import com.example.freshguide.model.dto.LoginResponse;
 import com.example.freshguide.model.dto.OriginDto;
@@ -70,6 +71,15 @@ public interface ApiService {
     @GET("routes/{roomId}")
     Call<ApiResponse<RouteDto>> getRoute(@Path("roomId") int roomId, @Query("origin_id") int originId);
 
+    @GET("favorites")
+    Call<ApiResponse<List<FavoriteRoomDto>>> getFavorites();
+
+    @PUT("favorites/{roomId}")
+    Call<ApiResponse<FavoriteRoomDto>> saveFavorite(@Path("roomId") int roomId);
+
+    @DELETE("favorites/{roomId}")
+    Call<ApiResponse<Void>> deleteFavorite(@Path("roomId") int roomId);
+
     // ── User — Schedule ───────────────────────────────────────────────────────
 
     @GET("schedules")
@@ -116,6 +126,9 @@ public interface ApiService {
 
     @GET("admin/rooms")
     Call<ApiResponse<List<RoomDto>>> adminGetRooms();
+
+    @GET("admin/rooms/{id}")
+    Call<ApiResponse<RoomDto>> adminGetRoom(@Path("id") int id);
 
     @POST("admin/rooms")
     Call<ApiResponse<RoomDto>> adminCreateRoom(@Body Map<String, Object> body);

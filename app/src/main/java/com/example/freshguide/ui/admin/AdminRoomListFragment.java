@@ -16,12 +16,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.freshguide.R;
 import com.example.freshguide.database.AppDatabase;
 import com.example.freshguide.model.dto.ApiResponse;
+import com.example.freshguide.model.dto.RoomDto;
 import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.network.ApiClient;
 import com.example.freshguide.ui.adapter.GenericListAdapter;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -34,7 +36,6 @@ public class AdminRoomListFragment extends Fragment {
 
     private GenericListAdapter adapter;
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
-    private List<RoomEntity> currentRooms = new ArrayList<>();
 
     @Nullable
     @Override
@@ -57,10 +58,10 @@ public class AdminRoomListFragment extends Fragment {
         recycler.setLayoutManager(new LinearLayoutManager(requireContext()));
         recycler.setAdapter(adapter);
         adapter.setOnItemClickListener((position, item) -> {
-            if (position < 0 || position >= currentRooms.size()) {
+            if (item == null || item.id <= 0) {
                 return;
             }
-            openRoomForm(currentRooms.get(position).id);
+            openRoomForm(item.id);
         });
         adapter.setOnActionListener(new GenericListAdapter.OnActionListener() {
             @Override
@@ -92,14 +93,50 @@ public class AdminRoomListFragment extends Fragment {
     }
 
     private void loadRooms() {
+        ApiClient.getInstance(requireContext()).getApiService()
+                .adminGetRooms()
+                .enqueue(new Callback<ApiResponse<List<RoomDto>>>() {
+                    @Override
+                    public void onResponse(Call<ApiResponse<List<RoomDto>>> call, Response<ApiResponse<List<RoomDto>>> response) {
+                        if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
+                            List<RoomDto> rooms = response.body().getData();
+                            if (rooms == null) {
+                                rooms = new ArrayList<>();
+                            }
+                            rooms.sort(Comparator.comparingInt(room -> room.id));
+
+                            List<GenericListAdapter.Item> items = new ArrayList<>();
+                            for (RoomDto room : rooms) {
+                                String subtitle = "#" + room.id + " · " + room.code + " · " + room.type;
+                                items.add(new GenericListAdapter.Item(room.id, room.name, subtitle));
+                            }
+                            if (!isAdded()) {
+                                return;
+                            }
+                            adapter.setItems(items);
+                            return;
+                        }
+
+                        loadRoomsFromLocalFallback();
+                    }
+
+                    @Override
+                    public void onFailure(Call<ApiResponse<List<RoomDto>>> call, Throwable t) {
+                        loadRoomsFromLocalFallback();
+                    }
+                });
+    }
+
+    private void loadRoomsFromLocalFallback() {
         final android.content.Context appContext = requireContext().getApplicationContext();
         final AppDatabase db = AppDatabase.getInstance(appContext);
         ioExecutor.execute(() -> {
             List<RoomEntity> rooms = db.roomDao().getAllRoomsSync();
-            currentRooms = rooms;
+            rooms.sort(Comparator.comparingInt(room -> room.id));
             List<GenericListAdapter.Item> items = new ArrayList<>();
             for (RoomEntity r : rooms) {
-                items.add(new GenericListAdapter.Item(r.id, r.name, r.code + " · " + r.type));
+                String subtitle = "#" + r.id + " · " + r.code + " · " + r.type;
+                items.add(new GenericListAdapter.Item(r.id, r.name, subtitle));
             }
             if (!isAdded()) {
                 return;

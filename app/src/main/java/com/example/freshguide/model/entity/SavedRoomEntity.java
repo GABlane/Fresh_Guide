@@ -18,10 +18,15 @@ import androidx.room.Index;
         indices = {
                 @Index("owner_student_id"),
                 @Index("room_id"),
-                @Index(value = {"owner_student_id", "saved_at"})
+                @Index(value = {"owner_student_id", "saved_at"}),
+                @Index("sync_state"),
+                @Index(value = {"owner_student_id", "sync_state"})
         }
 )
 public class SavedRoomEntity {
+
+    public static final int SYNC_STATE_DIRTY = 0;
+    public static final int SYNC_STATE_CLEAN = 1;
 
     @NonNull
     @ColumnInfo(name = "owner_student_id")
@@ -32,4 +37,13 @@ public class SavedRoomEntity {
 
     @ColumnInfo(name = "saved_at")
     public long savedAt;
+
+    @ColumnInfo(name = "sync_state", defaultValue = "0")
+    public int syncState;
+
+    @ColumnInfo(name = "pending_delete", defaultValue = "0")
+    public int pendingDelete;
+
+    @ColumnInfo(name = "updated_at", defaultValue = "0")
+    public long updatedAt;
 }

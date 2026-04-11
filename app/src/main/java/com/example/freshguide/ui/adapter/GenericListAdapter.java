@@ -131,7 +131,13 @@ public class GenericListAdapter extends ListAdapter<GenericListAdapter.Item, Gen
         holder.bind(item);
         holder.itemView.setOnClickListener(itemClickListener == null
                 ? null
-                : v -> itemClickListener.onItemClick(position, item));
+                : v -> {
+                    int currentPosition = holder.getAdapterPosition();
+                    if (currentPosition == RecyclerView.NO_POSITION) {
+                        return;
+                    }
+                    itemClickListener.onItemClick(currentPosition, getItem(currentPosition));
+                });
 
         boolean showEdit = actionsEnabled && editEnabled;
         boolean showDelete = actionsEnabled && deleteEnabled;
@@ -145,22 +151,33 @@ public class GenericListAdapter extends ListAdapter<GenericListAdapter.Item, Gen
         holder.btnEditIcon.setVisibility(iconActionsEnabled && showEdit ? View.VISIBLE : View.GONE);
         holder.btnDeleteIcon.setVisibility(iconActionsEnabled && showDelete ? View.VISIBLE : View.GONE);
 
-        bindAction(holder.btnEdit, !iconActionsEnabled && showEdit, () -> {
-            if (listener != null) listener.onEdit(position, item.id);
-        });
-        bindAction(holder.btnDelete, !iconActionsEnabled && showDelete, () -> {
-            if (listener != null) listener.onDelete(position, item.id);
-        });
-        bindAction(holder.btnEditIcon, iconActionsEnabled && showEdit, () -> {
-            if (listener != null) listener.onEdit(position, item.id);
-        });
-        bindAction(holder.btnDeleteIcon, iconActionsEnabled && showDelete, () -> {
-            if (listener != null) listener.onDelete(position, item.id);
-        });
+        bindAction(holder.btnEdit, !iconActionsEnabled && showEdit, holder, true);
+        bindAction(holder.btnDelete, !iconActionsEnabled && showDelete, holder, false);
+        bindAction(holder.btnEditIcon, iconActionsEnabled && showEdit, holder, true);
+        bindAction(holder.btnDeleteIcon, iconActionsEnabled && showDelete, holder, false);
     }
 
-    private void bindAction(View actionView, boolean visible, Runnable action) {
-        actionView.setOnClickListener(visible ? v -> action.run() : null);
+    private void bindAction(View actionView, boolean visible, @NonNull ViewHolder holder, boolean editAction) {
+        if (!visible) {
+            actionView.setOnClickListener(null);
+            return;
+        }
+
+        actionView.setOnClickListener(v -> {
+            if (listener == null) {
+                return;
+            }
+            int currentPosition = holder.getAdapterPosition();
+            if (currentPosition == RecyclerView.NO_POSITION) {
+                return;
+            }
+            Item currentItem = getItem(currentPosition);
+            if (editAction) {
+                listener.onEdit(currentPosition, currentItem.id);
+            } else {
+                listener.onDelete(currentPosition, currentItem.id);
+            }
+        });
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {

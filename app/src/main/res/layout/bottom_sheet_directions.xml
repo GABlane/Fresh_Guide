@@ -442,7 +442,7 @@
             android:clipChildren="false"
             android:clipToPadding="false"
             android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@id/btn_start_directions"
+            app:layout_constraintBottom_toTopOf="@id/layout_hide_sheet_hint"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/layout_destination_field">
@@ -508,6 +508,42 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_hide_sheet_hint"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toTopOf="@id/btn_start_directions"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <TextView
+                android:id="@+id/tv_hide_sheet_hint"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:alpha="0.62"
+                android:fontFamily="@font/inter_regular"
+                android:text="Need map touch? Tap Hide."
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_hide_sheet"
+                android:layout_width="82dp"
+                android:layout_height="36dp"
+                android:text="Hide"
+                android:textAllCaps="false"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                app:backgroundTint="@color/green_primary"
+                app:cornerRadius="16dp"
+                app:strokeColor="@color/green_primary"
+                app:strokeWidth="1dp" />
+        </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_start_directions"

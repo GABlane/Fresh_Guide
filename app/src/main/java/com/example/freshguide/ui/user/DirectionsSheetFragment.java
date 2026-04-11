@@ -51,6 +51,10 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
     public static final String ARG_PRESELECTED_ROOM_ID = "preselectedRoomId";
     public static final String ARG_PRESELECTED_ROOM_NAME = "preselectedRoomName";
+    public static final String ARG_PRESELECTED_ORIGIN_ID = "preselectedOriginId";
+    public static final String ARG_PRESELECTED_ORIGIN_ROOM_ID = "preselectedOriginRoomId";
+    public static final String ARG_AUTO_START_ROUTE = "autoStartRoute";
+    public static final String ARG_KEEP_OPEN_ON_START = "keepOpenOnStart";
     public static final String RESULT_ROUTE_MAP_OVERLAY = "route_map_overlay_result";
     public static final String RESULT_SHEET_VISIBILITY = "directions_sheet_visibility_result";
     public static final String KEY_ROUTE_VISIBLE = "route_visible";
@@ -111,15 +115,24 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private View routeEmptyState;
     private TextView collapsedOriginText;
     private TextView collapsedDestinationText;
+    private TextView hideSheetHintText;
     private ProgressBar routeLoading;
     private MaterialButton btnStart;
+    private MaterialButton btnHideSheet;
     private BottomSheetBehavior<View> bottomSheetBehavior;
+    @Nullable
+    private View bottomSheetView;
 
     private int originId = -1;
     private int selectedOriginRoomId = -1;
     private int selectedRoomId = -1;
     private int preselectedRoomId = -1;
     private String preselectedRoomName;
+    private int preselectedOriginId = -1;
+    private int preselectedOriginRoomId = -1;
+    private boolean autoStartRoute;
+    private boolean keepOpenOnStart;
+    private boolean routeAutoStarted;
     private ActiveField activeField = ActiveField.NONE;
     private SheetDisplayState sheetDisplayState = SheetDisplayState.HALF;
     private ContentMode contentMode = ContentMode.SUMMARY;
@@ -130,6 +143,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private int activeRouteOriginId = -1;
     private int activeRouteOriginRoomId = -1;
     private int activeRouteRoomId = -1;
+    private boolean preserveOverlayOnDismiss;
     private int resultPanelMaxHeightPx;
 
     // -----------------------------------------------------------------------
@@ -152,7 +166,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         if (getDialog() instanceof BottomSheetDialog) {
             BottomSheetDialog dialog = (BottomSheetDialog) getDialog();
             dialog.setCancelable(true);
-            dialog.setCanceledOnTouchOutside(false);
+            dialog.setCanceledOnTouchOutside(true);
             Window window = dialog.getWindow();
             if (window != null) {
                 window.setGravity(Gravity.BOTTOM);
@@ -161,6 +175,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             }
             View sheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
             if (sheet != null) {
+                bottomSheetView = sheet;
                 ViewGroup.LayoutParams params = sheet.getLayoutParams();
                 if (params != null) {
                     params.height = ViewGroup.LayoutParams.MATCH_PARENT;
@@ -187,6 +202,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
                             dismissAllowingStateLoss();
                             return;
                         }
+                        updateBottomSheetHeightForState(newState);
                         updateWindowForSheetState(newState);
                         handleBottomSheetStateChanged(newState);
                         updateResultPanelHeights();
@@ -194,12 +210,6 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
                     @Override
                     public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-                        if (sheetDisplayState == SheetDisplayState.SMALL
-                                && slideOffset < -0.02f
-                                && bottomSheetBehavior != null) {
-                            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-                            return;
-                        }
                         updateResultPanelHeights();
                     }
                 });
@@ -215,6 +225,13 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         if (args != null) {
             preselectedRoomId = args.getInt(ARG_PRESELECTED_ROOM_ID, -1);
             preselectedRoomName = args.getString(ARG_PRESELECTED_ROOM_NAME);
+            preselectedOriginId = args.getInt(ARG_PRESELECTED_ORIGIN_ID, -1);
+            preselectedOriginRoomId = args.getInt(ARG_PRESELECTED_ORIGIN_ROOM_ID, -1);
+            autoStartRoute = args.getBoolean(ARG_AUTO_START_ROUTE, false);
+            keepOpenOnStart = args.getBoolean(ARG_KEEP_OPEN_ON_START, false);
+            if (keepOpenOnStart) {
+                preserveOverlayOnDismiss = true;
+            }
         }
 
         FragmentActivity activity = requireActivity();
@@ -243,6 +260,8 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         destinationEmpty = view.findViewById(R.id.tv_destination_empty);
         routeEmptyState = view.findViewById(R.id.layout_route_empty_state);
         routeLoading = view.findViewById(R.id.progress_route_loading);
+        hideSheetHintText = view.findViewById(R.id.tv_hide_sheet_hint);
+        btnHideSheet = view.findViewById(R.id.btn_hide_sheet);
         btnStart = view.findViewById(R.id.btn_start_directions);
         originAdapter = new DirectionSearchAdapter(this::onSuggestionPicked);
         destinationAdapter = new DirectionSearchAdapter(this::onSuggestionPicked);
@@ -270,6 +289,12 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         view.post(this::updateResultPanelHeights);
 
         btnStart.setOnClickListener(v -> startDirectionsInPlace(view));
+        if (btnHideSheet != null) {
+            btnHideSheet.setOnClickListener(v -> {
+                preserveOverlayOnDismiss = activeRouteRoomId > 0 || contentMode == ContentMode.ROUTE;
+                dismissAllowingStateLoss();
+            });
+        }
         btnSwapDirection.setOnClickListener(v -> swapOriginAndDestination());
 
         loadOriginsAndRooms();
@@ -295,6 +320,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void startDirectionsInPlace(@NonNull View rootView) {
+        boolean shouldDismissOnStart = !keepOpenOnStart;
         String originText = textOf(etOrigin);
         String destinationText = textOf(etDestination);
 
@@ -314,13 +340,18 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             activeRouteOriginRoomId = -1;
         } else if (directOriginRoomId != -1 && directRoomId != -1) {
             hideResultsAndClearFocus();
-            presentStartedRouteSheet();
             activeRouteOriginId = -1;
             activeRouteOriginRoomId = directOriginRoomId;
             activeRouteRoomId = directRoomId;
             reverseCurrentRoute = false;
             publishLocalRoomRouteOverlay(directOriginRoomId, directRoomId);
-            showRouteEmptyState(true);
+            preserveOverlayOnDismiss = true;
+            if (shouldDismissOnStart) {
+                dismissAllowingStateLoss();
+            } else {
+                presentStartedRouteSheet();
+                showRouteEmptyState(true);
+            }
             return;
         } else if (swappedOriginId != -1 && swappedRoomId != -1) {
             routeOriginId = swappedOriginId;
@@ -339,11 +370,17 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         }
 
         hideResultsAndClearFocus();
-        showRouteLoadingState();
-        presentStartedRouteSheet();
         activeRouteOriginId = routeOriginId;
         activeRouteOriginRoomId = -1;
         activeRouteRoomId = routeRoomId;
+        publishOriginRouteOverlay(routeRoomId, routeOriginId);
+        preserveOverlayOnDismiss = true;
+        if (shouldDismissOnStart) {
+            dismissAllowingStateLoss();
+            return;
+        }
+        showRouteLoadingState();
+        presentStartedRouteSheet();
         viewModel.loadRoute(routeRoomId, routeOriginId);
     }
 
@@ -481,6 +518,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private void clearRouteFeedback(boolean collapseToSummary) {
         contentMode = ContentMode.SUMMARY;
         reverseCurrentRoute = false;
+        preserveOverlayOnDismiss = false;
         routeLoading.animate().cancel();
         routeLoading.setVisibility(View.GONE);
         routeRecycler.animate().cancel();
@@ -620,9 +658,11 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
                 if (rooms != null) allRooms.addAll(rooms);
 
                 applyPreselectedRoom();
+                applyPreselectedOrigin();
                 updateSuggestionList();
                 hideResults();
                 updateStartState();
+                maybeAutoStartRoute();
             });
         });
     }
@@ -640,6 +680,48 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             setFieldText(getFieldInput(ActiveField.DESTINATION), name, false);
             updateClearButtons();
             break;
+        }
+    }
+
+    private void applyPreselectedOrigin() {
+        if (preselectedOriginId > 0) {
+            for (OriginEntity origin : allOrigins) {
+                if (origin == null || origin.id != preselectedOriginId) {
+                    continue;
+                }
+                originId = origin.id;
+                selectedOriginRoomId = -1;
+                setFieldText(getFieldInput(ActiveField.ORIGIN), safe(origin.name, "Origin"), true);
+                updateClearButtons();
+                return;
+            }
+        }
+        if (preselectedOriginRoomId <= 0) {
+            return;
+        }
+        for (RoomEntity room : allRooms) {
+            if (room == null || room.id != preselectedOriginRoomId) {
+                continue;
+            }
+            originId = -1;
+            selectedOriginRoomId = room.id;
+            setFieldText(getFieldInput(ActiveField.ORIGIN), safe(room.name, "Room"), true);
+            updateClearButtons();
+            return;
+        }
+    }
+
+    private void maybeAutoStartRoute() {
+        if (!autoStartRoute || routeAutoStarted) {
+            return;
+        }
+        if (textOf(etOrigin).trim().isEmpty() || textOf(etDestination).trim().isEmpty()) {
+            return;
+        }
+        routeAutoStarted = true;
+        View root = sheetRoot != null ? sheetRoot : getView();
+        if (root != null) {
+            startDirectionsInPlace(root);
         }
     }
 
@@ -972,15 +1054,28 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             return;
         }
 
-        boolean compactState = state == BottomSheetBehavior.STATE_COLLAPSED
-                || ((state == BottomSheetBehavior.STATE_DRAGGING
-                || state == BottomSheetBehavior.STATE_SETTLING)
-                && sheetDisplayState == SheetDisplayState.SMALL);
+        boolean compactState = state == BottomSheetBehavior.STATE_COLLAPSED;
         window.setDimAmount(compactState ? 0f : 0.16f);
         window.setLayout(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 compactState ? dpToPx(132) : ViewGroup.LayoutParams.MATCH_PARENT
         );
+    }
+
+    private void updateBottomSheetHeightForState(int state) {
+        if (bottomSheetView == null) {
+            return;
+        }
+        ViewGroup.LayoutParams params = bottomSheetView.getLayoutParams();
+        if (params == null) {
+            return;
+        }
+        boolean compactState = state == BottomSheetBehavior.STATE_COLLAPSED;
+        int targetHeight = compactState ? dpToPx(132) : ViewGroup.LayoutParams.MATCH_PARENT;
+        if (params.height != targetHeight) {
+            params.height = targetHeight;
+            bottomSheetView.setLayoutParams(params);
+        }
     }
 
     private void bindFieldInteractions(ActiveField fieldType) {
@@ -1133,6 +1228,17 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         getParentFragmentManager().setFragmentResult(RESULT_ROUTE_MAP_OVERLAY, result);
     }
 
+    private void publishOriginRouteOverlay(int destinationRoomId, int originId) {
+        Bundle result = new Bundle();
+        result.putBoolean(KEY_ROUTE_VISIBLE, true);
+        result.putInt(KEY_ROUTE_ROOM_ID, destinationRoomId);
+        result.putInt(KEY_ROUTE_ORIGIN_ID, originId);
+        result.putInt(KEY_ROUTE_ORIGIN_ROOM_ID, -1);
+        result.putBoolean(KEY_ROUTE_USE_STAIRS, false);
+        result.putBoolean(KEY_ROUTE_USE_ELEVATOR, false);
+        getParentFragmentManager().setFragmentResult(RESULT_ROUTE_MAP_OVERLAY, result);
+    }
+
     private void clearRouteOverlay() {
         Bundle result = new Bundle();
         result.putBoolean(KEY_ROUTE_VISIBLE, false);
@@ -1184,7 +1290,10 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
-        clearRouteOverlay();
+        if (!preserveOverlayOnDismiss) {
+            clearRouteOverlay();
+        }
+        preserveOverlayOnDismiss = false;
         publishSheetVisibility(false);
         super.onDismiss(dialog);
     }

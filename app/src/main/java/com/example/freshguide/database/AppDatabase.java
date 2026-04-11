@@ -46,7 +46,7 @@ import com.example.freshguide.model.entity.UserProfileEntity;
         SyncMetaEntity.class,
         UserProfileEntity.class
     },
-    version = 9,
+    version = 11,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -199,6 +199,26 @@ public abstract class AppDatabase extends RoomDatabase {
         }
     };
 
+    private static final Migration MIGRATION_9_10 = new Migration(9, 10) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE saved_rooms ADD COLUMN sync_state INTEGER NOT NULL DEFAULT 0");
+            database.execSQL("ALTER TABLE saved_rooms ADD COLUMN pending_delete INTEGER NOT NULL DEFAULT 0");
+            database.execSQL("ALTER TABLE saved_rooms ADD COLUMN updated_at INTEGER NOT NULL DEFAULT 0");
+            database.execSQL("UPDATE saved_rooms SET updated_at = saved_at WHERE updated_at = 0");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_saved_rooms_sync_state ON saved_rooms(sync_state)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_saved_rooms_owner_student_id_sync_state ON saved_rooms(owner_student_id, sync_state)");
+        }
+    };
+
+    private static final Migration MIGRATION_10_11 = new Migration(10, 11) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_saved_rooms_sync_state ON saved_rooms(sync_state)");
+            database.execSQL("CREATE INDEX IF NOT EXISTS index_saved_rooms_owner_student_id_sync_state ON saved_rooms(owner_student_id, sync_state)");
+        }
+    };
+
     public abstract BuildingDao buildingDao();
     public abstract FloorDao floorDao();
     public abstract RoomDao roomDao();
@@ -216,7 +236,7 @@ public abstract class AppDatabase extends RoomDatabase {
                     context.getApplicationContext(),
                     AppDatabase.class,
                     DB_NAME
-            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
+            ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11)
              .build();
         }
         return instance;
