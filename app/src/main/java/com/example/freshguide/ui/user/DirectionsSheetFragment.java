@@ -1067,7 +1067,10 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             return;
         }
 
-        boolean compactState = state == BottomSheetBehavior.STATE_COLLAPSED;
+        boolean compactState = state == BottomSheetBehavior.STATE_COLLAPSED
+                || ((state == BottomSheetBehavior.STATE_DRAGGING
+                || state == BottomSheetBehavior.STATE_SETTLING)
+                && sheetDisplayState == SheetDisplayState.SMALL);
         window.setDimAmount(compactState ? 0f : 0.16f);
         window.setLayout(
                 ViewGroup.LayoutParams.MATCH_PARENT,
