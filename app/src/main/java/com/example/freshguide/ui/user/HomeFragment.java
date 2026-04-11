@@ -2278,14 +2278,7 @@ public class HomeFragment extends Fragment {
             focalView = originView;
         } else if (state.currentFloorNumber == state.originFloorNumber) {
             startPoint = createOriginFloorStartPoint(routeAnchorView, state);
-            if (state.preferGroundStart && state.currentFloorNumber == 1) {
-                endPoint = new PointF(
-                        resolveHallwayX(),
-                        routeAnchorView.getY() + (routeAnchorView.getHeight() / 2f)
-                );
-            } else {
-                endPoint = createRouteAnchor(routeAnchorView, state);
-            }
+            endPoint = createRouteAnchor(routeAnchorView, state);
         } else if (state.currentFloorNumber == state.destinationFloorNumber) {
             View destinationView = findRoomViewByRoomId(state.destinationRoomId);
             if (destinationView == null) {
