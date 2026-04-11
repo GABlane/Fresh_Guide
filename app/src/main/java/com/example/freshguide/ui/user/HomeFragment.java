@@ -484,6 +484,9 @@ public class HomeFragment extends Fragment {
             if (!isFloorWithinActiveRoute(floor)) {
                 return;
             }
+            if (activeRouteOverlay.campusTransitionSequence) {
+                activeRouteOverlay.showingCampusLeg = false;
+            }
             activeRouteOverlay.currentFloorNumber = floor;
             setFloorSelection(floor);
             return;
@@ -1318,9 +1321,11 @@ public class HomeFragment extends Fragment {
         updateFloorChipAvailability();
         if (floorNumber == null) {
             showOverallMap();
+            updateRouteFloorControls();
             return;
         }
         showFloorMap(floorNumber);
+        updateRouteFloorControls();
     }
 
     private void openRoomOnMap(@NonNull RoomEntity room, @NonNull View roomBox, boolean animateCentering) {
@@ -2622,6 +2627,7 @@ public class HomeFragment extends Fragment {
         if (activeRouteOverlay.campusTransitionSequence) {
             if (activeRouteOverlay.showingCampusLeg) {
                 activeRouteOverlay.showingCampusLeg = false;
+                activeRouteOverlay.currentFloorNumber = 1;
                 setFloorSelection(1);
             } else if (activeRouteOverlay.currentFloorNumber < activeRouteOverlay.originFloorNumber) {
                 activeRouteOverlay.currentFloorNumber += 1;
@@ -2664,17 +2670,15 @@ public class HomeFragment extends Fragment {
 
         if (state.campusTransitionSequence) {
             boolean canGoPrev = state.showingCampusLeg
-                    || state.currentFloorNumber < state.originFloorNumber;
+                    || state.currentFloorNumber != state.originFloorNumber;
             boolean canGoNext = !state.showingCampusLeg;
             setRouteFloorButtonState(btnRoutePrevFloor, canGoPrev, "Previous");
             setRouteFloorButtonState(btnRouteNextFloor, canGoNext, "Next");
             return;
         }
 
-        int minFloor = Math.min(state.originFloorNumber, state.destinationFloorNumber);
-        int maxFloor = Math.max(state.originFloorNumber, state.destinationFloorNumber);
-        boolean canGoPrev = state.currentFloorNumber > minFloor;
-        boolean canGoNext = state.currentFloorNumber < maxFloor;
+        boolean canGoPrev = state.currentFloorNumber != state.originFloorNumber;
+        boolean canGoNext = state.currentFloorNumber != state.destinationFloorNumber;
 
         setRouteFloorButtonState(btnRoutePrevFloor, canGoPrev, "Previous");
         setRouteFloorButtonState(btnRouteNextFloor, canGoNext, "Next");
