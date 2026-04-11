@@ -1970,7 +1970,9 @@ public class HomeFragment extends Fragment {
         boolean campusTransitionSequence = originIsMainInteriorRoom
                 && destinationOverallType != OVERALL_ANCHOR_MAIN;
         boolean routeViaMainBeforeCourt = overallOriginType == OVERALL_ANCHOR_ENTRANCE
-                && destinationOverallType == OVERALL_ANCHOR_COURT;
+                && (destinationOverallType == OVERALL_ANCHOR_COURT
+                || destinationOverallType == OVERALL_ANCHOR_REGISTRAR
+                || destinationOverallType == OVERALL_ANCHOR_LIBRARY);
 
         RouteOverlayState state = new RouteOverlayState(
                 destinationRoom.id,
@@ -2776,7 +2778,13 @@ public class HomeFragment extends Fragment {
             startPoint = createCampusOverallStartPoint(overallMap);
         }
         if (state.routeViaMainBeforeCourt) {
-            endPoint = createEntranceToCourtEndPoint(destinationView, overallMap);
+            if (state.overallDestinationType == OVERALL_ANCHOR_REGISTRAR) {
+                endPoint = createEntranceToRegistrarEndPoint(destinationView, overallMap);
+            } else if (state.overallDestinationType == OVERALL_ANCHOR_LIBRARY) {
+                endPoint = createEntranceToLibraryEndPoint(destinationView, overallMap);
+            } else {
+                endPoint = createEntranceToCourtEndPoint(destinationView, overallMap);
+            }
         }
         if (Math.abs(startPoint.x - endPoint.x) < dpToPx(8) && Math.abs(startPoint.y - endPoint.y) < dpToPx(8)) {
             View fallback = overallMap.findViewById(R.id.img_entrance);
@@ -2786,7 +2794,12 @@ public class HomeFragment extends Fragment {
         }
 
         if (state.routeViaMainBeforeCourt) {
-            List<PointF> waypoints = buildEntranceToCourtWaypoints(startPoint, endPoint, overallMap);
+            List<PointF> waypoints;
+            if (state.overallDestinationType == OVERALL_ANCHOR_LIBRARY) {
+                waypoints = buildEntranceToLibraryWaypoints(startPoint, endPoint, overallMap);
+            } else {
+                waypoints = buildEntranceToCourtWaypoints(startPoint, endPoint, overallMap);
+            }
             overallRouteOverlay.setRouteWithWaypoints(startPoint, endPoint, waypoints, null);
             return;
         }
@@ -2885,6 +2898,64 @@ public class HomeFragment extends Fragment {
         float maxY = courtView.getY() + courtView.getHeight() - dpToPx(8);
         y = Math.max(minY, Math.min(y, maxY));
         return new PointF(x, y);
+    }
+
+    @NonNull
+    private PointF createEntranceToRegistrarEndPoint(@NonNull View registrarView,
+                                                     @NonNull ConstraintLayout overallMap) {
+        float x = registrarView.getX() + (registrarView.getWidth() * 0.46f);
+        float y = registrarView.getY() + registrarView.getHeight() - dpToPx(6);
+
+        View topLane = overallMap.findViewById(R.id.img_car_1);
+        if (topLane != null) {
+            // Keep the handoff to registrar near the upper driveway lane.
+            float laneY = topLane.getY() + (topLane.getHeight() / 2f) + dpToPx(8);
+            y = Math.min(y, laneY);
+        }
+
+        float minY = registrarView.getY() + dpToPx(8);
+        float maxY = registrarView.getY() + registrarView.getHeight() - dpToPx(4);
+        y = Math.max(minY, Math.min(y, maxY));
+        return new PointF(x, y);
+    }
+
+    @NonNull
+    private PointF createEntranceToLibraryEndPoint(@NonNull View libraryView,
+                                                   @NonNull ConstraintLayout overallMap) {
+        float x = libraryView.getX() + (libraryView.getWidth() * 0.70f);
+        float y = libraryView.getY() + (libraryView.getHeight() * 0.58f);
+
+        float minY = libraryView.getY() + dpToPx(6);
+        float maxY = libraryView.getY() + libraryView.getHeight() - dpToPx(6);
+        y = Math.max(minY, Math.min(y, maxY));
+        return new PointF(x, y);
+    }
+
+    @NonNull
+    private List<PointF> buildEntranceToLibraryWaypoints(@NonNull PointF startPoint,
+                                                          @NonNull PointF endPoint,
+                                                          @NonNull ConstraintLayout overallMap) {
+        List<PointF> waypoints = new ArrayList<>();
+
+        View mainBuilding = overallMap.findViewById(R.id.img_main_building);
+        float hallwayX = startPoint.x;
+        if (mainBuilding != null) {
+            // Keep the vertical leg closer to the right-side corridor of main building.
+            hallwayX = mainBuilding.getX() + (mainBuilding.getWidth() * 0.62f);
+        }
+
+        float crossY = endPoint.y;
+        View topLane = overallMap.findViewById(R.id.img_car_1);
+        if (topLane != null) {
+            crossY = topLane.getY() + (topLane.getHeight() / 2f) + dpToPx(2);
+        } else if (mainBuilding != null) {
+            crossY = mainBuilding.getY() + dpToPx(18);
+        }
+
+        addWaypointIfFar(waypoints, hallwayX, startPoint.y);
+        addWaypointIfFar(waypoints, hallwayX, crossY);
+        addWaypointIfFar(waypoints, endPoint.x, crossY);
+        return waypoints;
     }
 
     @NonNull

@@ -18,6 +18,7 @@ import com.example.freshguide.repository.SyncRepository;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -103,10 +104,103 @@ public class HomeViewModel extends AndroidViewModel {
     }
 
     public void findRoomIdByCode(@NonNull String code, @NonNull RoomLookupCallback callback) {
+        final String normalized = normalizeCode(code);
         executor.execute(() -> {
-            RoomEntity room = db.roomDao().getByCodeSync(code);
-            int roomId = room != null ? room.id : -1;
-            mainHandler.post(() -> callback.onResult(roomId));
+            int roomId = findLocalRoomIdByCode(normalized);
+            if (roomId > 0) {
+                mainHandler.post(() -> callback.onResult(roomId));
+                return;
+            }
+
+            // Fallback for recently reseeded backend data that reused the same sync version.
+            if (!isCampusAreaLookupCode(normalized)) {
+                mainHandler.post(() -> callback.onResult(-1));
+                return;
+            }
+
+            mainHandler.post(() -> syncRepository.syncNow(new SyncRepository.SyncCallback() {
+                @Override
+                public void onSyncComplete() {
+                    executor.execute(() -> {
+                        int refreshedRoomId = findLocalRoomIdByCode(normalized);
+                        mainHandler.post(() -> callback.onResult(refreshedRoomId));
+                    });
+                }
+
+                @Override
+                public void onSyncSkipped() {
+                    executor.execute(() -> {
+                        int refreshedRoomId = findLocalRoomIdByCode(normalized);
+                        mainHandler.post(() -> callback.onResult(refreshedRoomId));
+                    });
+                }
+
+                @Override
+                public void onSyncError(String message) {
+                    mainHandler.post(() -> callback.onResult(-1));
+                }
+            }));
         });
+    }
+
+    private int findLocalRoomIdByCode(@NonNull String normalizedCode) {
+        RoomEntity direct = db.roomDao().getByCodeSync(normalizedCode);
+        if (direct != null) {
+            return direct.id;
+        }
+
+        // Backward compatibility with older seeded/local datasets (e.g. MAIN-1-REG).
+        List<RoomEntity> rooms = db.roomDao().getAllRoomsSync();
+        if (rooms == null || rooms.isEmpty()) {
+            return -1;
+        }
+        for (RoomEntity room : rooms) {
+            if (room == null) {
+                continue;
+            }
+            if (matchesLegacyCampusAreaCode(normalizedCode, room)) {
+                return room.id;
+            }
+        }
+        return -1;
+    }
+
+    private boolean matchesLegacyCampusAreaCode(@NonNull String targetCode, @NonNull RoomEntity room) {
+        String code = normalizeCode(room.code == null ? "" : room.code);
+        String name = room.name == null ? "" : room.name.trim().toUpperCase(Locale.ROOT);
+
+        if ("REG".equals(targetCode)) {
+            return "REG".equals(code)
+                    || (code != null && code.contains("REG"))
+                    || name.contains("REGISTRAR");
+        }
+        if ("LIB".equals(targetCode)) {
+            return "LIB".equals(code)
+                    || (code != null && code.contains("LIB"))
+                    || name.contains("LIBRARY");
+        }
+        if ("COURT".equals(targetCode)) {
+            return "COURT".equals(code) || name.contains("COURT");
+        }
+        if ("ENT".equals(targetCode)) {
+            return "ENT".equals(code);
+        }
+        if ("EXIT".equals(targetCode)) {
+            return "EXIT".equals(code);
+        }
+        return false;
+    }
+
+    private boolean isCampusAreaLookupCode(@NonNull String normalizedCode) {
+        return "COURT".equals(normalizedCode)
+                || "REG".equals(normalizedCode)
+                || "LIB".equals(normalizedCode)
+                || "ENT".equals(normalizedCode)
+                || "EXIT".equals(normalizedCode);
+    }
+
+    @NonNull
+    private String normalizeCode(@NonNull String rawCode) {
+        return rawCode.trim().toUpperCase(Locale.ROOT);
     }
 }

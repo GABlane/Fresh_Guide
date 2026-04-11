@@ -89,6 +89,34 @@ public class SyncRepository {
         });
     }
 
+    /**
+     * Force-download bootstrap and overwrite local map data even when server version
+     * is unchanged. Useful after backend reseeds on the same version.
+     */
+    public void syncNow(SyncCallback callback) {
+        apiService.getBootstrap().enqueue(new Callback<BootstrapResponse>() {
+            @Override
+            public void onResponse(Call<BootstrapResponse> call, Response<BootstrapResponse> response) {
+                if (!response.isSuccessful() || response.body() == null || response.body().data == null) {
+                    callback.onSyncError("Bootstrap download failed");
+                    return;
+                }
+                BootstrapResponse body = response.body();
+                int version = body.version > 0 ? body.version : Math.max(1, session.getSyncVersion());
+                BootstrapResponse.BootstrapData data = body.data;
+                executor.execute(() -> {
+                    storeBootstrap(data, version);
+                    mainHandler.post(callback::onSyncComplete);
+                });
+            }
+
+            @Override
+            public void onFailure(Call<BootstrapResponse> call, Throwable t) {
+                callback.onSyncError("Network error: " + t.getMessage());
+            }
+        });
+    }
+
     private void fetchAndStore(int serverVersion, SyncCallback callback) {
         // /api/sync/bootstrap returns bare {version, published_at, data: {...}} — no ApiResponse wrapper
         apiService.getBootstrap().enqueue(new Callback<BootstrapResponse>() {
