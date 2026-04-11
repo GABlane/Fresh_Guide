@@ -38,6 +38,7 @@ public class AdminFacilityListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(AdminViewModel.class);
+        AdminNavigationUtils.bindBackToDashboard(this, view);
 
         ((TextView) view.findViewById(R.id.tv_admin_page_title)).setText("Facilities");
         ((TextView) view.findViewById(R.id.tv_admin_page_subtitle))

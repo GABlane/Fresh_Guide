@@ -31,6 +31,7 @@ public class AdminPublishFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         viewModel = new ViewModelProvider(this).get(AdminViewModel.class);
+        AdminNavigationUtils.bindBackToDashboard(this, view);
 
         Button btnPublish = view.findViewById(R.id.btn_publish);
         TextView tvStatus = view.findViewById(R.id.tv_publish_status);

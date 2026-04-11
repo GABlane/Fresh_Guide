@@ -48,6 +48,7 @@ public class AdminCampusAreaListFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        AdminNavigationUtils.bindBackToDashboard(this, view);
 
         ((TextView) view.findViewById(R.id.tv_admin_page_title)).setText("Campus Areas");
         ((TextView) view.findViewById(R.id.tv_admin_page_subtitle))

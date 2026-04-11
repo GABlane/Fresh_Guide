@@ -136,6 +136,7 @@
     <string name="admin_dashboard_title">Admin Tools</string>
     <string name="admin_dashboard_subtitle">Manage the same campus experience students see, using the same FreshGuide design language.</string>
     <string name="admin_list_add_item">Add item</string>
+    <string name="admin_room_search_hint">Search rooms by name, code, or type</string>
     <string name="admin_action_edit_item">Edit item</string>
     <string name="admin_action_delete_item">Delete item</string>
     <string name="admin_form_intro_title">Details</string>

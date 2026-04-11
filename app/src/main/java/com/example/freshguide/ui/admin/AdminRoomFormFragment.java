@@ -21,7 +21,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.freshguide.R;
 import com.example.freshguide.database.AppDatabase;
@@ -136,11 +136,23 @@ public class AdminRoomFormFragment extends BaseAdminBottomSheetFragment {
                 return;
             }
 
+            int floorId;
+            try {
+                floorId = Integer.parseInt(floorIdStr);
+            } catch (NumberFormatException nfe) {
+                Snackbar.make(view, "Floor ID must be a valid number", Snackbar.LENGTH_SHORT).show();
+                return;
+            }
+            if (floorId <= 0) {
+                Snackbar.make(view, "Floor ID must be greater than 0", Snackbar.LENGTH_SHORT).show();
+                return;
+            }
+
             Map<String, Object> body = new HashMap<>();
             body.put("name", name);
             body.put("code", code);
             body.put("type", type);
-            body.put("floor_id", Integer.parseInt(floorIdStr));
+            body.put("floor_id", floorId);
             body.put("description", desc);
 
             ApiService api = ApiClient.getInstance(requireContext()).getApiService();
@@ -160,10 +172,10 @@ public class AdminRoomFormFragment extends BaseAdminBottomSheetFragment {
 
                         // Handle image upload after successful room save
                         if (compressedImageFile != null && savedRoom != null) {
-                            uploadRoomImage(savedRoom.id, view);
+                            uploadRoomImage(savedRoom.id);
                         } else {
                             showSnackbar("Room saved successfully");
-                            Navigation.findNavController(view).popBackStack();
+                            closeForm();
                         }
                     } else {
                         showSnackbar("Failed to save room");
@@ -208,8 +220,8 @@ public class AdminRoomFormFragment extends BaseAdminBottomSheetFragment {
             try {
                 // Validate landscape orientation
                 if (!isLandscapeImage(imageUri)) {
-                    requireActivity().runOnUiThread(() -> 
-                        showSnackbar("Please select a landscape (horizontal) image"));
+                    runOnUiThreadIfAdded(() ->
+                            showSnackbar("Please select a landscape (horizontal) image"));
                     return;
                 }
                 
@@ -217,11 +229,11 @@ public class AdminRoomFormFragment extends BaseAdminBottomSheetFragment {
                 compressedImageFile = compressImage(imageUri);
                 
                 // Load preview on UI thread
-                requireActivity().runOnUiThread(() -> loadImagePreview(imageUri));
+                runOnUiThreadIfAdded(() -> loadImagePreview(imageUri));
                 
             } catch (Exception e) {
-                requireActivity().runOnUiThread(() -> 
-                    showSnackbar("Failed to process image: " + e.getMessage()));
+                runOnUiThreadIfAdded(() ->
+                        showSnackbar("Failed to process image: " + e.getMessage()));
             }
         });
     }
@@ -304,9 +316,9 @@ public class AdminRoomFormFragment extends BaseAdminBottomSheetFragment {
         }
     }
     
-    private void uploadRoomImage(int roomId, View view) {
+    private void uploadRoomImage(int roomId) {
         if (compressedImageFile == null || !compressedImageFile.exists()) {
-            Navigation.findNavController(view).popBackStack();
+            closeForm();
             return;
         }
         
@@ -339,22 +351,22 @@ public class AdminRoomFormFragment extends BaseAdminBottomSheetFragment {
                         if (!isAdded()) {
                             return;
                         }
-                        requireActivity().runOnUiThread(() -> {
+                        runOnUiThreadIfAdded(() -> {
                             showSnackbar("Room and image saved successfully");
-                            Navigation.findNavController(view).popBackStack();
+                            closeForm();
                         });
                     });
                     return;
                 } else {
                     showSnackbar("Room saved, but image upload failed");
                 }
-                Navigation.findNavController(view).popBackStack();
+                closeForm();
             }
             
             @Override
             public void onFailure(Call<ApiResponse<RoomDto>> call, Throwable t) {
                 showSnackbar("Room saved, but image upload failed: " + t.getMessage());
-                Navigation.findNavController(view).popBackStack();
+                closeForm();
             }
         });
     }
@@ -383,7 +395,7 @@ public class AdminRoomFormFragment extends BaseAdminBottomSheetFragment {
                         if (!isAdded()) {
                             return;
                         }
-                        requireActivity().runOnUiThread(() -> showSnackbar("Image removed"));
+                        runOnUiThreadIfAdded(() -> showSnackbar("Image removed"));
                     });
                 }
             }
@@ -420,13 +432,13 @@ public class AdminRoomFormFragment extends BaseAdminBottomSheetFragment {
                         final String localCachedPath = localPath;
 
                         if (localCachedPath != null && !localCachedPath.isBlank()) {
-                            requireActivity().runOnUiThread(() -> loadExistingImage(localCachedPath));
+                            runOnUiThreadIfAdded(() -> loadExistingImage(localCachedPath));
                             return;
                         }
 
                         String remoteImageUrl = resolveRoomImageUrl(room);
                         if (remoteImageUrl != null && !remoteImageUrl.isBlank()) {
-                            requireActivity().runOnUiThread(() -> loadExistingImage(remoteImageUrl));
+                            runOnUiThreadIfAdded(() -> loadExistingImage(remoteImageUrl));
                         }
                     });
                 }
@@ -537,7 +549,7 @@ public class AdminRoomFormFragment extends BaseAdminBottomSheetFragment {
                         }
                     }
 
-                    requireActivity().runOnUiThread(() -> {
+                    runOnUiThreadIfAdded(() -> {
                         ivRoomPreview.setImageBitmap(bitmap);
                         showImagePreview();
                     });
@@ -552,6 +564,29 @@ public class AdminRoomFormFragment extends BaseAdminBottomSheetFragment {
         if (getView() != null) {
             Snackbar.make(getView(), message, Snackbar.LENGTH_LONG).show();
         }
+    }
+
+    private void closeForm() {
+        if (!isAdded()) {
+            dismissAllowingStateLoss();
+            return;
+        }
+        try {
+            NavHostFragment.findNavController(this).popBackStack();
+        } catch (IllegalStateException ignored) {
+            dismissAllowingStateLoss();
+        }
+    }
+
+    private void runOnUiThreadIfAdded(@NonNull Runnable action) {
+        if (!isAdded()) {
+            return;
+        }
+        requireActivity().runOnUiThread(() -> {
+            if (isAdded()) {
+                action.run();
+            }
+        });
     }
     
     @Override

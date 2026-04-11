@@ -211,7 +211,7 @@
         <item name="android:backgroundTint">@null</item>
         <item name="android:fontFamily">@font/inter_bold</item>
         <item name="android:textAllCaps">true</item>
-        <item name="android:textColor">@color/green_primary</item>
+        <item name="android:textColor">@color/admin_primary_on_fill</item>
         <item name="android:textSize">15sp</item>
         <item name="android:minHeight">56dp</item>
         <item name="android:paddingStart">20dp</item>

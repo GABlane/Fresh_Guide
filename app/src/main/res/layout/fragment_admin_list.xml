@@ -13,12 +13,31 @@
         android:paddingTop="16dp"
         android:paddingEnd="@dimen/screen_horizontal_gutter">
 
-        <TextView
-            android:id="@+id/tv_admin_page_title"
-            style="@style/Style.FreshGuide.Text.AdminPageTitle"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Admin List" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btn_admin_back"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/action_back"
+                android:padding="8dp"
+                android:src="@drawable/ic_arrow_back_24"
+                app:tint="@color/text_secondary" />
+
+            <TextView
+                android:id="@+id/tv_admin_page_title"
+                style="@style/Style.FreshGuide.Text.AdminPageTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="Admin List" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tv_admin_page_subtitle"
@@ -28,11 +47,46 @@
             android:layout_marginTop="4dp"
             android:text="Browse and manage records using the same structure students rely on." />
 
+        <LinearLayout
+            android:id="@+id/layout_admin_search"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_search_bar"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_search"
+                app:tint="@color/text_hint" />
+
+            <EditText
+                android:id="@+id/et_admin_search"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:background="@null"
+                android:hint="@string/admin_room_search_hint"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:singleLine="true"
+                android:textColor="@color/text_primary"
+                android:textColorHint="@color/text_hint"
+                android:textSize="14sp" />
+        </LinearLayout>
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_items"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="14dp"
+            android:layout_marginTop="12dp"
             android:layout_weight="1"
             android:clipToPadding="false"
             android:overScrollMode="never"

@@ -1,14 +1,18 @@
 package com.example.freshguide.ui.admin;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,6 +29,7 @@ import com.google.android.material.snackbar.Snackbar;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -34,8 +39,36 @@ import retrofit2.Response;
 
 public class AdminRoomListFragment extends Fragment {
 
+    private static final class RoomRow {
+        final GenericListAdapter.Item item;
+        final String searchText;
+
+        RoomRow(@NonNull GenericListAdapter.Item item, @NonNull String searchText) {
+            this.item = item;
+            this.searchText = searchText;
+        }
+    }
+
     private GenericListAdapter adapter;
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
+    private final List<RoomRow> allRoomRows = new ArrayList<>();
+    private EditText searchInput;
+    private String searchQuery = "";
+    private final TextWatcher searchWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            searchQuery = s == null ? "" : s.toString();
+            applyRoomFilter();
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+        }
+    };
 
     @Nullable
     @Override
@@ -47,10 +80,16 @@ public class AdminRoomListFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        AdminNavigationUtils.bindBackToDashboard(this, view);
+        AdminNavigationUtils.showSearch(view, true);
 
         ((TextView) view.findViewById(R.id.tv_admin_page_title)).setText("Rooms");
         ((TextView) view.findViewById(R.id.tv_admin_page_subtitle))
                 .setText("Manage room records students see in search, map drill-down, and room detail views.");
+        searchInput = view.findViewById(R.id.et_admin_search);
+        if (searchInput != null) {
+            searchInput.addTextChangedListener(searchWatcher);
+        }
 
         adapter = new GenericListAdapter();
         adapter.setIconActionsEnabled(true);
@@ -92,6 +131,15 @@ public class AdminRoomListFragment extends Fragment {
         loadRooms();
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (searchInput != null) {
+            searchInput.removeTextChangedListener(searchWatcher);
+            searchInput = null;
+        }
+    }
+
     private void loadRooms() {
         ApiClient.getInstance(requireContext()).getApiService()
                 .adminGetRooms()
@@ -105,15 +153,10 @@ public class AdminRoomListFragment extends Fragment {
                             }
                             rooms.sort(Comparator.comparingInt(room -> room.id));
 
-                            List<GenericListAdapter.Item> items = new ArrayList<>();
-                            for (RoomDto room : rooms) {
-                                String subtitle = "#" + room.id + " · " + room.code + " · " + room.type;
-                                items.add(new GenericListAdapter.Item(room.id, room.name, subtitle));
-                            }
                             if (!isAdded()) {
                                 return;
                             }
-                            adapter.setItems(items);
+                            replaceRoomRows(buildRowsFromDtos(rooms));
                             return;
                         }
 
@@ -133,20 +176,83 @@ public class AdminRoomListFragment extends Fragment {
         ioExecutor.execute(() -> {
             List<RoomEntity> rooms = db.roomDao().getAllRoomsSync();
             rooms.sort(Comparator.comparingInt(room -> room.id));
-            List<GenericListAdapter.Item> items = new ArrayList<>();
-            for (RoomEntity r : rooms) {
-                String subtitle = "#" + r.id + " · " + r.code + " · " + r.type;
-                items.add(new GenericListAdapter.Item(r.id, r.name, subtitle));
-            }
             if (!isAdded()) {
                 return;
             }
             requireActivity().runOnUiThread(() -> {
                 if (isAdded()) {
-                    adapter.setItems(items);
+                    replaceRoomRows(buildRowsFromEntities(rooms));
                 }
             });
         });
+    }
+
+    private List<RoomRow> buildRowsFromDtos(@NonNull List<RoomDto> rooms) {
+        List<RoomRow> rows = new ArrayList<>();
+        for (RoomDto room : rooms) {
+            if (room == null) {
+                continue;
+            }
+            String name = safeText(room.name, "Room " + room.id);
+            String code = safeText(room.code, "-");
+            String type = safeText(room.type, "unknown");
+            String subtitle = "#" + room.id + " · " + code + " · " + type;
+            GenericListAdapter.Item item = new GenericListAdapter.Item(room.id, name, subtitle);
+            rows.add(new RoomRow(item, buildSearchText(name, code, type)));
+        }
+        return rows;
+    }
+
+    private List<RoomRow> buildRowsFromEntities(@NonNull List<RoomEntity> rooms) {
+        List<RoomRow> rows = new ArrayList<>();
+        for (RoomEntity room : rooms) {
+            if (room == null) {
+                continue;
+            }
+            String name = safeText(room.name, "Room " + room.id);
+            String code = safeText(room.code, "-");
+            String type = safeText(room.type, "unknown");
+            String subtitle = "#" + room.id + " · " + code + " · " + type;
+            GenericListAdapter.Item item = new GenericListAdapter.Item(room.id, name, subtitle);
+            rows.add(new RoomRow(item, buildSearchText(name, code, type)));
+        }
+        return rows;
+    }
+
+    private void replaceRoomRows(@NonNull List<RoomRow> rows) {
+        allRoomRows.clear();
+        allRoomRows.addAll(rows);
+        applyRoomFilter();
+    }
+
+    private void applyRoomFilter() {
+        if (adapter == null) {
+            return;
+        }
+        String normalizedQuery = searchQuery == null
+                ? ""
+                : searchQuery.trim().toLowerCase(Locale.ROOT);
+        List<GenericListAdapter.Item> filtered = new ArrayList<>();
+        for (RoomRow row : allRoomRows) {
+            if (normalizedQuery.isEmpty() || row.searchText.contains(normalizedQuery)) {
+                filtered.add(row.item);
+            }
+        }
+        adapter.setItems(filtered);
+    }
+
+    @NonNull
+    private String safeText(@Nullable String value, @NonNull String fallback) {
+        if (value == null) {
+            return fallback;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? fallback : trimmed;
+    }
+
+    @NonNull
+    private String buildSearchText(@NonNull String name, @NonNull String code, @NonNull String type) {
+        return (name + " " + code + " " + type).toLowerCase(Locale.ROOT);
     }
 
     private void openRoomForm(int roomId) {
@@ -154,16 +260,20 @@ public class AdminRoomListFragment extends Fragment {
             return;
         }
 
+        NavController navController = NavHostFragment.findNavController(this);
+        if (navController.getCurrentDestination() == null
+                || navController.getCurrentDestination().getId() != R.id.adminRoomListFragment) {
+            return;
+        }
+
         if (roomId <= 0) {
-            NavHostFragment.findNavController(this)
-                    .navigate(R.id.action_adminRoomList_to_adminRoomForm);
+            navController.navigate(R.id.action_adminRoomList_to_adminRoomForm);
             return;
         }
 
         Bundle args = new Bundle();
         args.putInt("roomId", roomId);
-        NavHostFragment.findNavController(this)
-                .navigate(R.id.action_adminRoomList_to_adminRoomForm, args);
+        navController.navigate(R.id.action_adminRoomList_to_adminRoomForm, args);
     }
 
     private void deleteRoom(int roomId, @NonNull View view) {
