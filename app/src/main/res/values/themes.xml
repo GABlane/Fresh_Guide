@@ -38,6 +38,7 @@
 
     <style name="Widget.FreshGuide.BottomSheet" parent="Widget.Material3.BottomSheet.Modal">
         <item name="android:background">@drawable/bg_bottom_sheet_surface</item>
+        <item name="android:elevation">30dp</item>
     </style>
 
     <style name="ThemeOverlay.FreshGuide.MapBottomSheet" parent="ThemeOverlay.Material3.BottomSheetDialog">
@@ -47,5 +48,6 @@
 
     <style name="Widget.FreshGuide.MapBottomSheet" parent="Widget.Material3.BottomSheet.Modal">
         <item name="android:background">@drawable/bg_room_detail_sheet</item>
+        <item name="android:elevation">30dp</item>
     </style>
 </resources>

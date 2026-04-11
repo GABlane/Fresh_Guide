@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PointF;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.util.Log;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -1378,6 +1379,7 @@ public class HomeFragment extends Fragment {
         galleryRecycler.post(() -> updateGalleryFades(galleryRecycler));
         configureActionButtons(false);
 
+        applyBottomSheetDepth(roomDetailSheet, 30);
         roomDetailSheetBehavior = BottomSheetBehavior.from(roomDetailSheet);
         roomDetailSheetBehavior.setFitToContents(false);
         roomDetailSheetBehavior.setExpandedOffset(dpToPx(14));
@@ -1698,6 +1700,20 @@ public class HomeFragment extends Fragment {
 
     private boolean shouldBlockBrowsingForDirections() {
         return isDirectionsFocusMode;
+    }
+
+    private void applyBottomSheetDepth(@Nullable View sheet, int elevationDp) {
+        if (sheet == null) {
+            return;
+        }
+
+        float elevationPx = dpToPx(elevationDp);
+        sheet.setElevation(elevationPx);
+        sheet.setTranslationZ(elevationPx);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            sheet.setOutlineAmbientShadowColor(ContextCompat.getColor(requireContext(), R.color.bottom_sheet_shadow_ambient));
+            sheet.setOutlineSpotShadowColor(ContextCompat.getColor(requireContext(), R.color.bottom_sheet_shadow_spot));
+        }
     }
 
     private void updateFloorChipAvailability() {

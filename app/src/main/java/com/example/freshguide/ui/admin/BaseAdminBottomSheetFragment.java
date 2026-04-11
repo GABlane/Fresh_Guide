@@ -1,9 +1,11 @@
 package com.example.freshguide.ui.admin;
 
+import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 
 import com.example.freshguide.R;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
@@ -31,6 +33,7 @@ public abstract class BaseAdminBottomSheetFragment extends BottomSheetDialogFrag
         }
 
         sheet.setBackgroundResource(R.drawable.bg_bottom_sheet_surface);
+        applyBottomSheetDepth(sheet, 30);
         ViewGroup.LayoutParams params = sheet.getLayoutParams();
         if (params != null) {
             params.height = ViewGroup.LayoutParams.MATCH_PARENT;
@@ -42,5 +45,16 @@ public abstract class BaseAdminBottomSheetFragment extends BottomSheetDialogFrag
         behavior.setSkipCollapsed(true);
         behavior.setDraggable(true);
         behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+    }
+
+    private void applyBottomSheetDepth(@NonNull View sheet, int elevationDp) {
+        float density = getResources().getDisplayMetrics().density;
+        float elevationPx = elevationDp * density;
+        sheet.setElevation(elevationPx);
+        sheet.setTranslationZ(elevationPx);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            sheet.setOutlineAmbientShadowColor(ContextCompat.getColor(requireContext(), R.color.bottom_sheet_shadow_ambient));
+            sheet.setOutlineSpotShadowColor(ContextCompat.getColor(requireContext(), R.color.bottom_sheet_shadow_spot));
+        }
     }
 }

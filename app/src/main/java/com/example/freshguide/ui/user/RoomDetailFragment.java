@@ -2,6 +2,7 @@ package com.example.freshguide.ui.user;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.content.res.AppCompatResources;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -98,7 +100,7 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
             View sheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
             if (sheet != null) {
                 sheet.setBackgroundResource(R.drawable.bg_room_detail_sheet);
-                sheet.setElevation(dpToPx(22));
+                applyBottomSheetDepth(sheet, 30);
                 bottomSheetBehavior = BottomSheetBehavior.from(sheet);
                 ViewGroup.LayoutParams params = sheet.getLayoutParams();
                 if (params != null) {
@@ -553,6 +555,16 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
 
     private int dpToPx(int dp) {
         return Math.round(dp * getResources().getDisplayMetrics().density);
+    }
+
+    private void applyBottomSheetDepth(@NonNull View sheet, int elevationDp) {
+        float elevationPx = dpToPx(elevationDp);
+        sheet.setElevation(elevationPx);
+        sheet.setTranslationZ(elevationPx);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            sheet.setOutlineAmbientShadowColor(ContextCompat.getColor(requireContext(), R.color.bottom_sheet_shadow_ambient));
+            sheet.setOutlineSpotShadowColor(ContextCompat.getColor(requireContext(), R.color.bottom_sheet_shadow_spot));
+        }
     }
 
     @Override

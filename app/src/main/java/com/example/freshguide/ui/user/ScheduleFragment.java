@@ -1386,6 +1386,7 @@ public class ScheduleFragment extends Fragment {
             View bottomSheet = dialog.findViewById(
                     com.google.android.material.R.id.design_bottom_sheet);
             if (bottomSheet != null) {
+                applyBottomSheetDepth(bottomSheet, 30);
                 BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
                 behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                 behavior.setSkipCollapsed(true);
@@ -1640,6 +1641,8 @@ public class ScheduleFragment extends Fragment {
                     com.google.android.material.R.id.design_bottom_sheet);
             if (bottomSheet == null) return;
             bottomSheet.setBackgroundColor(Color.TRANSPARENT);
+            applyBottomSheetDepth(bottomSheet, 20);
+            applyBottomSheetDepth(pickerView, 24);
             int margin = dpToPx(10);
             CoordinatorLayout.LayoutParams lp =
                     (CoordinatorLayout.LayoutParams) bottomSheet.getLayoutParams();
@@ -2423,6 +2426,16 @@ public class ScheduleFragment extends Fragment {
 
     private int dpToPx(int dp) {
         return Math.round(dp * requireContext().getResources().getDisplayMetrics().density);
+    }
+
+    private void applyBottomSheetDepth(@NonNull View sheet, int elevationDp) {
+        float elevationPx = dpToPx(elevationDp);
+        sheet.setElevation(elevationPx);
+        sheet.setTranslationZ(elevationPx);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            sheet.setOutlineAmbientShadowColor(ContextCompat.getColor(requireContext(), R.color.bottom_sheet_shadow_ambient));
+            sheet.setOutlineSpotShadowColor(ContextCompat.getColor(requireContext(), R.color.bottom_sheet_shadow_spot));
+        }
     }
 
     private static class ScheduleBlockBinding {

@@ -1,6 +1,7 @@
 package com.example.freshguide.ui.user;
 
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -21,6 +22,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -170,7 +172,8 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
                     params.height = ViewGroup.LayoutParams.MATCH_PARENT;
                     sheet.setLayoutParams(params);
                 }
-                sheet.setElevation(dpToPx(22));
+                sheet.setBackgroundResource(R.drawable.bg_bottom_sheet_surface);
+                applyBottomSheetDepth(sheet, 30);
                 bottomSheetBehavior = BottomSheetBehavior.from(sheet);
                 bottomSheetBehavior.setFitToContents(false);
                 bottomSheetBehavior.setExpandedOffset(0);
@@ -1135,6 +1138,16 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
     private int dpToPx(int dp) {
         return Math.round(dp * getResources().getDisplayMetrics().density);
+    }
+
+    private void applyBottomSheetDepth(@NonNull View sheet, int elevationDp) {
+        float elevationPx = dpToPx(elevationDp);
+        sheet.setElevation(elevationPx);
+        sheet.setTranslationZ(elevationPx);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            sheet.setOutlineAmbientShadowColor(ContextCompat.getColor(requireContext(), R.color.bottom_sheet_shadow_ambient));
+            sheet.setOutlineSpotShadowColor(ContextCompat.getColor(requireContext(), R.color.bottom_sheet_shadow_spot));
+        }
     }
 
     private void publishRouteOverlay(int roomId, int originId, int originRoomId, @NonNull RouteDto route) {
