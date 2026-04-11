@@ -268,7 +268,6 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         destinationEmpty = view.findViewById(R.id.tv_destination_empty);
         routeEmptyState = view.findViewById(R.id.layout_route_empty_state);
         routeLoading = view.findViewById(R.id.progress_route_loading);
-        hideSheetHintText = view.findViewById(R.id.tv_hide_sheet_hint);
         btnHideSheet = view.findViewById(R.id.btn_hide_sheet);
         btnStart = view.findViewById(R.id.btn_start_directions);
         originAdapter = new DirectionSearchAdapter(this::onSuggestionPicked);
