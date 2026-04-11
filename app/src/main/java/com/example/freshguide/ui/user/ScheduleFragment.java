@@ -36,7 +36,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import com.example.freshguide.BuildConfig;
 import com.example.freshguide.R;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
@@ -1090,7 +1089,7 @@ public class ScheduleFragment extends Fragment {
 
         if (existing != null) {
             tvSheetTitle.setText("Edit Schedule");
-            btnCancel.setText("Delete");
+            btnCancel.setText("DELETE");
             btnCancel.setBackground(ContextCompat.getDrawable(requireContext(),
                     R.drawable.bg_schedule_delete_outline));
             btnCancel.setTextColor(ContextCompat.getColor(requireContext(), R.color.red_accent));
@@ -1352,13 +1351,6 @@ public class ScheduleFragment extends Fragment {
                                     String successMessage = totalToSave > 1
                                             ? "Schedules saved"
                                             : "Schedule saved";
-                                    if (BuildConfig.DEBUG
-                                            && totalToSave == 1
-                                            && savedEntry.reminderMinutes > 0
-                                            && sessionManager.isScheduleNotificationsEnabled()) {
-                                        successMessage = successMessage + "\n"
-                                                + ScheduleReminderHelper.buildReminderScheduledMessage(savedEntry);
-                                    }
                                     Toast.makeText(requireContext(),
                                             successMessage,
                                             Toast.LENGTH_SHORT).show();

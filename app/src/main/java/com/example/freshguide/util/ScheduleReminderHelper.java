@@ -54,22 +54,43 @@ public final class ScheduleReminderHelper {
     }
 
     public static void scheduleReminder(Context context, ScheduleEntryEntity entry) {
+        Context appContext = context.getApplicationContext();
         if (entry == null || entry.id <= 0 || entry.reminderMinutes <= 0) {
             return;
         }
-        if (!SessionManager.getInstance(context).isScheduleNotificationsEnabled()) {
+        if (!SessionManager.getInstance(appContext).isScheduleNotificationsEnabled()) {
             return;
         }
 
         long triggerAtMillis = computeNextReminderMillis(entry.dayOfWeek, entry.startMinutes, entry.reminderMinutes);
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        AlarmManager alarmManager = (AlarmManager) appContext.getSystemService(Context.ALARM_SERVICE);
         if (alarmManager == null) {
             return;
         }
 
-        PendingIntent pendingIntent = buildReminderPendingIntent(context, entry.id);
-        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
-        Log.d(TAG, "Scheduled reminder: " + buildReminderScheduledMessage(entry));
+        ensureNotificationChannel(appContext);
+        PendingIntent pendingIntent = buildReminderPendingIntent(appContext, entry.id);
+        alarmManager.cancel(pendingIntent);
+
+        boolean usingExactAlarm = canUseExactAlarmScheduling(alarmManager);
+        try {
+            if (usingExactAlarm) {
+                alarmManager.setExactAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        triggerAtMillis,
+                        pendingIntent
+                );
+            } else {
+                scheduleInexactReminder(alarmManager, triggerAtMillis, pendingIntent);
+            }
+        } catch (SecurityException securityException) {
+            usingExactAlarm = false;
+            scheduleInexactReminder(alarmManager, triggerAtMillis, pendingIntent);
+            Log.w(TAG, "Exact alarm access unavailable; falling back to inexact reminder", securityException);
+        }
+
+        Log.d(TAG, "Scheduled " + (usingExactAlarm ? "exact" : "inexact")
+                + " reminder: " + buildReminderScheduledMessage(entry));
     }
 
     public static void cancelReminder(Context context, int scheduleId) {
@@ -132,6 +153,27 @@ public final class ScheduleReminderHelper {
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
+    }
+
+    private static boolean canUseExactAlarmScheduling(AlarmManager alarmManager) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            return true;
+        }
+        return alarmManager.canScheduleExactAlarms();
+    }
+
+    private static void scheduleInexactReminder(AlarmManager alarmManager,
+                                                long triggerAtMillis,
+                                                PendingIntent pendingIntent) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarmManager.setAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerAtMillis,
+                    pendingIntent
+            );
+            return;
+        }
+        alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
     }
 
     private static long computeNextReminderMillis(int dayOfWeek, int startMinutes, int reminderMinutes) {

@@ -7,15 +7,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
-import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-import com.example.freshguide.BuildConfig;
 import com.example.freshguide.MainActivity;
 import com.example.freshguide.R;
 import com.example.freshguide.database.AppDatabase;
@@ -24,9 +20,12 @@ import com.example.freshguide.util.ScheduleReminderHelper;
 import com.example.freshguide.util.SessionManager;
 
 import java.util.Locale;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class ScheduleReminderReceiver extends BroadcastReceiver {
+
+    private static final Executor REMINDER_EXECUTOR = Executors.newSingleThreadExecutor();
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -36,21 +35,27 @@ public class ScheduleReminderReceiver extends BroadcastReceiver {
         if (scheduleId <= 0) {
             return;
         }
-        if (!SessionManager.getInstance(context).isScheduleNotificationsEnabled()) {
-            return;
-        }
 
-        Executors.newSingleThreadExecutor().execute(() -> {
-            AppDatabase db = AppDatabase.getInstance(context);
-            ScheduleEntryEntity entry = db.scheduleDao().getByIdSync(scheduleId);
-            if (entry == null) {
-                return;
+        Context appContext = context.getApplicationContext();
+        PendingResult pendingResult = goAsync();
+        REMINDER_EXECUTOR.execute(() -> {
+            try {
+                if (!SessionManager.getInstance(appContext).isScheduleNotificationsEnabled()) {
+                    return;
+                }
+
+                AppDatabase db = AppDatabase.getInstance(appContext);
+                ScheduleEntryEntity entry = db.scheduleDao().getByIdSync(scheduleId);
+                if (entry == null || entry.reminderMinutes <= 0) {
+                    return;
+                }
+
+                ScheduleReminderHelper.ensureNotificationChannel(appContext);
+                showNotification(appContext, entry);
+                ScheduleReminderHelper.scheduleReminder(appContext, entry);
+            } finally {
+                pendingResult.finish();
             }
-
-            ScheduleReminderHelper.ensureNotificationChannel(context);
-            showNotification(context, entry);
-            showDebugToast(context, entry);
-            ScheduleReminderHelper.scheduleReminder(context, entry);
         });
     }
 
@@ -85,16 +90,6 @@ public class ScheduleReminderReceiver extends BroadcastReceiver {
 
         NotificationManagerCompat manager = NotificationManagerCompat.from(context);
         manager.notify(10000 + entry.id, builder.build());
-    }
-
-    private void showDebugToast(Context context, ScheduleEntryEntity entry) {
-        if (!BuildConfig.DEBUG) {
-            return;
-        }
-
-        String message = "Reminder fired: " + entry.title + " at " + formatMinutes(entry.startMinutes);
-        new Handler(Looper.getMainLooper()).post(() ->
-                Toast.makeText(context.getApplicationContext(), message, Toast.LENGTH_LONG).show());
     }
 
     private String formatMinutes(int minutes) {

@@ -1,5 +1,8 @@
 package com.example.freshguide.ui.user;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -8,10 +11,14 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -28,6 +35,18 @@ public class SettingsFragment extends Fragment {
 
     private SessionManager sessionManager;
     private ProfileViewModel profileViewModel;
+
+    private final ActivityResultLauncher<String> notificationPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
+                if (!granted && isAdded()) {
+                    Toast.makeText(requireContext(),
+                            "Class reminders need notification permission to appear",
+                            Toast.LENGTH_SHORT).show();
+                }
+                if (isAdded() && sessionManager != null && sessionManager.isScheduleNotificationsEnabled()) {
+                    ScheduleReminderHelper.syncAllReminders(requireContext());
+                }
+            });
 
     private View cardNotifications;
 
@@ -109,6 +128,9 @@ public class SettingsFragment extends Fragment {
             } else {
                 profileViewModel.refreshProfile();
             }
+            if (sessionManager.isScheduleNotificationsEnabled()) {
+                ScheduleReminderHelper.syncAllReminders(requireContext());
+            }
         }
     }
 
@@ -116,6 +138,9 @@ public class SettingsFragment extends Fragment {
         switchScheduleNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (bindingValues) return;
             sessionManager.setScheduleNotificationsEnabled(isChecked);
+            if (isChecked) {
+                maybeRequestNotificationPermission();
+            }
             ScheduleReminderHelper.syncAllReminders(requireContext());
         });
 
@@ -269,5 +294,16 @@ public class SettingsFragment extends Fragment {
         switchSyncAlerts.setChecked(sessionManager.isSyncAlertsEnabled());
 
         bindingValues = false;
+    }
+
+    private void maybeRequestNotificationPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return;
+        }
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS)
+                == PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
     }
 }
