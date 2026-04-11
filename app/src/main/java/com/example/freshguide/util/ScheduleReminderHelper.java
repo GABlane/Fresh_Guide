@@ -6,7 +6,9 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
+import android.provider.Settings;
 import android.util.Log;
 
 import com.example.freshguide.database.AppDatabase;
@@ -91,6 +93,37 @@ public final class ScheduleReminderHelper {
 
         Log.d(TAG, "Scheduled " + (usingExactAlarm ? "exact" : "inexact")
                 + " reminder: " + buildReminderScheduledMessage(entry));
+    }
+
+    public static boolean canScheduleExactReminder(Context context) {
+        AlarmManager alarmManager = (AlarmManager) context.getApplicationContext()
+                .getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager == null) {
+            return false;
+        }
+        return canUseExactAlarmScheduling(alarmManager);
+    }
+
+    public static void openExactAlarmSettings(Context context) {
+        Context appContext = context.getApplicationContext();
+        Intent intent;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            intent = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+            intent.setData(Uri.parse("package:" + appContext.getPackageName()));
+        } else {
+            intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.parse("package:" + appContext.getPackageName()));
+        }
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+        try {
+            appContext.startActivity(intent);
+        } catch (Exception exception) {
+            Intent fallbackIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            fallbackIntent.setData(Uri.parse("package:" + appContext.getPackageName()));
+            fallbackIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            appContext.startActivity(fallbackIntent);
+        }
     }
 
     public static void cancelReminder(Context context, int scheduleId) {

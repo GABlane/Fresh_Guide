@@ -30,6 +30,7 @@ import com.example.freshguide.util.ScheduleReminderHelper;
 import com.example.freshguide.util.SessionManager;
 import com.example.freshguide.util.ThemePreferenceManager;
 import com.example.freshguide.viewmodel.ProfileViewModel;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 public class SettingsFragment extends Fragment {
 
@@ -140,6 +141,7 @@ public class SettingsFragment extends Fragment {
             sessionManager.setScheduleNotificationsEnabled(isChecked);
             if (isChecked) {
                 maybeRequestNotificationPermission();
+                maybePromptForExactAlarmAccess();
             }
             ScheduleReminderHelper.syncAllReminders(requireContext());
         });
@@ -305,5 +307,22 @@ public class SettingsFragment extends Fragment {
             return;
         }
         notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+    }
+
+    private void maybePromptForExactAlarmAccess() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            return;
+        }
+        if (ScheduleReminderHelper.canScheduleExactReminder(requireContext())) {
+            return;
+        }
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Allow exact class reminders")
+                .setMessage("Without exact alarm access, class reminders may arrive late. Open settings to allow accurate reminder timing?")
+                .setNegativeButton("Not now", null)
+                .setPositiveButton("Open Settings", (dialog, which) ->
+                        ScheduleReminderHelper.openExactAlarmSettings(requireContext()))
+                .show();
     }
 }
