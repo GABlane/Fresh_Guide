@@ -411,6 +411,14 @@ public class RoutePreviewMapView extends LinearLayout {
         if (shouldUseStairs(previewModel)) {
             View topStairs = currentMapContent.findViewById(R.id.stairs_top);
             View bottomStairs = currentMapContent.findViewById(R.id.stairs_bottom);
+            if (isFifthFloorAuditoriumDestination(destinationView)) {
+                if (bottomStairs != null) {
+                    return createAnchorAtCenter(bottomStairs);
+                }
+                if (topStairs != null) {
+                    return createAnchorAtCenter(topStairs);
+                }
+            }
             View chosen = pickNearestAnchor(destinationView, topStairs, bottomStairs);
             if (chosen != null) {
                 return createAnchorAtCenter(chosen);
@@ -530,12 +538,28 @@ public class RoutePreviewMapView extends LinearLayout {
                 : secondAnchor;
     }
 
+    private boolean isFifthFloorAuditoriumDestination(@Nullable View destinationView) {
+        return destinationView != null
+                && currentFloorNumber == 5
+                && destinationView.getId() == R.id.room_auditorium;
+    }
+
     @NonNull
     private PointF createRoomAnchor(@NonNull View roomView) {
+        if (isFifthFloorAuditoriumDestination(roomView)) {
+            return createAuditoriumEntranceAnchor(roomView);
+        }
         return new PointF(
                 roomView.getX() + (roomView.getWidth() / 2f),
                 roomView.getY() + dpToPx(6)
         );
+    }
+
+    @NonNull
+    private PointF createAuditoriumEntranceAnchor(@NonNull View roomView) {
+        float anchorX = roomView.getX() + (roomView.getWidth() * 0.42f);
+        float anchorY = roomView.getY() + roomView.getHeight() - dpToPx(6);
+        return new PointF(anchorX, anchorY);
     }
 
     @NonNull

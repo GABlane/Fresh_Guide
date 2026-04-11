@@ -2075,6 +2075,9 @@ public class HomeFragment extends Fragment {
                 && (destinationOverallType == OVERALL_ANCHOR_COURT
                 || destinationOverallType == OVERALL_ANCHOR_REGISTRAR
                 || destinationOverallType == OVERALL_ANCHOR_LIBRARY);
+        boolean forceAuditoriumBottomStair = destinationIsMainInterior
+                && floor.number == 5
+                && isAuditoriumRoom(destinationRoom);
 
         RouteOverlayState state = new RouteOverlayState(
                 destinationRoom.id,
@@ -2089,7 +2092,8 @@ public class HomeFragment extends Fragment {
                 destinationOverallType,
                 !destinationIsMainInterior && !campusTransitionSequence,
                 routeViaMainBeforeCourt,
-                campusTransitionSequence
+                campusTransitionSequence,
+                forceAuditoriumBottomStair
         );
         runOnUiThreadSafely(() -> {
             activeRouteOverlay = state;
@@ -2327,6 +2331,15 @@ public class HomeFragment extends Fragment {
         if (state.useStairs || state.currentFloorNumber > 1) {
             View topStairs = floorMapContainer.findViewById(R.id.stairs_top);
             View bottomStairs = floorMapContainer.findViewById(R.id.stairs_bottom);
+            if (state.forceAuditoriumBottomStair
+                    && state.currentFloorNumber == state.destinationFloorNumber) {
+                if (bottomStairs != null) {
+                    return createAnchorAtCenter(bottomStairs);
+                }
+                if (topStairs != null) {
+                    return createAnchorAtCenter(topStairs);
+                }
+            }
             View chosen = pickNearestAnchor(destinationView, topStairs, bottomStairs);
             if (chosen != null) {
                 return createAnchorAtCenter(chosen);
@@ -2361,6 +2374,9 @@ public class HomeFragment extends Fragment {
     private int resolveAutoAnchorType(@NonNull RouteOverlayState state) {
         if (state.useElevator) {
             return ROUTE_ANCHOR_ELEVATOR;
+        }
+        if (state.forceAuditoriumBottomStair) {
+            return ROUTE_ANCHOR_STAIRS_BOTTOM;
         }
         View referenceView = null;
         if (state.currentFloorNumber == state.originFloorNumber && state.originRoomId > 0) {
@@ -2495,6 +2511,17 @@ public class HomeFragment extends Fragment {
     @NonNull
     private String normalizeText(@Nullable String value) {
         return value == null ? "" : value.trim().toLowerCase();
+    }
+
+    private boolean isAuditoriumRoom(@Nullable RoomEntity room) {
+        if (room == null) {
+            return false;
+        }
+        String normalizedName = normalizeSlotValue(room.name);
+        String normalizedCode = normalizeSlotValue(room.code);
+        return normalizedName.contains("AUDITORIUM")
+                || normalizedCode.contains("AUDIT")
+                || normalizedCode.contains("AUDITORIUM");
     }
 
     private void configureRouteAnchorInteraction(@NonNull View anchorView, @NonNull RouteOverlayState state) {
@@ -2816,10 +2843,25 @@ public class HomeFragment extends Fragment {
 
     @NonNull
     private PointF createRoomAnchor(@NonNull View roomView) {
+        if (isAuditoriumRoomView(roomView)) {
+            return createAuditoriumEntranceAnchor(roomView);
+        }
         return new PointF(
                 roomView.getX() + (roomView.getWidth() / 2f),
                 roomView.getY() + dpToPx(6)
         );
+    }
+
+    private boolean isAuditoriumRoomView(@NonNull View roomView) {
+        return roomView.getId() == R.id.room_auditorium;
+    }
+
+    @NonNull
+    private PointF createAuditoriumEntranceAnchor(@NonNull View roomView) {
+        // Floor 5 auditorium entrance is along the lower-left edge.
+        float anchorX = roomView.getX() + (roomView.getWidth() * 0.42f);
+        float anchorY = roomView.getY() + roomView.getHeight() - dpToPx(6);
+        return new PointF(anchorX, anchorY);
     }
 
     @NonNull
@@ -3364,6 +3406,7 @@ public class HomeFragment extends Fragment {
         final boolean overallOnly;
         final boolean routeViaMainBeforeCourt;
         final boolean campusTransitionSequence;
+        final boolean forceAuditoriumBottomStair;
         boolean showingCampusLeg;
 
         RouteOverlayState(int destinationRoomId,
@@ -3378,7 +3421,8 @@ public class HomeFragment extends Fragment {
                           int overallDestinationType,
                           boolean overallOnly,
                           boolean routeViaMainBeforeCourt,
-                          boolean campusTransitionSequence) {
+                          boolean campusTransitionSequence,
+                          boolean forceAuditoriumBottomStair) {
             this.destinationRoomId = destinationRoomId;
             this.currentFloorNumber = originFloorNumber;
             this.originFloorNumber = originFloorNumber;
@@ -3393,6 +3437,7 @@ public class HomeFragment extends Fragment {
             this.overallOnly = overallOnly;
             this.routeViaMainBeforeCourt = routeViaMainBeforeCourt;
             this.campusTransitionSequence = campusTransitionSequence;
+            this.forceAuditoriumBottomStair = forceAuditoriumBottomStair;
             this.showingCampusLeg = false;
         }
 
