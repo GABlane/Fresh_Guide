@@ -83,10 +83,10 @@ public class SplashActivity extends AppCompatActivity {
             return;
         }
 
-        SessionManager session = SessionManager.getInstance(SplashActivity.this);
-
         Intent nextIntent;
-        if (session.isLoggedIn()) {
+        if (OnboardingActivity.shouldShow(this)) {
+            nextIntent = new Intent(SplashActivity.this, OnboardingActivity.class);
+        } else if (SessionManager.getInstance(SplashActivity.this).isLoggedIn()) {
             nextIntent = new Intent(SplashActivity.this, MainActivity.class);
         } else {
             nextIntent = new Intent(SplashActivity.this, LoginActivity.class);
