@@ -1,6 +1,7 @@
 package com.example.freshguide.ui.user;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -15,9 +16,11 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 
 import com.example.freshguide.R;
 import com.example.freshguide.util.ProfilePhotoLoader;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 public class EditProfileBottomSheet extends BottomSheetDialogFragment {
@@ -77,6 +80,28 @@ public class EditProfileBottomSheet extends BottomSheetDialogFragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.bottom_sheet_edit_profile, container, false);
+    }
+
+    @Override
+    public int getTheme() {
+        return R.style.ThemeOverlay_FreshGuide_BottomSheet;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        if (!(getDialog() instanceof BottomSheetDialog)) {
+            return;
+        }
+
+        BottomSheetDialog dialog = (BottomSheetDialog) getDialog();
+        View sheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+        if (sheet == null) {
+            return;
+        }
+
+        sheet.setBackgroundResource(R.drawable.bg_sheet_top_radius);
+        applyBottomSheetDepth(sheet, 28);
     }
 
     @Override
@@ -204,6 +229,16 @@ public class EditProfileBottomSheet extends BottomSheetDialogFragment {
             return "U";
         }
         return String.valueOf(fullName.trim().charAt(0)).toUpperCase();
+    }
+
+    private void applyBottomSheetDepth(@NonNull View sheet, int elevationDp) {
+        float elevationPx = elevationDp * getResources().getDisplayMetrics().density;
+        sheet.setElevation(elevationPx);
+        sheet.setTranslationZ(elevationPx);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            sheet.setOutlineAmbientShadowColor(ContextCompat.getColor(requireContext(), R.color.bottom_sheet_shadow_ambient));
+            sheet.setOutlineSpotShadowColor(ContextCompat.getColor(requireContext(), R.color.bottom_sheet_shadow_spot));
+        }
     }
 
     private void populateNameFields(String fullName,

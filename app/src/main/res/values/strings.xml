@@ -84,6 +84,10 @@
     <string name="error_origin_missing">Origin data not available yet</string>
     <string name="error_destination_missing">Please select a destination</string>
     <string name="action_swap_direction">Swap origin and destination</string>
+    <string name="directions_small_from">From %1$s</string>
+    <string name="directions_small_origin_placeholder">Choose an origin to start</string>
+    <string name="directions_small_hint_edit">Swipe up to edit route</string>
+    <string name="directions_small_hint_steps">Swipe up for full steps</string>
 
     <!-- QR Login -->
     <string name="login_hint_qr_mode">Student access requires ID QR scan</string>

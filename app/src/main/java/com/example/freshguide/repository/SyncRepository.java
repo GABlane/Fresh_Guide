@@ -76,7 +76,16 @@ public class SyncRepository {
                 int localVersion = session.getSyncVersion();
 
                 if (serverVersion <= localVersion) {
-                    callback.onSyncSkipped();
+                    executor.execute(() -> {
+                        boolean coreDataMissing = isCoreDataMissing();
+                        mainHandler.post(() -> {
+                            if (coreDataMissing) {
+                                fetchAndStore(serverVersion, callback);
+                            } else {
+                                callback.onSyncSkipped();
+                            }
+                        });
+                    });
                     return;
                 }
                 fetchAndStore(serverVersion, callback);
@@ -87,6 +96,12 @@ public class SyncRepository {
                 callback.onSyncError("Network error: " + t.getMessage());
             }
         });
+    }
+
+    private boolean isCoreDataMissing() {
+        return db.buildingDao().count() <= 0
+                || db.floorDao().count() <= 0
+                || db.roomDao().count() <= 0;
     }
 
     /**

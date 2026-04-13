@@ -43,50 +43,60 @@
         android:id="@+id/layout_collapsed_summary"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
-        android:gravity="center"
-        android:orientation="horizontal"
+        android:layout_marginTop="12dp"
+        android:gravity="start"
+        android:orientation="vertical"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/view_sheet_handle">
 
         <TextView
-            android:id="@+id/tv_collapsed_origin"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ellipsize="end"
-            android:fontFamily="@font/inter_medium"
-            android:gravity="end"
-            android:maxLines="1"
-            android:textColor="@color/green_primary"
-            android:textSize="16sp"
-            tools:text="Main Entrance" />
-
-        <TextView
+            android:id="@+id/tv_collapsed_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
             android:fontFamily="@font/inter_medium"
-            android:text="&#8594;"
+            android:text="@string/label_destination"
+            android:textAllCaps="true"
             android:textColor="@color/green_primary"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textSize="11sp" />
 
         <TextView
             android:id="@+id/tv_collapsed_destination"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_marginTop="4dp"
             android:ellipsize="end"
             android:fontFamily="@font/inter_medium"
-            android:gravity="start"
             android:maxLines="1"
             android:textColor="@color/green_primary"
-            android:textSize="16sp"
+            android:textSize="18sp"
+            android:textStyle="bold"
             tools:text="Computer Laboratory 1" />
+
+        <TextView
+            android:id="@+id/tv_collapsed_origin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/inter_regular"
+            android:maxLines="1"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            tools:text="From Main Entrance" />
+
+        <TextView
+            android:id="@+id/tv_collapsed_hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/inter_medium"
+            android:maxLines="1"
+            android:text="@string/directions_small_hint_edit"
+            android:textColor="@color/text_hint"
+            android:textSize="12sp" />
     </LinearLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -442,7 +452,7 @@
             android:clipChildren="false"
             android:clipToPadding="false"
             android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@id/layout_hide_sheet_hint"
+            app:layout_constraintBottom_toTopOf="@id/btn_start_directions"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/layout_destination_field">
@@ -508,42 +518,6 @@
                 app:layout_constraintTop_toTopOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <LinearLayout
-            android:id="@+id/layout_hide_sheet_hint"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            app:layout_constraintBottom_toTopOf="@id/btn_start_directions"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
-
-            <TextView
-                android:id="@+id/tv_hide_sheet_hint"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:alpha="0.62"
-                android:fontFamily="@font/inter_regular"
-                android:text="Need map touch? Tap Hide."
-                android:textColor="@color/text_secondary"
-                android:textSize="11sp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btn_hide_sheet"
-                android:layout_width="82dp"
-                android:layout_height="36dp"
-                android:text="Hide"
-                android:textAllCaps="false"
-                android:textColor="@android:color/white"
-                android:textSize="12sp"
-                app:backgroundTint="@color/green_primary"
-                app:cornerRadius="16dp"
-                app:strokeColor="@color/green_primary"
-                app:strokeWidth="1dp" />
-        </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_start_directions"

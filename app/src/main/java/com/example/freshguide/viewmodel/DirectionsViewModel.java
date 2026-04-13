@@ -50,5 +50,26 @@ public class DirectionsViewModel extends AndroidViewModel {
         });
     }
 
+    public void loadRoomRoute(int roomId, int originRoomId) {
+        route.setValue(null);
+        routeTitle.setValue(null);
+        error.setValue(null);
+        loading.setValue(true);
+        repository.getRoomToRoomRouteTitle(roomId, originRoomId, routeTitle::setValue);
+        repository.getRoomToRoomRoute(roomId, originRoomId, new RoomRepository.RouteCallback() {
+            @Override
+            public void onLoaded(RouteDto r) {
+                route.setValue(r);
+                loading.setValue(false);
+            }
+
+            @Override
+            public void onError(String message) {
+                error.setValue(message);
+                loading.setValue(false);
+            }
+        });
+    }
+
 
 }

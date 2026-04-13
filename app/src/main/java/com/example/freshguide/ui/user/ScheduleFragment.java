@@ -36,7 +36,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import com.example.freshguide.BuildConfig;
 import com.example.freshguide.R;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
@@ -72,6 +71,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 public class ScheduleFragment extends Fragment {
 
@@ -252,6 +252,9 @@ public class ScheduleFragment extends Fragment {
     public void onResume() {
         super.onResume();
         viewModel.syncSchedules();
+        if (sessionManager.isScheduleNotificationsEnabled()) {
+            ScheduleReminderHelper.syncAllReminders(requireContext());
+        }
 
         int today = getDefaultDay();
         if (selectedDay != today) {
@@ -1090,7 +1093,7 @@ public class ScheduleFragment extends Fragment {
 
         if (existing != null) {
             tvSheetTitle.setText("Edit Schedule");
-            btnCancel.setText("Delete");
+            btnCancel.setText("DELETE");
             btnCancel.setBackground(ContextCompat.getDrawable(requireContext(),
                     R.drawable.bg_schedule_delete_outline));
             btnCancel.setTextColor(ContextCompat.getColor(requireContext(), R.color.red_accent));
@@ -1106,6 +1109,7 @@ public class ScheduleFragment extends Fragment {
                 requireContext(), R.layout.item_dropdown_simple, PLATFORMS));
         dropdownReminder.setAdapter(new ArrayAdapter<>(
                 requireContext(), R.layout.item_dropdown_simple, REMINDER_OPTIONS));
+        final Runnable[] syncEditSaveStateRef = {null};
 
         dropdownClassType.setOnItemClickListener((parent, view, position, id) -> {
             boolean online = position == 1;
@@ -1118,6 +1122,9 @@ public class ScheduleFragment extends Fragment {
             } else {
                 dropdownPlatform.setText("", false);
             }
+            if (syncEditSaveStateRef[0] != null) {
+                syncEditSaveStateRef[0].run();
+            }
         });
 
         recyclerRoomDropdown.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -1126,6 +1133,9 @@ public class ScheduleFragment extends Fragment {
             etRoomSearch.setTag(room);
             recyclerRoomDropdown.setVisibility(View.GONE);
             btnClearRoomSearch.setVisibility(View.VISIBLE);
+            if (syncEditSaveStateRef[0] != null) {
+                syncEditSaveStateRef[0].run();
+            }
         });
         recyclerRoomDropdown.setAdapter(roomDropdownAdapter);
         roomDropdownAdapter.submitList(new ArrayList<>(roomOptions));
@@ -1144,6 +1154,15 @@ public class ScheduleFragment extends Fragment {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String query = s != null ? s.toString().trim().toLowerCase(Locale.ROOT) : "";
+                Object selectedRoom = etRoomSearch.getTag();
+                if (selectedRoom instanceof RoomEntity) {
+                    String selectedRoomDisplay = buildRoomDisplay((RoomEntity) selectedRoom)
+                            .trim()
+                            .toLowerCase(Locale.ROOT);
+                    if (!query.equals(selectedRoomDisplay)) {
+                        etRoomSearch.setTag(null);
+                    }
+                }
                 btnClearRoomSearch.setVisibility(query.isEmpty() ? View.GONE : View.VISIBLE);
                 List<RoomEntity> filtered = new ArrayList<>();
                 for (RoomEntity room : roomOptions) {
@@ -1154,6 +1173,9 @@ public class ScheduleFragment extends Fragment {
                 }
                 roomDropdownAdapter.submitList(filtered);
                 recyclerRoomDropdown.setVisibility(filtered.isEmpty() ? View.GONE : View.VISIBLE);
+                if (syncEditSaveStateRef[0] != null) {
+                    syncEditSaveStateRef[0].run();
+                }
             }
         });
         btnClearRoomSearch.setOnClickListener(v -> {
@@ -1162,10 +1184,32 @@ public class ScheduleFragment extends Fragment {
             btnClearRoomSearch.setVisibility(View.GONE);
             roomDropdownAdapter.submitList(new ArrayList<>(roomOptions));
             recyclerRoomDropdown.setVisibility(View.GONE);
+            if (syncEditSaveStateRef[0] != null) {
+                syncEditSaveStateRef[0].run();
+            }
         });
 
         int[] selectedColorIndex = {0};
-        setupColorPicker(formView, selectedColorIndex, 0);
+        final ScheduleFormState originalFormState = existing != null
+                ? buildScheduleFormState(existing)
+                : null;
+        syncEditSaveStateRef[0] = existing != null
+                ? () -> updateScheduleSaveButtonState(
+                btnSave,
+                hasScheduleFormChanges(
+                        originalFormState,
+                        etSubjectName,
+                        etSubjectCode,
+                        etProfessor,
+                        etNotes,
+                        dropdownClassType,
+                        dropdownPlatform,
+                        dropdownReminder,
+                        etRoomSearch,
+                        selectedColorIndex[0]
+                ))
+                : null;
+        setupColorPicker(formView, selectedColorIndex, 0, syncEditSaveStateRef[0]);
 
         scheduleBlocks.clear();
         scheduleContainer.removeAllViews();
@@ -1202,9 +1246,9 @@ public class ScheduleFragment extends Fragment {
                 selectedColorIndex[0] = resolveSchedulePaletteSlot(existing.colorHex);
             }
 
-            setupColorPicker(formView, selectedColorIndex, selectedColorIndex[0]);
+            setupColorPicker(formView, selectedColorIndex, selectedColorIndex[0], syncEditSaveStateRef[0]);
             addScheduleBlock(scheduleContainer, existing.dayOfWeek,
-                    existing.startMinutes, existing.endMinutes, false);
+                    existing.startMinutes, existing.endMinutes, false, syncEditSaveStateRef[0]);
         } else {
             dropdownClassType.setText(CLASS_TYPES[0], false);
             dropdownReminder.setText(
@@ -1212,11 +1256,35 @@ public class ScheduleFragment extends Fragment {
                             sessionManager.getDefaultReminderMinutes())], false);
             roomGroup.setVisibility(View.VISIBLE);
             onlineGroup.setVisibility(View.GONE);
-            addScheduleBlock(scheduleContainer, getDefaultSchedulableDay(), -1, -1, false);
+            addScheduleBlock(scheduleContainer, getDefaultSchedulableDay(), -1, -1, false, null);
         }
 
-        btnAddScheduleBlock.setOnClickListener(v ->
-                addScheduleBlock(scheduleContainer, getDefaultSchedulableDay(), -1, -1, true));
+        addScheduleFormChangeWatcher(syncEditSaveStateRef[0],
+                etSubjectName,
+                etSubjectCode,
+                etProfessor,
+                etNotes,
+                dropdownClassType,
+                dropdownPlatform,
+                dropdownReminder);
+
+        dropdownPlatform.setOnItemClickListener((parent, view, position, id) -> {
+            if (syncEditSaveStateRef[0] != null) {
+                syncEditSaveStateRef[0].run();
+            }
+        });
+        dropdownReminder.setOnItemClickListener((parent, view, position, id) -> {
+            if (syncEditSaveStateRef[0] != null) {
+                syncEditSaveStateRef[0].run();
+            }
+        });
+
+        btnAddScheduleBlock.setOnClickListener(v -> {
+            addScheduleBlock(scheduleContainer, getDefaultSchedulableDay(), -1, -1, true, syncEditSaveStateRef[0]);
+            if (syncEditSaveStateRef[0] != null) {
+                syncEditSaveStateRef[0].run();
+            }
+        });
 
         BottomSheetDialog dialog = new BottomSheetDialog(
                 requireContext(), R.style.ThemeOverlay_FreshGuide_BottomSheet);
@@ -1229,6 +1297,21 @@ public class ScheduleFragment extends Fragment {
             }
             confirmDeleteSchedule(existing, dialog);
         });
+
+        updateScheduleSaveButtonState(
+                btnSave,
+                existing == null || hasScheduleFormChanges(
+                        originalFormState,
+                        etSubjectName,
+                        etSubjectCode,
+                        etProfessor,
+                        etNotes,
+                        dropdownClassType,
+                        dropdownPlatform,
+                        dropdownReminder,
+                        etRoomSearch,
+                        selectedColorIndex[0]
+                ));
 
         btnSave.setOnClickListener(v -> {
             try {
@@ -1270,6 +1353,7 @@ public class ScheduleFragment extends Fragment {
 
                 int reminderMinutes = positionToReminder(reminderPosition);
                 if (!sessionManager.isScheduleNotificationsEnabled()) reminderMinutes = 0;
+                maybePromptForExactAlarmAccess(reminderMinutes);
 
                 int colorIndex = selectedColorIndex[0];
                 if (colorIndex < 0 || colorIndex >= getScheduleColors().length) colorIndex = 0;
@@ -1352,13 +1436,6 @@ public class ScheduleFragment extends Fragment {
                                     String successMessage = totalToSave > 1
                                             ? "Schedules saved"
                                             : "Schedule saved";
-                                    if (BuildConfig.DEBUG
-                                            && totalToSave == 1
-                                            && savedEntry.reminderMinutes > 0
-                                            && sessionManager.isScheduleNotificationsEnabled()) {
-                                        successMessage = successMessage + "\n"
-                                                + ScheduleReminderHelper.buildReminderScheduledMessage(savedEntry);
-                                    }
                                     Toast.makeText(requireContext(),
                                             successMessage,
                                             Toast.LENGTH_SHORT).show();
@@ -1386,6 +1463,7 @@ public class ScheduleFragment extends Fragment {
             View bottomSheet = dialog.findViewById(
                     com.google.android.material.R.id.design_bottom_sheet);
             if (bottomSheet != null) {
+                applyBottomSheetDepth(bottomSheet, 30);
                 BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(bottomSheet);
                 behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
                 behavior.setSkipCollapsed(true);
@@ -1403,7 +1481,8 @@ public class ScheduleFragment extends Fragment {
                                   int initialDay,
                                   int initialStartMinutes,
                                   int initialEndMinutes,
-                                  boolean removable) {
+                                  boolean removable,
+                                  @Nullable Runnable onBlockChanged) {
         View blockView = LayoutInflater.from(requireContext())
                 .inflate(R.layout.item_schedule_block, container, false);
 
@@ -1418,7 +1497,7 @@ public class ScheduleFragment extends Fragment {
         binding.startMinutes = initialStartMinutes;
         binding.endMinutes   = initialEndMinutes;
 
-        setupDayChips(binding);
+        setupDayChips(binding, onBlockChanged);
 
         if (initialStartMinutes >= 0) {
             binding.btnStart.setText(formatMinutes(initialStartMinutes));
@@ -1431,14 +1510,17 @@ public class ScheduleFragment extends Fragment {
                     ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
         }
 
-        binding.btnStart.setOnClickListener(v -> showTimePickerForBlock(binding, true));
-        binding.btnEnd.setOnClickListener(v -> showTimePickerForBlock(binding, false));
+        binding.btnStart.setOnClickListener(v -> showTimePickerForBlock(binding, true, onBlockChanged));
+        binding.btnEnd.setOnClickListener(v -> showTimePickerForBlock(binding, false, onBlockChanged));
 
         binding.delete.setVisibility(removable ? View.VISIBLE : View.GONE);
         binding.delete.setOnClickListener(v -> {
             container.removeView(binding.root);
             scheduleBlocks.remove(binding);
             refreshScheduleLabels();
+            if (onBlockChanged != null) {
+                onBlockChanged.run();
+            }
         });
 
         scheduleBlocks.add(binding);
@@ -1453,7 +1535,7 @@ public class ScheduleFragment extends Fragment {
         }
     }
 
-    private void setupDayChips(ScheduleBlockBinding binding) {
+    private void setupDayChips(ScheduleBlockBinding binding, @Nullable Runnable onBlockChanged) {
         binding.dayContainer.removeAllViews();
         binding.dayChips.clear();
 
@@ -1495,6 +1577,9 @@ public class ScheduleFragment extends Fragment {
                 }
                 binding.selectedDay = dayValue;
                 updateBlockDaySelection(binding);
+                if (onBlockChanged != null) {
+                    onBlockChanged.run();
+                }
             });
 
             slot.addView(chip);
@@ -1525,7 +1610,9 @@ public class ScheduleFragment extends Fragment {
     }
 
 
-    private void showTimePickerForBlock(ScheduleBlockBinding binding, boolean isStart) {
+    private void showTimePickerForBlock(ScheduleBlockBinding binding,
+                                        boolean isStart,
+                                        @Nullable Runnable onBlockChanged) {
         if (!isAdded()) return;
 
         int savedValue = isStart ? binding.startMinutes : binding.endMinutes;
@@ -1640,6 +1727,8 @@ public class ScheduleFragment extends Fragment {
                     com.google.android.material.R.id.design_bottom_sheet);
             if (bottomSheet == null) return;
             bottomSheet.setBackgroundColor(Color.TRANSPARENT);
+            applyBottomSheetDepth(bottomSheet, 20);
+            applyBottomSheetDepth(pickerView, 24);
             int margin = dpToPx(10);
             CoordinatorLayout.LayoutParams lp =
                     (CoordinatorLayout.LayoutParams) bottomSheet.getLayoutParams();
@@ -1680,6 +1769,9 @@ public class ScheduleFragment extends Fragment {
                 binding.btnEnd.setText(formatMinutes(totalMinutes));
                 binding.btnEnd.setTextColor(
                         ContextCompat.getColor(requireContext(), R.color.schedule_time_button));
+            }
+            if (onBlockChanged != null) {
+                onBlockChanged.run();
             }
             dialog.dismiss();
         });
@@ -1853,6 +1945,44 @@ public class ScheduleFragment extends Fragment {
         btnConfirm.setAlpha(enabled ? 1f : 0.9f);
     }
 
+    private void updateScheduleSaveButtonState(@NonNull TextView btnSave, boolean enabled) {
+        btnSave.setEnabled(enabled);
+        btnSave.setClickable(enabled);
+        btnSave.setBackgroundResource(enabled
+                ? R.drawable.bg_schedule_add_outline
+                : R.drawable.bg_time_picker_confirm_disabled);
+        btnSave.setTextColor(ContextCompat.getColor(requireContext(),
+                enabled ? R.color.green_dark : R.color.time_picker_confirm_disabled_text));
+        btnSave.setAlpha(enabled ? 1f : 0.9f);
+    }
+
+    private void addScheduleFormChangeWatcher(@Nullable Runnable onChanged, TextView... inputs) {
+        if (onChanged == null || inputs == null || inputs.length == 0) {
+            return;
+        }
+
+        TextWatcher watcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                onChanged.run();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        };
+
+        for (TextView input : inputs) {
+            if (input != null) {
+                input.addTextChangedListener(watcher);
+            }
+        }
+    }
+
     private void maybeShowInvalidEndTimeToast(boolean hasUserInteracted,
                                               boolean currentSelectionValid,
                                               boolean[] invalidToastShown) {
@@ -1918,6 +2048,100 @@ public class ScheduleFragment extends Fragment {
     private boolean isValidScheduleRange(int startMinutes, int endMinutes) {
         return endMinutes > startMinutes
                 && (endMinutes - startMinutes) >= MIN_CLASS_DURATION_MINUTES;
+    }
+
+    private boolean hasScheduleFormChanges(@NonNull ScheduleFormState originalState,
+                                           @NonNull EditText etSubjectName,
+                                           @NonNull EditText etSubjectCode,
+                                           @NonNull EditText etProfessor,
+                                           @NonNull EditText etNotes,
+                                           @NonNull MaterialAutoCompleteTextView dropdownClassType,
+                                           @NonNull MaterialAutoCompleteTextView dropdownPlatform,
+                                           @NonNull MaterialAutoCompleteTextView dropdownReminder,
+                                           @NonNull EditText etRoomSearch,
+                                           int selectedColorIndex) {
+        ScheduleFormState currentState = buildScheduleFormState(
+                etSubjectName,
+                etSubjectCode,
+                etProfessor,
+                etNotes,
+                dropdownClassType,
+                dropdownPlatform,
+                dropdownReminder,
+                etRoomSearch,
+                selectedColorIndex
+        );
+        return !originalState.equals(currentState);
+    }
+
+    @NonNull
+    private ScheduleFormState buildScheduleFormState(@NonNull ScheduleEntryEntity entry) {
+        List<ScheduleBlockState> blocks = new ArrayList<>();
+        blocks.add(new ScheduleBlockState(entry.dayOfWeek, entry.startMinutes, entry.endMinutes));
+        return new ScheduleFormState(
+                normalize(entry.title),
+                normalize(entry.courseCode),
+                normalize(entry.instructor),
+                normalize(entry.notes),
+                entry.isOnline == 1,
+                entry.isOnline == 1 ? null : entry.roomId,
+                entry.isOnline == 1 ? normalize(entry.onlinePlatform) : null,
+                entry.reminderMinutes,
+                resolveSchedulePaletteSlot(entry.colorHex),
+                blocks
+        );
+    }
+
+    @NonNull
+    private ScheduleFormState buildScheduleFormState(@NonNull EditText etSubjectName,
+                                                     @NonNull EditText etSubjectCode,
+                                                     @NonNull EditText etProfessor,
+                                                     @NonNull EditText etNotes,
+                                                     @NonNull MaterialAutoCompleteTextView dropdownClassType,
+                                                     @NonNull MaterialAutoCompleteTextView dropdownPlatform,
+                                                     @NonNull MaterialAutoCompleteTextView dropdownReminder,
+                                                     @NonNull EditText etRoomSearch,
+                                                     int selectedColorIndex) {
+        boolean online = "Online".contentEquals(dropdownClassType.getText());
+        Integer roomId = null;
+        if (!online) {
+            Object selectedRoom = etRoomSearch.getTag();
+            if (selectedRoom instanceof RoomEntity) {
+                roomId = ((RoomEntity) selectedRoom).id;
+            }
+        }
+
+        List<ScheduleBlockState> blocks = new ArrayList<>();
+        for (ScheduleBlockBinding block : scheduleBlocks) {
+            blocks.add(new ScheduleBlockState(block.selectedDay, block.startMinutes, block.endMinutes));
+        }
+
+        return new ScheduleFormState(
+                normalize(etSubjectName.getText().toString()),
+                normalize(etSubjectCode.getText().toString()),
+                normalize(etProfessor.getText().toString()),
+                normalize(etNotes.getText().toString()),
+                online,
+                roomId,
+                online ? normalize(dropdownPlatform.getText() != null
+                        ? dropdownPlatform.getText().toString()
+                        : null) : null,
+                getReminderMinutesFromDropdown(dropdownReminder),
+                selectedColorIndex,
+                blocks
+        );
+    }
+
+    private int getReminderMinutesFromDropdown(@NonNull MaterialAutoCompleteTextView dropdownReminder) {
+        String reminderValue = dropdownReminder.getText() != null
+                ? dropdownReminder.getText().toString()
+                : REMINDER_OPTIONS[0];
+        for (int i = 0; i < REMINDER_OPTIONS.length; i++) {
+            if (REMINDER_OPTIONS[i].equalsIgnoreCase(reminderValue)) {
+                return positionToReminder(i);
+            }
+        }
+        return 0;
     }
 
     private boolean hasExactDuplicateSchedule(@NonNull String title,
@@ -2131,7 +2355,10 @@ public class ScheduleFragment extends Fragment {
         detailDialog.show();
     }
 
-    private void setupColorPicker(View formView, int[] selectedColorIndex, int currentSelected) {
+    private void setupColorPicker(View formView,
+                                  int[] selectedColorIndex,
+                                  int currentSelected,
+                                  @Nullable Runnable onSelectionChanged) {
         int[] colorViewIds = {
                 R.id.color_0, R.id.color_1, R.id.color_2,
                 R.id.color_3, R.id.color_4, R.id.color_5
@@ -2141,6 +2368,9 @@ public class ScheduleFragment extends Fragment {
             formView.findViewById(colorViewIds[i]).setOnClickListener(v -> {
                 selectedColorIndex[0] = index;
                 applyColorSelection(formView, selectedColorIndex[0]);
+                if (onSelectionChanged != null) {
+                    onSelectionChanged.run();
+                }
             });
         }
         selectedColorIndex[0] = currentSelected;
@@ -2177,6 +2407,21 @@ public class ScheduleFragment extends Fragment {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS)
                 == PackageManager.PERMISSION_GRANTED) return;
         notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+    }
+
+    private void maybePromptForExactAlarmAccess(int reminderMinutes) {
+        if (reminderMinutes <= 0) return;
+        if (!sessionManager.isScheduleNotificationsEnabled()) return;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
+        if (ScheduleReminderHelper.canScheduleExactReminder(requireContext())) return;
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Allow exact class reminders")
+                .setMessage("Android can delay reminders without exact alarm access. Open settings to keep the 5-minute class reminders accurate?")
+                .setNegativeButton("Not now", null)
+                .setPositiveButton("Open Settings", (dialog, which) ->
+                        ScheduleReminderHelper.openExactAlarmSettings(requireContext()))
+                .show();
     }
 
     private int getDefaultDay() {
@@ -2429,6 +2674,16 @@ public class ScheduleFragment extends Fragment {
         return Math.round(dp * requireContext().getResources().getDisplayMetrics().density);
     }
 
+    private void applyBottomSheetDepth(@NonNull View sheet, int elevationDp) {
+        float elevationPx = dpToPx(elevationDp);
+        sheet.setElevation(elevationPx);
+        sheet.setTranslationZ(elevationPx);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            sheet.setOutlineAmbientShadowColor(ContextCompat.getColor(requireContext(), R.color.bottom_sheet_shadow_ambient));
+            sheet.setOutlineSpotShadowColor(ContextCompat.getColor(requireContext(), R.color.bottom_sheet_shadow_spot));
+        }
+    }
+
     private static class ScheduleBlockBinding {
         View root;
         TextView label;
@@ -2442,6 +2697,108 @@ public class ScheduleFragment extends Fragment {
         int selectedDay  = 1;
         int startMinutes = -1;
         int endMinutes   = -1;
+    }
+
+    private static class ScheduleBlockState {
+        final int dayOfWeek;
+        final int startMinutes;
+        final int endMinutes;
+
+        private ScheduleBlockState(int dayOfWeek, int startMinutes, int endMinutes) {
+            this.dayOfWeek = dayOfWeek;
+            this.startMinutes = startMinutes;
+            this.endMinutes = endMinutes;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof ScheduleBlockState)) return false;
+            ScheduleBlockState that = (ScheduleBlockState) o;
+            return dayOfWeek == that.dayOfWeek
+                    && startMinutes == that.startMinutes
+                    && endMinutes == that.endMinutes;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(dayOfWeek, startMinutes, endMinutes);
+        }
+    }
+
+    private static class ScheduleFormState {
+        @Nullable
+        final String title;
+        @Nullable
+        final String courseCode;
+        @Nullable
+        final String instructor;
+        @Nullable
+        final String notes;
+        final boolean online;
+        @Nullable
+        final Integer roomId;
+        @Nullable
+        final String onlinePlatform;
+        final int reminderMinutes;
+        final int colorIndex;
+        @NonNull
+        final List<ScheduleBlockState> scheduleBlocks;
+
+        private ScheduleFormState(@Nullable String title,
+                                  @Nullable String courseCode,
+                                  @Nullable String instructor,
+                                  @Nullable String notes,
+                                  boolean online,
+                                  @Nullable Integer roomId,
+                                  @Nullable String onlinePlatform,
+                                  int reminderMinutes,
+                                  int colorIndex,
+                                  @NonNull List<ScheduleBlockState> scheduleBlocks) {
+            this.title = title;
+            this.courseCode = courseCode;
+            this.instructor = instructor;
+            this.notes = notes;
+            this.online = online;
+            this.roomId = roomId;
+            this.onlinePlatform = onlinePlatform;
+            this.reminderMinutes = reminderMinutes;
+            this.colorIndex = colorIndex;
+            this.scheduleBlocks = scheduleBlocks;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof ScheduleFormState)) return false;
+            ScheduleFormState that = (ScheduleFormState) o;
+            return online == that.online
+                    && reminderMinutes == that.reminderMinutes
+                    && colorIndex == that.colorIndex
+                    && Objects.equals(title, that.title)
+                    && Objects.equals(courseCode, that.courseCode)
+                    && Objects.equals(instructor, that.instructor)
+                    && Objects.equals(notes, that.notes)
+                    && Objects.equals(roomId, that.roomId)
+                    && Objects.equals(onlinePlatform, that.onlinePlatform)
+                    && Objects.equals(scheduleBlocks, that.scheduleBlocks);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(
+                    title,
+                    courseCode,
+                    instructor,
+                    notes,
+                    online,
+                    roomId,
+                    onlinePlatform,
+                    reminderMinutes,
+                    colorIndex,
+                    scheduleBlocks
+            );
+        }
     }
 
     private static class PendingScheduleBlock {

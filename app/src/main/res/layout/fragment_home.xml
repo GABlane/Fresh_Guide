@@ -24,12 +24,13 @@
 
         <!-- Full FreshGuide brand logo -->
         <ImageView
+            android:id="@+id/iv_home_logo"
             android:layout_width="85dp"
             android:layout_height="90dp"
             android:layout_gravity="center_horizontal"
             android:src="@drawable/logo"
             android:scaleType="fitCenter"
-            android:contentDescription="FreshGuide" />
+            android:contentDescription="@string/logo_description" />
 
         <!-- Search bar -->
         <LinearLayout
@@ -56,7 +57,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:gravity="center_vertical"
-                android:text="Search Location"
+                android:text="@string/search_location_hint"
                 android:textColor="@color/text_hint"
                 android:textSize="14sp"
                 android:fontFamily="@font/instrument_regular" />
@@ -512,28 +513,11 @@
             app:useCompatPadding="false" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_toggle_directions_sheet"
-            android:layout_width="110dp"
-            android:layout_height="38dp"
-            android:layout_gravity="bottom|start"
-            android:layout_marginStart="12dp"
-            android:layout_marginBottom="8dp"
-            android:text="Show Sheet"
-            android:textAllCaps="false"
-            android:textColor="@color/green_primary"
-            android:textSize="12sp"
-            android:visibility="gone"
-            app:backgroundTint="@color/background_card"
-            app:cornerRadius="18dp"
-            app:strokeColor="@color/border_subtle"
-            app:strokeWidth="1dp" />
-
-        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_exit_direction_mode"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_gravity="bottom|start"
-            android:layout_marginStart="128dp"
+            android:layout_marginStart="12dp"
             android:layout_marginBottom="8dp"
             android:contentDescription="Exit direction mode"
             android:minWidth="0dp"
@@ -556,15 +540,15 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_marginEnd="12dp"
-            android:layout_marginBottom="78dp"
+            android:layout_marginBottom="132dp"
             android:orientation="horizontal"
             android:visibility="gone">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_route_prev_floor"
-                android:layout_width="76dp"
-                android:layout_height="38dp"
-                android:text="Prev"
+                android:layout_width="92dp"
+                android:layout_height="40dp"
+                android:text="Previous"
                 android:textAllCaps="false"
                 android:textColor="@color/green_primary"
                 android:textSize="12sp"
@@ -575,8 +559,8 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_route_next_floor"
-                android:layout_width="76dp"
-                android:layout_height="38dp"
+                android:layout_width="92dp"
+                android:layout_height="40dp"
                 android:layout_marginStart="8dp"
                 android:text="Next"
                 android:textAllCaps="false"

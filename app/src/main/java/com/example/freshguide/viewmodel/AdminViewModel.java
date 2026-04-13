@@ -17,6 +17,7 @@ import com.example.freshguide.model.dto.FloorDto;
 import com.example.freshguide.model.dto.OriginDto;
 import com.example.freshguide.model.dto.RouteDto;
 import com.example.freshguide.model.dto.RoomDto;
+import com.example.freshguide.model.entity.FloorEntity;
 import com.example.freshguide.model.entity.OriginEntity;
 import com.example.freshguide.model.entity.RoomEntity;
 import com.example.freshguide.network.ApiClient;
@@ -302,19 +303,46 @@ public class AdminViewModel extends AndroidViewModel {
             @Override
             public void onResponse(Call<ApiResponse<List<FloorDto>>> call,
                                    Response<ApiResponse<List<FloorDto>>> response) {
-                loading.setValue(false);
                 if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    floors.setValue(response.body().getData());
-                } else {
-                    error.setValue("Failed to load floors");
+                    List<FloorDto> data = response.body().getData();
+                    floors.setValue(data != null ? data : new java.util.ArrayList<>());
+                    loading.setValue(false);
+                    return;
                 }
+                loadFloorsFromLocal("Failed to load floors");
             }
 
             @Override
             public void onFailure(Call<ApiResponse<List<FloorDto>>> call, Throwable t) {
-                loading.setValue(false);
-                error.setValue("Network error: " + t.getMessage());
+                loadFloorsFromLocal("Network error: " + t.getMessage());
             }
+        });
+    }
+
+    private void loadFloorsFromLocal(@NonNull String fallbackMessage) {
+        executor.execute(() -> {
+            List<FloorEntity> localFloors = db.floorDao().getAllSync();
+            List<FloorDto> fallbackFloors = new java.util.ArrayList<>();
+            if (localFloors != null) {
+                for (FloorEntity floor : localFloors) {
+                    if (floor == null) {
+                        continue;
+                    }
+                    FloorDto dto = new FloorDto();
+                    dto.id = floor.id;
+                    dto.buildingId = floor.buildingId;
+                    dto.number = floor.number;
+                    dto.name = floor.name;
+                    fallbackFloors.add(dto);
+                }
+            }
+            mainHandler.post(() -> {
+                floors.setValue(fallbackFloors);
+                loading.setValue(false);
+                if (fallbackFloors.isEmpty()) {
+                    error.setValue(fallbackMessage);
+                }
+            });
         });
     }
 

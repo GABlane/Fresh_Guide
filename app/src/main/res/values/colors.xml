@@ -104,6 +104,9 @@
     <color name="room_detail_directions_bg">#CFE8D0</color>  <!-- DIRECTIONS button -->
     <color name="room_detail_handle">#C7C7C7</color>         <!-- Drag handle -->
     <color name="media_placeholder_bg">#E5E5E5</color>       <!-- Image placeholder -->
+    <color name="bottom_sheet_surface_stroke">#E8ECE7</color>
+    <color name="bottom_sheet_shadow_ambient">#1A000000</color>
+    <color name="bottom_sheet_shadow_spot">#40000000</color>
 
     <!-- Schedule & Dialog Colors (Light Mode) -->
     <color name="schedule_form_label">#4F8E4F</color>        <!-- Form labels -->

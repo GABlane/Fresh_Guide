@@ -1,6 +1,7 @@
 package com.example.freshguide.ui.user;
 
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -21,6 +22,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -55,8 +57,10 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     public static final String ARG_PRESELECTED_ORIGIN_ROOM_ID = "preselectedOriginRoomId";
     public static final String ARG_AUTO_START_ROUTE = "autoStartRoute";
     public static final String ARG_KEEP_OPEN_ON_START = "keepOpenOnStart";
+    public static final String ARG_SHEET_SESSION_ID = "sheetSessionId";
     public static final String RESULT_ROUTE_MAP_OVERLAY = "route_map_overlay_result";
     public static final String RESULT_SHEET_VISIBILITY = "directions_sheet_visibility_result";
+    public static final String RESULT_NAVIGATION_FOCUS = "directions_navigation_focus_result";
     public static final String KEY_ROUTE_VISIBLE = "route_visible";
     public static final String KEY_ROUTE_ROOM_ID = "route_room_id";
     public static final String KEY_ROUTE_ORIGIN_ID = "route_origin_id";
@@ -64,6 +68,8 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     public static final String KEY_ROUTE_USE_STAIRS = "route_use_stairs";
     public static final String KEY_ROUTE_USE_ELEVATOR = "route_use_elevator";
     public static final String KEY_SHEET_VISIBLE = "sheet_visible";
+    public static final String KEY_SHEET_SESSION_ID = "sheet_session_id";
+    public static final String KEY_NAVIGATION_FOCUS_ACTIVE = "navigation_focus_active";
 
     private enum ActiveField {
         NONE,
@@ -113,15 +119,13 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private View originEmpty;
     private View destinationEmpty;
     private View routeEmptyState;
+    private TextView collapsedLabelText;
     private TextView collapsedOriginText;
     private TextView collapsedDestinationText;
-    private TextView hideSheetHintText;
+    private TextView collapsedHintText;
     private ProgressBar routeLoading;
     private MaterialButton btnStart;
-    private MaterialButton btnHideSheet;
     private BottomSheetBehavior<View> bottomSheetBehavior;
-    @Nullable
-    private View bottomSheetView;
 
     private int originId = -1;
     private int selectedOriginRoomId = -1;
@@ -143,8 +147,10 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private int activeRouteOriginId = -1;
     private int activeRouteOriginRoomId = -1;
     private int activeRouteRoomId = -1;
+    private int sheetSessionId;
     private boolean preserveOverlayOnDismiss;
     private int resultPanelMaxHeightPx;
+    private float lastSheetSlideOffset;
 
     // -----------------------------------------------------------------------
     // FIX: Guard flag that prevents focus-change listeners from re-opening
@@ -166,7 +172,8 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         if (getDialog() instanceof BottomSheetDialog) {
             BottomSheetDialog dialog = (BottomSheetDialog) getDialog();
             dialog.setCancelable(true);
-            dialog.setCanceledOnTouchOutside(true);
+            dialog.setCanceledOnTouchOutside(false);
+            dialog.setDismissWithAnimation(true);
             Window window = dialog.getWindow();
             if (window != null) {
                 window.setGravity(Gravity.BOTTOM);
@@ -175,13 +182,13 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             }
             View sheet = dialog.findViewById(com.google.android.material.R.id.design_bottom_sheet);
             if (sheet != null) {
-                bottomSheetView = sheet;
                 ViewGroup.LayoutParams params = sheet.getLayoutParams();
                 if (params != null) {
                     params.height = ViewGroup.LayoutParams.MATCH_PARENT;
                     sheet.setLayoutParams(params);
                 }
-                sheet.setElevation(dpToPx(22));
+                sheet.setBackgroundResource(R.drawable.bg_bottom_sheet_surface);
+                applyBottomSheetDepth(sheet, 30);
                 bottomSheetBehavior = BottomSheetBehavior.from(sheet);
                 bottomSheetBehavior.setFitToContents(false);
                 bottomSheetBehavior.setExpandedOffset(0);
@@ -202,7 +209,6 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
                             dismissAllowingStateLoss();
                             return;
                         }
-                        updateBottomSheetHeightForState(newState);
                         updateWindowForSheetState(newState);
                         handleBottomSheetStateChanged(newState);
                         updateResultPanelHeights();
@@ -210,6 +216,10 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
                     @Override
                     public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                        lastSheetSlideOffset = slideOffset;
+                        if (bottomSheetBehavior != null) {
+                            updateWindowForSheetState(bottomSheetBehavior.getState());
+                        }
                         updateResultPanelHeights();
                     }
                 });
@@ -229,6 +239,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             preselectedOriginRoomId = args.getInt(ARG_PRESELECTED_ORIGIN_ROOM_ID, -1);
             autoStartRoute = args.getBoolean(ARG_AUTO_START_ROUTE, false);
             keepOpenOnStart = args.getBoolean(ARG_KEEP_OPEN_ON_START, false);
+            sheetSessionId = args.getInt(ARG_SHEET_SESSION_ID, 0);
             if (keepOpenOnStart) {
                 preserveOverlayOnDismiss = true;
             }
@@ -240,8 +251,10 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         sheetRoot = view.findViewById(R.id.sheet_root);
         titleView = view.findViewById(R.id.tv_title);
         collapsedSummary = view.findViewById(R.id.layout_collapsed_summary);
+        collapsedLabelText = view.findViewById(R.id.tv_collapsed_label);
         collapsedOriginText = view.findViewById(R.id.tv_collapsed_origin);
         collapsedDestinationText = view.findViewById(R.id.tv_collapsed_destination);
+        collapsedHintText = view.findViewById(R.id.tv_collapsed_hint);
         summaryContent = view.findViewById(R.id.layout_summary_content);
         routeContent = view.findViewById(R.id.layout_route_content);
         resultsScrim = view.findViewById(R.id.view_results_scrim);
@@ -260,8 +273,6 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         destinationEmpty = view.findViewById(R.id.tv_destination_empty);
         routeEmptyState = view.findViewById(R.id.layout_route_empty_state);
         routeLoading = view.findViewById(R.id.progress_route_loading);
-        hideSheetHintText = view.findViewById(R.id.tv_hide_sheet_hint);
-        btnHideSheet = view.findViewById(R.id.btn_hide_sheet);
         btnStart = view.findViewById(R.id.btn_start_directions);
         originAdapter = new DirectionSearchAdapter(this::onSuggestionPicked);
         destinationAdapter = new DirectionSearchAdapter(this::onSuggestionPicked);
@@ -289,12 +300,6 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         view.post(this::updateResultPanelHeights);
 
         btnStart.setOnClickListener(v -> startDirectionsInPlace(view));
-        if (btnHideSheet != null) {
-            btnHideSheet.setOnClickListener(v -> {
-                preserveOverlayOnDismiss = activeRouteRoomId > 0 || contentMode == ContentMode.ROUTE;
-                dismissAllowingStateLoss();
-            });
-        }
         btnSwapDirection.setOnClickListener(v -> swapOriginAndDestination());
 
         loadOriginsAndRooms();
@@ -320,7 +325,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void startDirectionsInPlace(@NonNull View rootView) {
-        boolean shouldDismissOnStart = !keepOpenOnStart;
+        boolean shouldDismissOnStart = autoStartRoute && !keepOpenOnStart;
         String originText = textOf(etOrigin);
         String destinationText = textOf(etDestination);
 
@@ -339,19 +344,15 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             reverseCurrentRoute = false;
             activeRouteOriginRoomId = -1;
         } else if (directOriginRoomId != -1 && directRoomId != -1) {
+            publishNavigationFocusState(true);
             hideResultsAndClearFocus();
+            showRouteLoadingState();
+            presentStartedRouteSheet();
             activeRouteOriginId = -1;
             activeRouteOriginRoomId = directOriginRoomId;
             activeRouteRoomId = directRoomId;
             reverseCurrentRoute = false;
-            publishLocalRoomRouteOverlay(directOriginRoomId, directRoomId);
-            preserveOverlayOnDismiss = true;
-            if (shouldDismissOnStart) {
-                dismissAllowingStateLoss();
-            } else {
-                presentStartedRouteSheet();
-                showRouteEmptyState(true);
-            }
+            viewModel.loadRoomRoute(directRoomId, directOriginRoomId);
             return;
         } else if (swappedOriginId != -1 && swappedRoomId != -1) {
             routeOriginId = swappedOriginId;
@@ -369,13 +370,13 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             return;
         }
 
+        publishNavigationFocusState(true);
         hideResultsAndClearFocus();
         activeRouteOriginId = routeOriginId;
         activeRouteOriginRoomId = -1;
         activeRouteRoomId = routeRoomId;
-        publishOriginRouteOverlay(routeRoomId, routeOriginId);
-        preserveOverlayOnDismiss = true;
         if (shouldDismissOnStart) {
+            publishOriginRouteOverlay(routeRoomId, routeOriginId);
             dismissAllowingStateLoss();
             return;
         }
@@ -386,6 +387,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
     private void showRouteLoadingState() {
         contentMode = ContentMode.ROUTE;
+        updateCollapsedSummary();
         routeAdapter.setSteps(Collections.emptyList());
         routeContent.setVisibility(View.VISIBLE);
         routeContent.setAlpha(1f);
@@ -463,11 +465,25 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     }
 
     private void updateCollapsedSummary() {
+        if (collapsedLabelText != null) {
+            collapsedLabelText.setText(R.string.label_destination);
+        }
         if (collapsedOriginText != null) {
-            collapsedOriginText.setText(getSummaryValue(textOf(etOrigin), getString(R.string.label_origin)));
+            String originValue = textOf(etOrigin).trim();
+            collapsedOriginText.setText(originValue.isEmpty()
+                    ? getString(R.string.directions_small_origin_placeholder)
+                    : getString(R.string.directions_small_from, originValue));
         }
         if (collapsedDestinationText != null) {
-            collapsedDestinationText.setText(getSummaryValue(textOf(etDestination), getString(R.string.label_destination)));
+            collapsedDestinationText.setText(getSummaryValue(
+                    textOf(etDestination),
+                    getString(R.string.label_select_destination)
+            ));
+        }
+        if (collapsedHintText != null) {
+            collapsedHintText.setText(contentMode == ContentMode.ROUTE
+                    ? R.string.directions_small_hint_steps
+                    : R.string.directions_small_hint_edit);
         }
     }
 
@@ -531,6 +547,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         activeRouteOriginId = -1;
         activeRouteOriginRoomId = -1;
         activeRouteRoomId = -1;
+        updateCollapsedSummary();
         if (collapseToSummary && bottomSheetBehavior != null) {
             sheetRoot.post(() -> {
                 if (bottomSheetBehavior != null) {
@@ -1028,18 +1045,21 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private void handleBottomSheetStateChanged(int newState) {
         if (newState == BottomSheetBehavior.STATE_EXPANDED) {
             sheetDisplayState = SheetDisplayState.FULL;
+            lastSheetSlideOffset = 1f;
             resultPanelMaxHeightPx = dpToPx(360);
             applySheetChrome(false);
             return;
         }
         if (newState == BottomSheetBehavior.STATE_HALF_EXPANDED) {
             sheetDisplayState = SheetDisplayState.HALF;
+            lastSheetSlideOffset = 0.5f;
             resultPanelMaxHeightPx = dpToPx(200);
             applySheetChrome(false);
             return;
         }
         if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
             sheetDisplayState = SheetDisplayState.SMALL;
+            lastSheetSlideOffset = 0f;
             resultPanelMaxHeightPx = dpToPx(120);
             applySheetChrome(true);
         }
@@ -1054,7 +1074,11 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
             return;
         }
 
-        boolean compactState = state == BottomSheetBehavior.STATE_COLLAPSED;
+        boolean compactState = state == BottomSheetBehavior.STATE_COLLAPSED
+                || state == BottomSheetBehavior.STATE_HIDDEN
+                || ((state == BottomSheetBehavior.STATE_DRAGGING
+                || state == BottomSheetBehavior.STATE_SETTLING)
+                && shouldKeepCompactWindowDuringTransition());
         window.setDimAmount(compactState ? 0f : 0.16f);
         window.setLayout(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -1062,20 +1086,8 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         );
     }
 
-    private void updateBottomSheetHeightForState(int state) {
-        if (bottomSheetView == null) {
-            return;
-        }
-        ViewGroup.LayoutParams params = bottomSheetView.getLayoutParams();
-        if (params == null) {
-            return;
-        }
-        boolean compactState = state == BottomSheetBehavior.STATE_COLLAPSED;
-        int targetHeight = compactState ? dpToPx(132) : ViewGroup.LayoutParams.MATCH_PARENT;
-        if (params.height != targetHeight) {
-            params.height = targetHeight;
-            bottomSheetView.setLayoutParams(params);
-        }
+    private boolean shouldKeepCompactWindowDuringTransition() {
+        return sheetDisplayState == SheetDisplayState.SMALL && lastSheetSlideOffset <= 0f;
     }
 
     private void bindFieldInteractions(ActiveField fieldType) {
@@ -1206,6 +1218,16 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         return Math.round(dp * getResources().getDisplayMetrics().density);
     }
 
+    private void applyBottomSheetDepth(@NonNull View sheet, int elevationDp) {
+        float elevationPx = dpToPx(elevationDp);
+        sheet.setElevation(elevationPx);
+        sheet.setTranslationZ(elevationPx);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            sheet.setOutlineAmbientShadowColor(ContextCompat.getColor(requireContext(), R.color.bottom_sheet_shadow_ambient));
+            sheet.setOutlineSpotShadowColor(ContextCompat.getColor(requireContext(), R.color.bottom_sheet_shadow_spot));
+        }
+    }
+
     private void publishRouteOverlay(int roomId, int originId, int originRoomId, @NonNull RouteDto route) {
         Bundle result = new Bundle();
         result.putBoolean(KEY_ROUTE_VISIBLE, true);
@@ -1243,6 +1265,12 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
         Bundle result = new Bundle();
         result.putBoolean(KEY_ROUTE_VISIBLE, false);
         getParentFragmentManager().setFragmentResult(RESULT_ROUTE_MAP_OVERLAY, result);
+    }
+
+    private void publishNavigationFocusState(boolean active) {
+        Bundle result = new Bundle();
+        result.putBoolean(KEY_NAVIGATION_FOCUS_ACTIVE, active);
+        getParentFragmentManager().setFragmentResult(RESULT_NAVIGATION_FOCUS, result);
     }
 
     private boolean shouldUseStairs(@Nullable RouteDto route) {
@@ -1290,10 +1318,8 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
 
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
-        if (!preserveOverlayOnDismiss) {
-            clearRouteOverlay();
-        }
-        preserveOverlayOnDismiss = false;
+        clearRouteOverlay();
+        publishNavigationFocusState(false);
         publishSheetVisibility(false);
         super.onDismiss(dialog);
     }
@@ -1301,6 +1327,7 @@ public class DirectionsSheetFragment extends BottomSheetDialogFragment {
     private void publishSheetVisibility(boolean visible) {
         Bundle result = new Bundle();
         result.putBoolean(KEY_SHEET_VISIBLE, visible);
+        result.putInt(KEY_SHEET_SESSION_ID, sheetSessionId);
         getParentFragmentManager().setFragmentResult(RESULT_SHEET_VISIBILITY, result);
     }
 

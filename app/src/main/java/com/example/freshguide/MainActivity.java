@@ -21,9 +21,11 @@ import androidx.navigation.NavDestination;
 import androidx.navigation.NavOptions;
         import androidx.navigation.fragment.NavHostFragment;
         import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
 
         import com.example.freshguide.repository.ProfileSyncRepository;
         import com.example.freshguide.repository.SavedRoomRepository;
+        import com.example.freshguide.repository.SyncRepository;
         import com.example.freshguide.receiver.NetworkChangeReceiver;
         import com.example.freshguide.util.SessionManager;
         import com.example.freshguide.util.ThemePreferenceManager;
@@ -40,6 +42,7 @@ import androidx.navigation.NavOptions;
             private View pendingNavActionView;
             private ProfileSyncRepository profileSyncRepository;
             private SavedRoomRepository savedRoomRepository;
+            private SyncRepository coreSyncRepository;
 
             @Override
             protected void onCreate(Bundle savedInstanceState) {
@@ -90,8 +93,10 @@ import androidx.navigation.NavOptions;
                 isAdmin = session.isAdmin();
 
                 if (isAdmin) {
+                    coreSyncRepository = new SyncRepository(this);
                     setupAdminNav(navHome, navSchedule, navSettings, navProfile);
                     updateNavSelection(R.id.adminDashboardFragment);
+                    syncCoreDataIfNeeded();
                     if (savedInstanceState == null) {
                         NavOptions options = new NavOptions.Builder()
                                 .setPopUpTo(R.id.homeFragment, true)
@@ -117,6 +122,7 @@ import androidx.navigation.NavOptions;
 
                 navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
                     updateNavSelection(destination.getId());
+                    updateBottomNavVisibility(destination);
                 });
 
                 // Network change receiver (checklist 3.2)
@@ -125,7 +131,7 @@ import androidx.navigation.NavOptions;
 
             private void setupCustomNav(View navHome, View navSchedule, View navSettings, View navProfile) {
                 bindNavItem(navHome, R.id.nav_icon_home, R.id.nav_text_home,
-                        () -> navigateTo(R.id.homeFragment));
+                        this::openHomeTab);
                 bindNavItem(navSchedule, R.id.nav_icon_schedule, R.id.nav_text_schedule,
                         () -> navigateTo(R.id.scheduleFragment));
                 bindNavItem(navSettings, R.id.nav_icon_settings, R.id.nav_text_settings,
@@ -439,6 +445,28 @@ import androidx.navigation.NavOptions;
                 return 0;
             }
 
+            private void syncCoreDataIfNeeded() {
+                if (coreSyncRepository == null) {
+                    return;
+                }
+                coreSyncRepository.syncIfNeeded(new SyncRepository.SyncCallback() {
+                    @Override
+                    public void onSyncComplete() {
+                        // Local floor and room views depend on this bootstrap cache.
+                    }
+
+                    @Override
+                    public void onSyncSkipped() {
+                        // Already up to date.
+                    }
+
+                    @Override
+                    public void onSyncError(String message) {
+                        // Admin screens fall back to local data when available.
+                    }
+                });
+            }
+
             private void updateNavSelection(@IdRes int destinationId) {
                 View navHome = findViewById(R.id.nav_item_home);
                 View navSchedule = findViewById(R.id.nav_item_schedule);
@@ -463,6 +491,23 @@ import androidx.navigation.NavOptions;
                 setNavItemSelected(navSchedule, R.id.nav_icon_schedule, R.id.nav_text_schedule, scheduleSelected);
                 setNavItemSelected(navSettings, R.id.nav_icon_settings, R.id.nav_text_settings, settingsSelected);
                 setNavItemSelected(navProfile, R.id.nav_icon_profile, R.id.nav_text_profile, profileSelected);
+            }
+
+            private void updateBottomNavVisibility(@NonNull NavDestination destination) {
+                View navContainer = findViewById(R.id.nav_bar_container);
+                if (navContainer == null) {
+                    return;
+                }
+                navContainer.setVisibility(isDialogDestination(destination.getId()) ? View.GONE : View.VISIBLE);
+            }
+
+            private boolean isDialogDestination(@IdRes int destinationId) {
+                return destinationId == R.id.roomDetailFragment
+                        || destinationId == R.id.adminBuildingFormFragment
+                        || destinationId == R.id.adminFloorFormFragment
+                        || destinationId == R.id.adminRoomFormFragment
+                        || destinationId == R.id.adminRouteFormFragment
+                        || destinationId == R.id.adminCampusAreaFormFragment;
             }
 
             private void setNavItemSelected(View item, int iconId, int textId, boolean selected) {
@@ -534,6 +579,9 @@ import androidx.navigation.NavOptions;
                 }
                 if (!isAdmin && savedRoomRepository != null) {
                     savedRoomRepository.syncNow();
+                }
+                if (isAdmin && coreSyncRepository != null) {
+                    syncCoreDataIfNeeded();
                 }
             }
 
