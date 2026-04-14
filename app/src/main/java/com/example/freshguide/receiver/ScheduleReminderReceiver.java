@@ -51,7 +51,14 @@ public class ScheduleReminderReceiver extends BroadcastReceiver {
                 }
 
                 ScheduleReminderHelper.ensureNotificationChannel(appContext);
-                showNotification(appContext, entry);
+                ScheduleReminderHelper.ReminderOccurrenceWindow occurrenceWindow =
+                        ScheduleReminderHelper.computeRelevantOccurrenceWindow(
+                                entry,
+                                System.currentTimeMillis()
+                        );
+                if (occurrenceWindow.endAtMillis > System.currentTimeMillis()) {
+                    showNotification(appContext, entry, occurrenceWindow);
+                }
                 ScheduleReminderHelper.scheduleReminder(appContext, entry);
             } finally {
                 pendingResult.finish();
@@ -59,7 +66,9 @@ public class ScheduleReminderReceiver extends BroadcastReceiver {
         });
     }
 
-    private void showNotification(Context context, ScheduleEntryEntity entry) {
+    private void showNotification(Context context,
+                                  ScheduleEntryEntity entry,
+                                  ScheduleReminderHelper.ReminderOccurrenceWindow occurrenceWindow) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && ActivityCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -68,7 +77,18 @@ public class ScheduleReminderReceiver extends BroadcastReceiver {
 
         Intent openAppIntent = new Intent(context, MainActivity.class);
         openAppIntent.putExtra("open_tab", "schedule");
-        openAppIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        openAppIntent.putExtra(ScheduleReminderHelper.EXTRA_SCHEDULE_ID, entry.id);
+        openAppIntent.putExtra(
+                ScheduleReminderHelper.EXTRA_OCCURRENCE_START_MILLIS,
+                occurrenceWindow.startAtMillis
+        );
+        openAppIntent.putExtra(
+                ScheduleReminderHelper.EXTRA_OCCURRENCE_END_MILLIS,
+                occurrenceWindow.endAtMillis
+        );
+        openAppIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
         PendingIntent contentIntent = PendingIntent.getActivity(
                 context,
@@ -78,18 +98,28 @@ public class ScheduleReminderReceiver extends BroadcastReceiver {
         );
 
         String startTime = formatMinutes(entry.startMinutes);
-        String content = String.format(Locale.getDefault(), "%s starts at %s", entry.title, startTime);
+        String title = entry.title != null && !entry.title.isBlank()
+                ? entry.title
+                : "Your class";
+        String content = String.format(
+                Locale.getDefault(),
+                "%s starts at %s. Tap to update your class status.",
+                title,
+                startTime
+        );
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, ScheduleReminderHelper.CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_my_schedule)
                 .setContentTitle("Class Reminder")
                 .setContentText(content)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(content))
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setCategory(NotificationCompat.CATEGORY_REMINDER)
                 .setAutoCancel(true)
                 .setContentIntent(contentIntent);
 
         NotificationManagerCompat manager = NotificationManagerCompat.from(context);
-        manager.notify(10000 + entry.id, builder.build());
+        manager.notify(ScheduleReminderHelper.buildNotificationId(entry.id), builder.build());
     }
 
     private String formatMinutes(int minutes) {

@@ -11,6 +11,8 @@ import android.os.Build;
 import android.provider.Settings;
 import android.util.Log;
 
+import androidx.core.app.NotificationManagerCompat;
+
 import com.example.freshguide.database.AppDatabase;
 import com.example.freshguide.model.entity.ScheduleEntryEntity;
 import com.example.freshguide.receiver.ScheduleReminderReceiver;
@@ -25,6 +27,9 @@ public final class ScheduleReminderHelper {
 
     public static final String CHANNEL_ID = "schedule_reminders";
     public static final String EXTRA_SCHEDULE_ID = "schedule_id";
+    public static final String EXTRA_OCCURRENCE_START_MILLIS = "occurrence_start_millis";
+    public static final String EXTRA_OCCURRENCE_END_MILLIS = "occurrence_end_millis";
+    public static final int NOTIFICATION_ID_BASE = 10_000;
     private static final String TAG = "ScheduleReminderHelper";
     private static final Executor REMINDER_EXECUTOR = Executors.newSingleThreadExecutor();
 
@@ -138,6 +143,14 @@ public final class ScheduleReminderHelper {
         alarmManager.cancel(pendingIntent);
     }
 
+    public static void cancelReminderNotification(Context context, int scheduleId) {
+        if (scheduleId <= 0) {
+            return;
+        }
+        NotificationManagerCompat.from(context.getApplicationContext())
+                .cancel(buildNotificationId(scheduleId));
+    }
+
     public static void syncAllReminders(Context context) {
         Context appContext = context.getApplicationContext();
         REMINDER_EXECUTOR.execute(() -> {
@@ -177,6 +190,23 @@ public final class ScheduleReminderHelper {
         );
     }
 
+    public static int buildNotificationId(int scheduleId) {
+        return NOTIFICATION_ID_BASE + scheduleId;
+    }
+
+    public static ReminderOccurrenceWindow computeRelevantOccurrenceWindow(ScheduleEntryEntity entry,
+                                                                           long referenceMillis) {
+        Calendar start = buildOccurrenceCalendar(referenceMillis, entry.dayOfWeek, entry.startMinutes);
+        Calendar end = buildOccurrenceCalendar(referenceMillis, entry.dayOfWeek, entry.endMinutes);
+
+        if (end.getTimeInMillis() <= referenceMillis) {
+            start.add(Calendar.WEEK_OF_YEAR, 1);
+            end.add(Calendar.WEEK_OF_YEAR, 1);
+        }
+
+        return new ReminderOccurrenceWindow(start.getTimeInMillis(), end.getTimeInMillis());
+    }
+
     private static PendingIntent buildReminderPendingIntent(Context context, int scheduleId) {
         Intent intent = new Intent(context, ScheduleReminderReceiver.class);
         intent.putExtra(EXTRA_SCHEDULE_ID, scheduleId);
@@ -207,6 +237,17 @@ public final class ScheduleReminderHelper {
             return;
         }
         alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
+    }
+
+    private static Calendar buildOccurrenceCalendar(long referenceMillis, int dayOfWeek, int totalMinutes) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(referenceMillis);
+        calendar.set(Calendar.DAY_OF_WEEK, toCalendarDay(dayOfWeek));
+        calendar.set(Calendar.HOUR_OF_DAY, totalMinutes / 60);
+        calendar.set(Calendar.MINUTE, totalMinutes % 60);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar;
     }
 
     private static long computeNextReminderMillis(int dayOfWeek, int startMinutes, int reminderMinutes) {
@@ -243,6 +284,16 @@ public final class ScheduleReminderHelper {
                 return Calendar.SUNDAY;
             default:
                 return Calendar.MONDAY;
+        }
+    }
+
+    public static final class ReminderOccurrenceWindow {
+        public final long startAtMillis;
+        public final long endAtMillis;
+
+        public ReminderOccurrenceWindow(long startAtMillis, long endAtMillis) {
+            this.startAtMillis = startAtMillis;
+            this.endAtMillis = endAtMillis;
         }
     }
 }

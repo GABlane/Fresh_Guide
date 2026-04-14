@@ -51,6 +51,9 @@ public interface ScheduleDao {
     @Delete
     void delete(ScheduleEntryEntity entry);
 
+    @Query("DELETE FROM schedule_entries WHERE id = :id")
+    void deleteById(int id);
+
     @Query("DELETE FROM schedule_entries WHERE owner_student_id = :ownerStudentId")
     void deleteAllByOwner(String ownerStudentId);
 }

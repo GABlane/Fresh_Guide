@@ -114,6 +114,8 @@ public class ScheduleSyncRepository {
                 }
 
                 ScheduleReminderHelper.cancelReminder(appContext, entry.id);
+                ScheduleReminderHelper.cancelReminderNotification(appContext, entry.id);
+                session.clearScheduleReminderResponseIfMatches(entry.id);
                 ScheduleReminderHelper.scheduleReminder(appContext, entry);
 
                 mainHandler.post(() -> callback.onSuccess(entry));
@@ -134,17 +136,28 @@ public class ScheduleSyncRepository {
             }
 
             try {
-                if (entry.remoteId != null) {
-                    entry.ownerStudentId = ownerKey;
-                    entry.pendingDelete = 1;
-                    entry.syncState = ScheduleEntryEntity.SYNC_STATE_DIRTY;
-                    entry.updatedAt = System.currentTimeMillis();
-                    db.scheduleDao().update(entry);
-                } else {
-                    db.scheduleDao().delete(entry);
+                ScheduleEntryEntity persistedEntry = db.scheduleDao().getByIdSync(entry.id);
+                if (persistedEntry == null) {
+                    ScheduleReminderHelper.cancelReminder(appContext, entry.id);
+                    ScheduleReminderHelper.cancelReminderNotification(appContext, entry.id);
+                    session.clearScheduleReminderResponseIfMatches(entry.id);
+                    mainHandler.post(callback::onSuccess);
+                    return;
                 }
 
-                ScheduleReminderHelper.cancelReminder(appContext, entry.id);
+                if (persistedEntry.remoteId != null) {
+                    persistedEntry.ownerStudentId = ownerKey;
+                    persistedEntry.pendingDelete = 1;
+                    persistedEntry.syncState = ScheduleEntryEntity.SYNC_STATE_DIRTY;
+                    persistedEntry.updatedAt = System.currentTimeMillis();
+                    db.scheduleDao().update(persistedEntry);
+                } else {
+                    db.scheduleDao().deleteById(persistedEntry.id);
+                }
+
+                ScheduleReminderHelper.cancelReminder(appContext, persistedEntry.id);
+                ScheduleReminderHelper.cancelReminderNotification(appContext, persistedEntry.id);
+                session.clearScheduleReminderResponseIfMatches(persistedEntry.id);
                 mainHandler.post(callback::onSuccess);
                 syncNow();
             } catch (Exception e) {
@@ -195,18 +208,21 @@ public class ScheduleSyncRepository {
             }
 
             if (entry.pendingDelete == 1) {
+                ScheduleReminderHelper.cancelReminder(appContext, entry.id);
+                ScheduleReminderHelper.cancelReminderNotification(appContext, entry.id);
+                session.clearScheduleReminderResponseIfMatches(entry.id);
                 if (entry.remoteId != null) {
                     try {
                         Response<ApiResponse<Void>> response = api.deleteSchedule(entry.remoteId).execute();
                         if (isSuccess(response) || response.code() == 404) {
-                            db.scheduleDao().delete(entry);
+                            db.scheduleDao().deleteById(entry.id);
                         }
                     } catch (Exception e) {
                         Log.w(TAG, "Failed to delete schedule remotely: " + entry.id, e);
                         // keep pending for retry
                     }
                 } else {
-                    db.scheduleDao().delete(entry);
+                    db.scheduleDao().deleteById(entry.id);
                 }
                 continue;
             }
@@ -268,8 +284,10 @@ public class ScheduleSyncRepository {
                 continue;
             }
             if (!remoteIds.contains(local.remoteId)) {
-                db.scheduleDao().delete(local);
+                db.scheduleDao().deleteById(local.id);
                 ScheduleReminderHelper.cancelReminder(appContext, local.id);
+                ScheduleReminderHelper.cancelReminderNotification(appContext, local.id);
+                session.clearScheduleReminderResponseIfMatches(local.id);
             }
         }
     }
