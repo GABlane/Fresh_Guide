@@ -31,11 +31,17 @@ public class SessionManager {
     private static final String KEY_SYNC_ALERTS_ENABLED = "sync_alerts_enabled";
     private static final String KEY_AUTO_SYNC_ENABLED = "auto_sync_enabled";
     private static final String KEY_WIFI_ONLY_SYNC = "wifi_only_sync";
+    private static final String KEY_SCHEDULE_REMINDER_RESPONSE_STATUS = "schedule_reminder_response_status";
+    private static final String KEY_SCHEDULE_REMINDER_RESPONSE_ID = "schedule_reminder_response_id";
+    private static final String KEY_SCHEDULE_REMINDER_RESPONSE_START_AT = "schedule_reminder_response_start_at";
+    private static final String KEY_SCHEDULE_REMINDER_RESPONSE_END_AT = "schedule_reminder_response_end_at";
 
     public static final String ROLE_STUDENT = "student";
     public static final String ROLE_ADMIN = "admin";
     public static final String VIEW_MODE_WEEKLY = "weekly";
     public static final String VIEW_MODE_DAILY = "daily";
+    public static final String SCHEDULE_REMINDER_RESPONSE_GOING = "going";
+    public static final String SCHEDULE_REMINDER_RESPONSE_SKIP = "skip";
 
     private static SessionManager instance;
     private final SharedPreferences prefs;
@@ -245,6 +251,89 @@ public class SessionManager {
         return prefs.getBoolean(KEY_WIFI_ONLY_SYNC, false);
     }
 
+    public void setScheduleReminderResponse(int scheduleId,
+                                            String status,
+                                            long occurrenceStartAtMillis,
+                                            long occurrenceEndAtMillis) {
+        if (scheduleId <= 0
+                || TextUtils.isEmpty(status)
+                || occurrenceStartAtMillis <= 0L
+                || occurrenceEndAtMillis <= occurrenceStartAtMillis) {
+            clearScheduleReminderResponse();
+            return;
+        }
+
+        prefs.edit()
+                .putString(KEY_SCHEDULE_REMINDER_RESPONSE_STATUS, status)
+                .putInt(KEY_SCHEDULE_REMINDER_RESPONSE_ID, scheduleId)
+                .putLong(KEY_SCHEDULE_REMINDER_RESPONSE_START_AT, occurrenceStartAtMillis)
+                .putLong(KEY_SCHEDULE_REMINDER_RESPONSE_END_AT, occurrenceEndAtMillis)
+                .apply();
+    }
+
+    public void clearScheduleReminderResponse() {
+        prefs.edit()
+                .remove(KEY_SCHEDULE_REMINDER_RESPONSE_STATUS)
+                .remove(KEY_SCHEDULE_REMINDER_RESPONSE_ID)
+                .remove(KEY_SCHEDULE_REMINDER_RESPONSE_START_AT)
+                .remove(KEY_SCHEDULE_REMINDER_RESPONSE_END_AT)
+                .apply();
+    }
+
+    public void clearScheduleReminderResponseIfMatches(int scheduleId) {
+        if (prefs.getInt(KEY_SCHEDULE_REMINDER_RESPONSE_ID, -1) == scheduleId) {
+            clearScheduleReminderResponse();
+        }
+    }
+
+    public ScheduleReminderResponse getActiveScheduleReminderResponse(long nowMillis) {
+        boolean hasStoredResponse = prefs.contains(KEY_SCHEDULE_REMINDER_RESPONSE_STATUS)
+                || prefs.contains(KEY_SCHEDULE_REMINDER_RESPONSE_ID)
+                || prefs.contains(KEY_SCHEDULE_REMINDER_RESPONSE_START_AT)
+                || prefs.contains(KEY_SCHEDULE_REMINDER_RESPONSE_END_AT);
+        int scheduleId = prefs.getInt(KEY_SCHEDULE_REMINDER_RESPONSE_ID, -1);
+        String status = prefs.getString(KEY_SCHEDULE_REMINDER_RESPONSE_STATUS, null);
+        long occurrenceStartAtMillis = prefs.getLong(KEY_SCHEDULE_REMINDER_RESPONSE_START_AT, -1L);
+        long occurrenceEndAtMillis = prefs.getLong(KEY_SCHEDULE_REMINDER_RESPONSE_END_AT, -1L);
+
+        if (scheduleId <= 0
+                || TextUtils.isEmpty(status)
+                || occurrenceStartAtMillis <= 0L
+                || occurrenceEndAtMillis <= occurrenceStartAtMillis
+                || occurrenceEndAtMillis <= nowMillis) {
+            if (hasStoredResponse) {
+                clearScheduleReminderResponse();
+            }
+            return null;
+        }
+
+        return new ScheduleReminderResponse(
+                scheduleId,
+                status,
+                occurrenceStartAtMillis,
+                occurrenceEndAtMillis
+        );
+    }
+
+    public boolean isScheduleReminderResponsePreferenceKey(String key) {
+        return KEY_SCHEDULE_REMINDER_RESPONSE_STATUS.equals(key)
+                || KEY_SCHEDULE_REMINDER_RESPONSE_ID.equals(key)
+                || KEY_SCHEDULE_REMINDER_RESPONSE_START_AT.equals(key)
+                || KEY_SCHEDULE_REMINDER_RESPONSE_END_AT.equals(key);
+    }
+
+    public void registerPreferenceChangeListener(SharedPreferences.OnSharedPreferenceChangeListener listener) {
+        if (listener != null) {
+            prefs.registerOnSharedPreferenceChangeListener(listener);
+        }
+    }
+
+    public void unregisterPreferenceChangeListener(SharedPreferences.OnSharedPreferenceChangeListener listener) {
+        if (listener != null) {
+            prefs.unregisterOnSharedPreferenceChangeListener(listener);
+        }
+    }
+
     public void resetAppPreferences() {
         prefs.edit()
                 .remove(KEY_SCHEDULE_VIEW_MODE)
@@ -256,6 +345,10 @@ public class SessionManager {
                 .remove(KEY_SYNC_ALERTS_ENABLED)
                 .remove(KEY_AUTO_SYNC_ENABLED)
                 .remove(KEY_WIFI_ONLY_SYNC)
+                .remove(KEY_SCHEDULE_REMINDER_RESPONSE_STATUS)
+                .remove(KEY_SCHEDULE_REMINDER_RESPONSE_ID)
+                .remove(KEY_SCHEDULE_REMINDER_RESPONSE_START_AT)
+                .remove(KEY_SCHEDULE_REMINDER_RESPONSE_END_AT)
                 .apply();
     }
 
@@ -267,8 +360,37 @@ public class SessionManager {
                 .remove(KEY_USER_NAME)
                 .remove(KEY_PROFILE_COURSE_SECTION)
                 .remove(KEY_PROFILE_PHOTO_URI)
+                .remove(KEY_SCHEDULE_REMINDER_RESPONSE_STATUS)
+                .remove(KEY_SCHEDULE_REMINDER_RESPONSE_ID)
+                .remove(KEY_SCHEDULE_REMINDER_RESPONSE_START_AT)
+                .remove(KEY_SCHEDULE_REMINDER_RESPONSE_END_AT)
                 .apply();
         pendingProfilePhotoRef = null;
+    }
+
+    public static final class ScheduleReminderResponse {
+        public final int scheduleId;
+        public final String status;
+        public final long occurrenceStartAtMillis;
+        public final long occurrenceEndAtMillis;
+
+        private ScheduleReminderResponse(int scheduleId,
+                                         String status,
+                                         long occurrenceStartAtMillis,
+                                         long occurrenceEndAtMillis) {
+            this.scheduleId = scheduleId;
+            this.status = status;
+            this.occurrenceStartAtMillis = occurrenceStartAtMillis;
+            this.occurrenceEndAtMillis = occurrenceEndAtMillis;
+        }
+
+        public boolean isGoing() {
+            return SCHEDULE_REMINDER_RESPONSE_GOING.equals(status);
+        }
+
+        public boolean isSkip() {
+            return SCHEDULE_REMINDER_RESPONSE_SKIP.equals(status);
+        }
     }
 
     private String sanitizePersistentProfilePhotoRef(String photoRef) {

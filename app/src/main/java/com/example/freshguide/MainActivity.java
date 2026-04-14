@@ -22,11 +22,13 @@ import androidx.navigation.NavOptions;
         import androidx.navigation.fragment.NavHostFragment;
         import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
         import com.example.freshguide.repository.ProfileSyncRepository;
         import com.example.freshguide.repository.SavedRoomRepository;
         import com.example.freshguide.repository.SyncRepository;
         import com.example.freshguide.receiver.NetworkChangeReceiver;
+        import com.example.freshguide.ui.user.ScheduleFragment;
         import com.example.freshguide.util.SessionManager;
         import com.example.freshguide.util.ThemePreferenceManager;
         import com.google.android.material.snackbar.Snackbar;
@@ -34,6 +36,7 @@ import androidx.annotation.NonNull;
         public class MainActivity extends AppCompatActivity implements NetworkChangeReceiver.NetworkListener {
 
             private NavController navController;
+            private NavHostFragment navHostFragment;
             private View rootView;
             private boolean isAdmin;
             private static final long NAV_ITEM_PRESS_DURATION_MS = 55L;
@@ -78,7 +81,7 @@ import androidx.annotation.NonNull;
                 rootView = findViewById(R.id.main);
                 View navHostView = findViewById(R.id.nav_host_fragment);
 
-                NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
+                navHostFragment = (NavHostFragment) getSupportFragmentManager()
                         .findFragmentById(R.id.nav_host_fragment);
                 navController = navHostFragment.getNavController();
 
@@ -111,10 +114,7 @@ import androidx.annotation.NonNull;
                     updateNavSelection(R.id.homeFragment);
                     savedRoomRepository.syncNow();
                     if (savedInstanceState == null) {
-                        String openTab = getIntent() != null ? getIntent().getStringExtra("open_tab") : null;
-                        if ("schedule".equalsIgnoreCase(openTab)) {
-                            navigateTo(R.id.scheduleFragment);
-                        }
+                        handleLaunchIntent(getIntent());
                     }
                 }
 
@@ -127,6 +127,13 @@ import androidx.annotation.NonNull;
 
                 // Network change receiver (checklist 3.2)
                 NetworkChangeReceiver.setListener(this);
+            }
+
+            @Override
+            protected void onNewIntent(Intent intent) {
+                super.onNewIntent(intent);
+                setIntent(intent);
+                handleLaunchIntent(intent);
             }
 
             private void setupCustomNav(View navHome, View navSchedule, View navSettings, View navProfile) {
@@ -222,6 +229,35 @@ import androidx.annotation.NonNull;
                         .setLaunchSingleTop(true)
                         .build();
                 navController.navigate(R.id.adminDashboardFragment, null, options);
+            }
+
+            private void handleLaunchIntent(@Nullable Intent intent) {
+                if (isAdmin || intent == null) {
+                    return;
+                }
+
+                String openTab = intent.getStringExtra("open_tab");
+                if ("schedule".equalsIgnoreCase(openTab)) {
+                    if (navController != null
+                            && navController.getCurrentDestination() != null
+                            && navController.getCurrentDestination().getId() == R.id.scheduleFragment) {
+                        notifyScheduleReminderIntentUpdated();
+                    } else {
+                        navigateTo(R.id.scheduleFragment);
+                    }
+                    intent.removeExtra("open_tab");
+                }
+            }
+
+            private void notifyScheduleReminderIntentUpdated() {
+                if (navHostFragment == null) {
+                    return;
+                }
+                androidx.fragment.app.Fragment currentFragment =
+                        navHostFragment.getChildFragmentManager().getPrimaryNavigationFragment();
+                if (currentFragment instanceof ScheduleFragment) {
+                    ((ScheduleFragment) currentFragment).onReminderIntentUpdated();
+                }
             }
 
             private void applySystemBarInsets(View root, View navHostView, View navContainer) {

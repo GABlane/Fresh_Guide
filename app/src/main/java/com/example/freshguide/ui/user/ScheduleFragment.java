@@ -2,6 +2,7 @@ package com.example.freshguide.ui.user;
 
 import android.Manifest;
 import android.app.Dialog;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
@@ -88,7 +89,7 @@ public class ScheduleFragment extends Fragment {
     private static final int HOUR_WHEEL_REPEAT_COUNT = 200;
     private static final int MIN_CLASS_START_MINUTES = 6 * 60;
     private static final int MAX_CLASS_END_MINUTES = 23 * 60;
-    private static final int MIN_CLASS_DURATION_MINUTES = 3 * 60;
+    private static final int MIN_CLASS_DURATION_MINUTES = 30;
     private static final int SUNDAY_DAY_VALUE = 7;
     private static final String INVALID_CLASS_SCHEDULE_MESSAGE = "Invalid class schedule.";
     private static final String DUPLICATE_SCHEDULE_MESSAGE = "Schedule already exists.";
@@ -109,6 +110,8 @@ public class ScheduleFragment extends Fragment {
     private boolean initialScheduleUiResolved = false;
     @Nullable
     private Runnable pendingInitialScheduleUiRunnable = null;
+    private final SharedPreferences.OnSharedPreferenceChangeListener schedulePreferenceChangeListener =
+            (sharedPreferences, key) -> handleSchedulePreferenceChanged(key);
 
 
     private final ActivityResultLauncher<String> notificationPermissionLauncher =
@@ -131,16 +134,20 @@ public class ScheduleFragment extends Fragment {
     private View dailyDaySelectorContainer;
     private View emptyState;
     private View cardSummary;
+    private View summaryActions;
 
     private TextView tvSummaryCode;
     private TextView tvSummaryTitle;
     private TextView tvSummaryProfessor;
     private TextView tvSummaryTime;
     private TextView tvSummaryLabel;
+    private TextView tvSummaryActionPrompt;
     private TextView tvDate;
     private TextView tvEmptyStateMessage;
     private TextView tvSummarySubjectCode;
     private TextView tvSummaryLocation;
+    private TextView btnSummaryGoing;
+    private TextView btnSummarySkip;
 
     // ── Room data ──────────────────────────────────────────────────────────────
     private final List<RoomEntity> allRooms = new ArrayList<>();
@@ -184,16 +191,23 @@ public class ScheduleFragment extends Fragment {
         emptyState = view.findViewById(R.id.empty_state);
         cardSummary = view.findViewById(R.id.card_today_summary);
         summaryContent = view.findViewById(R.id.layout_summary_content);
+        summaryActions = view.findViewById(R.id.layout_summary_actions);
 
         tvSummaryCode      = view.findViewById(R.id.tv_summary_course_code);
         tvSummaryTitle     = view.findViewById(R.id.tv_summary_title);
         tvSummaryProfessor = view.findViewById(R.id.tv_summary_professor);
         tvSummaryTime      = view.findViewById(R.id.tv_summary_time);
         tvSummaryLabel     = view.findViewById(R.id.tv_summary_label);
+        tvSummaryActionPrompt = view.findViewById(R.id.tv_summary_action_prompt);
         tvEmptyStateMessage = view.findViewById(R.id.tv_empty_state_message);
 
         tvSummarySubjectCode = view.findViewById(R.id.tv_summary_subject_code);
         tvSummaryLocation = view.findViewById(R.id.tv_summary_location);
+        btnSummaryGoing = view.findViewById(R.id.btn_summary_going);
+        btnSummarySkip = view.findViewById(R.id.btn_summary_skip);
+
+        btnSummaryGoing.setOnClickListener(v -> applyReminderResponse(true));
+        btnSummarySkip.setOnClickListener(v -> applyReminderResponse(false));
 
         hideScheduleContentUntilResolved();
 
@@ -269,11 +283,13 @@ public class ScheduleFragment extends Fragment {
     public void onStart() {
         super.onStart();
         registerScheduleNetworkCallback();
+        registerSchedulePreferenceListener();
     }
 
     @Override
     public void onStop() {
         super.onStop();
+        unregisterSchedulePreferenceListener();
         unregisterScheduleNetworkCallback();
     }
 
@@ -292,6 +308,7 @@ public class ScheduleFragment extends Fragment {
         super.onDestroyView();
         // Clean up all handler callbacks to prevent memory leaks
         summaryRefreshHandler.removeCallbacksAndMessages(null);
+        unregisterSchedulePreferenceListener();
         unregisterScheduleNetworkCallback();
     }
 
@@ -374,6 +391,38 @@ public class ScheduleFragment extends Fragment {
         networkCallbackRegistered = false;
         scheduleNetworkCallback = null;
         connectivityManager = null;
+    }
+
+    private void registerSchedulePreferenceListener() {
+        if (sessionManager != null) {
+            sessionManager.registerPreferenceChangeListener(schedulePreferenceChangeListener);
+        }
+    }
+
+    private void unregisterSchedulePreferenceListener() {
+        if (sessionManager != null) {
+            sessionManager.unregisterPreferenceChangeListener(schedulePreferenceChangeListener);
+        }
+    }
+
+    private void handleSchedulePreferenceChanged(@Nullable String key) {
+        if (!isAdded()
+                || sessionManager == null
+                || !sessionManager.isScheduleReminderResponsePreferenceKey(key)) {
+            return;
+        }
+        summaryRefreshHandler.post(() -> {
+            if (isAdded() && initialScheduleUiResolved) {
+                updateSummaryCard(allSchedules);
+            }
+        });
+    }
+
+    public void onReminderIntentUpdated() {
+        if (!isAdded()) {
+            return;
+        }
+        summaryRefreshHandler.post(() -> updateSummaryCard(allSchedules));
     }
 
 
@@ -763,10 +812,18 @@ public class ScheduleFragment extends Fragment {
             summaryContent.setAlpha(1f);
             summaryContent.setTranslationY(0f);
         }
+        PendingReminderPrompt pendingReminderPrompt = resolvePendingReminderPrompt(schedules);
+        if (pendingReminderPrompt != null) {
+            cardSummary.setVisibility(View.VISIBLE);
+            renderPendingReminderSummary(pendingReminderPrompt);
+            return;
+        }
+
         SummaryState summaryState = resolveSummaryState(schedules);
         cardSummary.setVisibility(View.VISIBLE);
 
         if (summaryState.type == SummaryState.NO_SCHEDULE_YET) {
+            hideSummaryActions();
             tvSummaryLabel.setText("NO SCHEDULE YET");
             tvSummarySubjectCode.setText("");
             tvSummaryTitle.setText("GET STARTED");
@@ -783,6 +840,7 @@ public class ScheduleFragment extends Fragment {
         }
 
         if (summaryState.type == SummaryState.FREE_TIME || summaryState.entry == null) {
+            hideSummaryActions();
             tvSummaryLabel.setText("TAKE YOUR TIME");
             tvSummarySubjectCode.setText("");
             tvSummaryTitle.setText("FREE TIME");
@@ -799,9 +857,10 @@ public class ScheduleFragment extends Fragment {
         }
 
         ScheduleEntryEntity entry = summaryState.entry;
+        hideSummaryActions();
 
         if (summaryState.type == SummaryState.ONGOING_NOW) {
-            tvSummaryLabel.setText("YOU HAVE ONGOING CLASS NOW");
+            tvSummaryLabel.setText("YOU HAVE ONGOING CLASS");
         } else {
             tvSummaryLabel.setText("NEXT CLASS");
         }
@@ -868,6 +927,9 @@ public class ScheduleFragment extends Fragment {
         tvSummaryLabel.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_hint));
         tvSummaryProfessor.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
         tvSummaryTime.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_hint));
+        if (tvSummaryActionPrompt != null) {
+            tvSummaryActionPrompt.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
+        }
 
         tvSummarySubjectCode.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
         tvSummaryLocation.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_secondary));
@@ -903,9 +965,71 @@ public class ScheduleFragment extends Fragment {
             tvSummaryTime.setTextColor(secondaryText);
             tvSummarySubjectCode.setTextColor(secondaryText);
             tvSummaryLocation.setTextColor(secondaryText);
+            if (tvSummaryActionPrompt != null) {
+                tvSummaryActionPrompt.setTextColor(secondaryText);
+            }
 
         } catch (Exception e) {
             resetSummaryCardColors();
+        }
+    }
+
+    private void renderPendingReminderSummary(@NonNull PendingReminderPrompt prompt) {
+        ScheduleEntryEntity entry = prompt.entry;
+        tvSummaryLabel.setText("CLASS REMINDER");
+
+        String subjectCode = (entry.courseCode != null && !entry.courseCode.isBlank())
+                ? entry.courseCode.toUpperCase(Locale.getDefault())
+                : "";
+        tvSummarySubjectCode.setText(subjectCode);
+        tvSummarySubjectCode.setVisibility(subjectCode.isEmpty() ? View.GONE : View.VISIBLE);
+
+        tvSummaryTitle.setText(entry.title != null && !entry.title.isBlank()
+                ? entry.title.toUpperCase(Locale.getDefault())
+                : "CLASS");
+
+        if (entry.instructor != null && !entry.instructor.isBlank()) {
+            tvSummaryProfessor.setText(("PROF. " + entry.instructor).toUpperCase(Locale.getDefault()));
+        } else {
+            tvSummaryProfessor.setText("");
+        }
+
+        String location;
+        if (entry.isOnline == 1) {
+            location = "ONLINE" + (
+                    entry.onlinePlatform != null && !entry.onlinePlatform.isBlank()
+                            ? " - " + entry.onlinePlatform.toUpperCase(Locale.getDefault())
+                            : ""
+            );
+        } else {
+            location = resolveLocation(entry).toUpperCase(Locale.getDefault());
+        }
+        tvSummaryLocation.setText(location);
+        tvSummaryLocation.setVisibility(location.isEmpty() ? View.GONE : View.VISIBLE);
+        tvSummaryTime.setText(
+                (formatMinutes(entry.startMinutes) + " - " + formatMinutes(entry.endMinutes))
+                        .toUpperCase(Locale.getDefault()));
+        tvSummaryCode.setText("");
+
+        showSummaryActions();
+        applySummaryCardPalette(entry);
+    }
+
+    private void showSummaryActions() {
+        if (tvSummaryActionPrompt != null) {
+            tvSummaryActionPrompt.setVisibility(View.VISIBLE);
+        }
+        if (summaryActions != null) {
+            summaryActions.setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void hideSummaryActions() {
+        if (tvSummaryActionPrompt != null) {
+            tvSummaryActionPrompt.setVisibility(View.GONE);
+        }
+        if (summaryActions != null) {
+            summaryActions.setVisibility(View.GONE);
         }
     }
 
@@ -983,6 +1107,30 @@ public class ScheduleFragment extends Fragment {
             return state;
         }
 
+        SessionManager.ScheduleReminderResponse reminderResponse =
+                sessionManager.getActiveScheduleReminderResponse(System.currentTimeMillis());
+        if (reminderResponse != null) {
+            ScheduleEntryEntity responseEntry = null;
+            for (ScheduleEntryEntity schedule : schedules) {
+                if (schedule.id == reminderResponse.scheduleId) {
+                    responseEntry = schedule;
+                    break;
+                }
+            }
+
+            if (responseEntry == null) {
+                sessionManager.clearScheduleReminderResponseIfMatches(reminderResponse.scheduleId);
+            } else if (reminderResponse.isGoing()) {
+                state.type = SummaryState.ONGOING_NOW;
+                state.entry = responseEntry;
+                return state;
+            } else if (reminderResponse.isSkip()) {
+                state.type = SummaryState.FREE_TIME;
+                state.entry = null;
+                return state;
+            }
+        }
+
         int today = getDefaultDay();
         int currentMinutes = Calendar.getInstance().get(Calendar.HOUR_OF_DAY) * 60
                 + Calendar.getInstance().get(Calendar.MINUTE);
@@ -1030,6 +1178,102 @@ public class ScheduleFragment extends Fragment {
         state.type = SummaryState.FREE_TIME;
         state.entry = null;
         return state;
+    }
+
+    @Nullable
+    private PendingReminderPrompt resolvePendingReminderPrompt(@Nullable List<ScheduleEntryEntity> schedules) {
+        if (!isAdded() || schedules == null || schedules.isEmpty()) {
+            return null;
+        }
+
+        android.content.Intent activityIntent = requireActivity().getIntent();
+        if (activityIntent == null) {
+            return null;
+        }
+
+        int scheduleId = activityIntent.getIntExtra(ScheduleReminderHelper.EXTRA_SCHEDULE_ID, -1);
+        if (scheduleId <= 0) {
+            return null;
+        }
+
+        SessionManager.ScheduleReminderResponse activeResponse =
+                sessionManager.getActiveScheduleReminderResponse(System.currentTimeMillis());
+        if (activeResponse != null && activeResponse.scheduleId == scheduleId) {
+            clearPendingReminderIntent();
+            return null;
+        }
+
+        ScheduleEntryEntity targetEntry = null;
+        for (ScheduleEntryEntity entry : schedules) {
+            if (entry.id == scheduleId) {
+                targetEntry = entry;
+                break;
+            }
+        }
+
+        if (targetEntry == null) {
+            clearPendingReminderIntent();
+            return null;
+        }
+
+        long occurrenceStartAtMillis = activityIntent.getLongExtra(
+                ScheduleReminderHelper.EXTRA_OCCURRENCE_START_MILLIS,
+                -1L
+        );
+        long occurrenceEndAtMillis = activityIntent.getLongExtra(
+                ScheduleReminderHelper.EXTRA_OCCURRENCE_END_MILLIS,
+                -1L
+        );
+
+        if (occurrenceStartAtMillis <= 0L || occurrenceEndAtMillis <= occurrenceStartAtMillis) {
+            ScheduleReminderHelper.ReminderOccurrenceWindow occurrenceWindow =
+                    ScheduleReminderHelper.computeRelevantOccurrenceWindow(
+                            targetEntry,
+                            System.currentTimeMillis()
+                    );
+            occurrenceStartAtMillis = occurrenceWindow.startAtMillis;
+            occurrenceEndAtMillis = occurrenceWindow.endAtMillis;
+        }
+
+        if (occurrenceEndAtMillis <= System.currentTimeMillis()) {
+            clearPendingReminderIntent();
+            return null;
+        }
+
+        return new PendingReminderPrompt(targetEntry, occurrenceStartAtMillis, occurrenceEndAtMillis);
+    }
+
+    private void applyReminderResponse(boolean going) {
+        PendingReminderPrompt pendingReminderPrompt = resolvePendingReminderPrompt(allSchedules);
+        if (pendingReminderPrompt == null) {
+            hideSummaryActions();
+            updateSummaryCard(allSchedules);
+            return;
+        }
+
+        sessionManager.setScheduleReminderResponse(
+                pendingReminderPrompt.entry.id,
+                going
+                        ? SessionManager.SCHEDULE_REMINDER_RESPONSE_GOING
+                        : SessionManager.SCHEDULE_REMINDER_RESPONSE_SKIP,
+                pendingReminderPrompt.occurrenceStartAtMillis,
+                pendingReminderPrompt.occurrenceEndAtMillis
+        );
+        clearPendingReminderIntent();
+        updateSummaryCard(allSchedules);
+    }
+
+    private void clearPendingReminderIntent() {
+        if (!isAdded()) {
+            return;
+        }
+        android.content.Intent activityIntent = requireActivity().getIntent();
+        if (activityIntent == null) {
+            return;
+        }
+        activityIntent.removeExtra(ScheduleReminderHelper.EXTRA_SCHEDULE_ID);
+        activityIntent.removeExtra(ScheduleReminderHelper.EXTRA_OCCURRENCE_START_MILLIS);
+        activityIntent.removeExtra(ScheduleReminderHelper.EXTRA_OCCURRENCE_END_MILLIS);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -2816,6 +3060,21 @@ public class ScheduleFragment extends Fragment {
             this.startMinutes = startMinutes;
             this.endMinutes = endMinutes;
             this.existingEntryId = existingEntryId;
+        }
+    }
+
+    private static class PendingReminderPrompt {
+        @NonNull
+        final ScheduleEntryEntity entry;
+        final long occurrenceStartAtMillis;
+        final long occurrenceEndAtMillis;
+
+        private PendingReminderPrompt(@NonNull ScheduleEntryEntity entry,
+                                      long occurrenceStartAtMillis,
+                                      long occurrenceEndAtMillis) {
+            this.entry = entry;
+            this.occurrenceStartAtMillis = occurrenceStartAtMillis;
+            this.occurrenceEndAtMillis = occurrenceEndAtMillis;
         }
     }
 }
