@@ -47,6 +47,7 @@
     <color name="neutral_surface">#F3F4F3</color>
     <color name="neutral_surface_pressed">#E9EBE9</color>
     <color name="neutral_stroke">#D6DAD6</color>
+    <color name="admin_button_outline">#2612770E</color>
     <color name="chip_border">#29A829</color>
     <color name="floor_chip_selected_bg">#12770E</color>
     <color name="floor_chip_unselected_bg">#FFFFFF</color>

@@ -110,10 +110,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_btn_primary"
+                android:backgroundTint="@null"
+                android:fontFamily="@font/inter_bold"
                 android:text="@string/btn_sign_in"
-                android:backgroundTint="@color/green_primary"
+                android:textAllCaps="false"
                 android:textColor="@color/surface_white"
-                android:textStyle="bold" />
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/btnManualStudentInput"
@@ -135,11 +138,14 @@
 
             <Button
                 android:id="@+id/btnCreateAccount"
+                style="@style/Widget.MaterialComponents.Button"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
+                android:background="@drawable/bg_btn_secondary"
+                android:backgroundTint="@null"
+                android:fontFamily="@font/inter_medium"
                 android:text="@string/btn_create_account"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                app:strokeColor="@color/green_primary"
+                android:textAllCaps="false"
                 android:textColor="@color/green_primary" />
         </LinearLayout>
     </LinearLayout>
