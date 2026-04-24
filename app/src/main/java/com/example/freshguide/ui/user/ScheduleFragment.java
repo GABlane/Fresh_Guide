@@ -1337,14 +1337,14 @@ public class ScheduleFragment extends Fragment {
 
         if (existing != null) {
             tvSheetTitle.setText("Edit Schedule");
-            btnCancel.setText("DELETE");
+            btnCancel.setText(R.string.action_delete);
             btnCancel.setBackground(ContextCompat.getDrawable(requireContext(),
                     R.drawable.bg_schedule_delete_outline));
             btnCancel.setTextColor(ContextCompat.getColor(requireContext(), R.color.red_accent));
-            btnSave.setText("SAVE CHANGES");
+            btnSave.setText(R.string.action_save_changes);
         } else {
             tvSheetTitle.setText("New Schedule");
-            btnSave.setText("Create Schedule");
+            btnSave.setText(R.string.action_create_schedule);
         }
 
         dropdownClassType.setAdapter(new ArrayAdapter<>(
@@ -2192,11 +2192,9 @@ public class ScheduleFragment extends Fragment {
     private void updateScheduleSaveButtonState(@NonNull TextView btnSave, boolean enabled) {
         btnSave.setEnabled(enabled);
         btnSave.setClickable(enabled);
-        btnSave.setBackgroundResource(enabled
-                ? R.drawable.bg_schedule_add_outline
-                : R.drawable.bg_time_picker_confirm_disabled);
+        btnSave.setBackgroundResource(R.drawable.bg_bottom_sheet_save);
         btnSave.setTextColor(ContextCompat.getColor(requireContext(),
-                enabled ? R.color.green_dark : R.color.time_picker_confirm_disabled_text));
+                enabled ? R.color.green_primary : R.color.time_picker_confirm_disabled_text));
         btnSave.setAlpha(enabled ? 1f : 0.9f);
     }
 

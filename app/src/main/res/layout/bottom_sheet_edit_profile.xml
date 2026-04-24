@@ -223,33 +223,23 @@
         android:paddingEnd="30dp"
         android:paddingBottom="16dp">
 
-        <TextView
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_sheet_cancel"
+            style="@style/Style.FreshGuide.Button.BottomSheetSecondary"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="50dp"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_field_pill"
-            android:fontFamily="@font/inter_medium"
-            android:gravity="center"
-            android:text="Cancel"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:text="@string/action_cancel" />
 
-        <TextView
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_save_profile"
+            style="@style/Style.FreshGuide.Button.BottomSheetPrimary"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="50dp"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:background="@drawable/bg_schedule_add_outline"
-            android:fontFamily="@font/inter_medium"
-            android:gravity="center"
-            android:text="Save"
-            android:textColor="@color/green_dark"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:text="@string/action_save_changes" />
     </LinearLayout>
 
 </LinearLayout>

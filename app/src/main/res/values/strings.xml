@@ -12,6 +12,9 @@
     <string name="register_student_id_hint">Student ID (e.g. 20230054-S)</string>
     <string name="action_register">Register</string>
     <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_save_changes">Save Changes</string>
+    <string name="action_create_schedule">Create Schedule</string>
     <string name="error_student_id_required">Student ID is required</string>
     <string name="error_student_id_format">Use Student ID format: 20230054-S</string>
     <string name="logo_description">FreshGuide logo</string>

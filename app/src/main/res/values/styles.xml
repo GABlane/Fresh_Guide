@@ -48,6 +48,28 @@
         <item name="cornerRadius">8dp</item>
     </style>
 
+    <style name="Style.FreshGuide.Button.BottomSheetPrimary" parent="Widget.MaterialComponents.Button">
+        <item name="android:background">@drawable/bg_bottom_sheet_save</item>
+        <item name="backgroundTint">@null</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/green_primary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">@font/inter_bold</item>
+        <item name="android:minHeight">50dp</item>
+    </style>
+
+    <style name="Style.FreshGuide.Button.BottomSheetSecondary" parent="Widget.MaterialComponents.Button">
+        <item name="android:background">@drawable/bg_bottom_sheet_cancel</item>
+        <item name="backgroundTint">@null</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">@font/inter_medium</item>
+        <item name="android:minHeight">50dp</item>
+    </style>
+
     <!-- Text styles -->
     <style name="Style.FreshGuide.Text.Header">
         <item name="android:textSize">22sp</item>
