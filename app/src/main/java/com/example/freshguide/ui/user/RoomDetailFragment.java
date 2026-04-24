@@ -309,7 +309,7 @@ public class RoomDetailFragment extends BottomSheetDialogFragment {
         directionsParams.weight = 0f;
         directionsParams.setMarginStart(0);
         btnDirections.setLayoutParams(directionsParams);
-        btnDirections.setText("DIRECTIONS");
+        btnDirections.setText(R.string.room_detail_directions);
     }
 
     private void goToCurrentRoomOnMap() {

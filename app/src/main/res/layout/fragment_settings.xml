@@ -21,10 +21,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:fontFamily="@font/playfair_bold"
+            android:fontFamily="@font/inter_extrabold"
             android:text="Settings"
             android:textColor="@color/green_primary"
-            android:textSize="37sp"
+            android:textSize="32sp"
             android:paddingLeft="10dp"/>
 
         <!-- Profile Header -->

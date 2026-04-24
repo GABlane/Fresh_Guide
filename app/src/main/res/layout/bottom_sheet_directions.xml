@@ -535,8 +535,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:strokeColor="@color/green_light"
-            app:strokeWidth="1dp" />
+            app:strokeWidth="0dp" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

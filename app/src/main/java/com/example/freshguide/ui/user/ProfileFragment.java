@@ -1,16 +1,19 @@
 package com.example.freshguide.ui.user;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.PopupMenu;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -55,6 +58,8 @@ public class ProfileFragment extends Fragment {
     private SavedRoomsViewModel savedRoomsViewModel;
     private UserProfileEntity currentProfile;
     private RoomAdapter savedRoomAdapter;
+    @Nullable
+    private PopupWindow logoutPopupWindow;
 
     @Nullable
     @Override
@@ -201,6 +206,12 @@ public class ProfileFragment extends Fragment {
         }
     }
 
+    @Override
+    public void onDestroyView() {
+        dismissLogoutPopup();
+        super.onDestroyView();
+    }
+
     private void bindProfileData(@Nullable UserProfileEntity profile) {
         String savedName = profile != null ? profile.fullName : session.getUserName();
         String courseSection = profile != null ? profile.courseSection : session.getProfileCourseSection();
@@ -261,23 +272,69 @@ public class ProfileFragment extends Fragment {
     }
 
     private void showProfileMenu(View anchor) {
-        PopupMenu popupMenu = new PopupMenu(requireContext(), anchor);
-        popupMenu.getMenuInflater().inflate(R.menu.profile_menu, popupMenu.getMenu());
-        popupMenu.setOnMenuItemClickListener(this::onMenuItemClicked);
-        popupMenu.show();
+        dismissLogoutPopup();
+
+        View contentView = LayoutInflater.from(requireContext())
+                .inflate(R.layout.view_profile_logout_popup, null, false);
+        LinearLayout logoutAction = contentView.findViewById(R.id.action_logout);
+        logoutAction.setOnClickListener(v -> {
+            dismissLogoutPopup();
+            performLogout();
+        });
+
+        contentView.measure(
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+        );
+
+        logoutPopupWindow = new PopupWindow(
+                contentView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true
+        );
+        logoutPopupWindow.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        logoutPopupWindow.setOutsideTouchable(true);
+        logoutPopupWindow.setTouchable(true);
+        logoutPopupWindow.setElevation(0f);
+
+        int horizontalOffset = anchor.getWidth() - contentView.getMeasuredWidth();
+        logoutPopupWindow.showAsDropDown(anchor, horizontalOffset, dpToPx(10), Gravity.START);
+        animateLogoutPopup(contentView);
     }
 
-    private boolean onMenuItemClicked(MenuItem item) {
-        if (item.getItemId() == R.id.action_logout) {
-            new AuthRepository(requireContext()).logout();
+    private void animateLogoutPopup(@NonNull View popupView) {
+        popupView.setAlpha(0f);
+        popupView.setScaleX(0.92f);
+        popupView.setScaleY(0.92f);
+        popupView.setTranslationY(-dpToPx(6));
+        popupView.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .translationY(0f)
+                .setDuration(180)
+                .start();
+    }
 
-            Intent intent = new Intent(requireActivity(), LoginActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            requireActivity().finish();
-            return true;
+    private void performLogout() {
+        new AuthRepository(requireContext()).logout();
+
+        Intent intent = new Intent(requireActivity(), LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
+        requireActivity().finish();
+    }
+
+    private void dismissLogoutPopup() {
+        if (logoutPopupWindow != null) {
+            logoutPopupWindow.dismiss();
+            logoutPopupWindow = null;
         }
-        return false;
+    }
+
+    private int dpToPx(int dp) {
+        return Math.round(dp * requireContext().getResources().getDisplayMetrics().density);
     }
 
     private String getStudentIdText() {

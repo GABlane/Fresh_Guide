@@ -45,14 +45,13 @@
                     android:text="Admin" />
             </LinearLayout>
 
-            <ImageButton
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_admin_logout"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:src="@drawable/ic_logout"
-                android:background="?attr/selectableItemBackgroundBorderless"
+                style="@style/Style.FreshGuide.Button.Admin.Logout"
+                android:layout_width="wrap_content"
+                android:layout_height="56dp"
                 android:contentDescription="@string/action_logout"
-                app:tint="@color/text_hint" />
+                android:text="@string/action_log_out" />
         </LinearLayout>
 
         <TextView

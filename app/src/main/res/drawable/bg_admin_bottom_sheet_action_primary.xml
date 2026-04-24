@@ -4,29 +4,20 @@
     <item android:state_enabled="false">
         <shape android:shape="rectangle">
             <solid android:color="@color/neutral_surface" />
-            <stroke
-                android:width="1.5dp"
-                android:color="@color/neutral_stroke" />
             <corners android:radius="34dp" />
         </shape>
     </item>
 
     <item android:state_pressed="true">
         <shape android:shape="rectangle">
-            <solid android:color="@color/green_pill_pressed" />
-            <stroke
-                android:width="1.5dp"
-                android:color="@color/green_primary" />
+            <solid android:color="@color/admin_primary_fill_pressed" />
             <corners android:radius="34dp" />
         </shape>
     </item>
 
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="@color/green_pill" />
-            <stroke
-                android:width="1.5dp"
-                android:color="@color/green_primary" />
+            <solid android:color="@color/admin_primary_fill" />
             <corners android:radius="34dp" />
         </shape>
     </item>

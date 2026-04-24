@@ -25,14 +25,14 @@
     <color name="text_tertiary">#8C8C8C</color>
     <color name="text_hint">#6B6B6B</color>
     <!-- Brand Colors (adjusted for dark backgrounds) -->
-    <color name="green_primary">#BCCCBD</color>           <!-- Brighter for visibility -->
-    <color name="green_dark">#12770E</color>            <!-- Darker variant -->
-    <color name="green_light">#81C784</color>             <!-- Light green accent -->
-    <color name="green_pill">#A91B4D1F</color>              <!-- Dark pill background -->
-    <color name="green_pill_pressed">#C2285B2B</color>
+    <color name="green_primary">#95D79B</color>           <!-- Softer brand accent -->
+    <color name="green_dark">#2E7D32</color>              <!-- Darker variant -->
+    <color name="green_light">#74C87B</color>             <!-- Accent for subtle strokes -->
+    <color name="green_pill">#183C1D</color>              <!-- Tonal dark button background -->
+    <color name="green_pill_pressed">#225128</color>
     <color name="green">#4CAF50</color>                   <!-- Alternative green -->
-    <color name="admin_primary_fill">#2F9833</color>
-    <color name="admin_primary_fill_pressed">#267E2A</color>
+    <color name="admin_primary_fill">#2F8E39</color>
+    <color name="admin_primary_fill_pressed">#267230</color>
     <color name="admin_primary_on_fill">#F4FFF3</color>
     <color name="orange_accent">#FF8A3D</color>           <!-- Slightly desaturated -->
     <color name="orange_text">#FFB74D</color>             <!-- Orange text -->
@@ -44,6 +44,15 @@
     <color name="red_accent">#FF8C87</color>
     <color name="red_surface">#3B2121</color>
     <color name="red_pressed">#4A2828</color>
+    <color name="admin_logout_surface">#F7F4EF</color>
+    <color name="admin_logout_surface_pressed">#EFEAE3</color>
+    <color name="admin_logout_stroke">#0FFFFFFF</color>
+    <color name="profile_logout_glass_fill">#D9F7F4EF</color>
+    <color name="profile_logout_glass_pressed">#CFEFEAE3</color>
+    <color name="profile_logout_glass_stroke">#26FFFFFF</color>
+    <color name="profile_logout_glass_inner_stroke">#52FFFFFF</color>
+    <color name="profile_logout_glass_highlight_top">#7AFFFFFF</color>
+    <color name="profile_logout_glass_highlight_bottom">#00FFFFFF</color>
     <color name="map_orange">#7C5827</color>              <!-- Map accent -->
 
     <!-- Border & Divider Colors (Dark Mode) -->
@@ -53,12 +62,13 @@
     <color name="neutral_surface">#1E1F1E</color>
     <color name="neutral_surface_pressed">#272927</color>
     <color name="neutral_stroke">#363936</color>
+    <color name="admin_button_outline">#3374C87B</color>
     <color name="chip_border">#4CAF50</color>
-    <color name="floor_chip_selected_bg">#BCCCBD</color>
+    <color name="floor_chip_selected_bg">#95D79B</color>
     <color name="floor_chip_unselected_bg">#0D0D0D</color>
     <color name="floor_chip_selected_text">#0D0D0D</color>
-    <color name="floor_chip_unselected_text">#BCCCBD</color>
-    <color name="floor_chip_stroke">#BCCCBD</color>
+    <color name="floor_chip_unselected_text">#95D79B</color>
+    <color name="floor_chip_stroke">#95D79B</color>
 
     <!-- Admin-Specific Colors (Dark Mode) -->
     <color name="admin_background">#181A1B</color>
@@ -112,12 +122,13 @@
     <color name="room_detail_section_label">#9C9C9C</color>  <!-- Medium gray label -->
     <color name="room_detail_facilities_text">#D8D8D8</color><!-- Near-white text -->
     <color name="room_detail_placeholder">#6B6B6B</color>    <!-- Subtle placeholder -->
-    <color name="room_detail_directions_bg">#1B4D1F</color>  <!-- Dark green button -->
+    <color name="room_detail_directions_bg">#183C1D</color>  <!-- Dark green button -->
     <color name="room_detail_handle">#4A4A4A</color>         <!-- Visible handle -->
     <color name="media_placeholder_bg">#2E2E2E</color>       <!-- Dark placeholder -->
+    <color name="bottom_sheet_surface_stroke">#00000000</color>
 
     <!-- Schedule & Dialog Colors (Dark Mode) -->
-    <color name="schedule_form_label">#CFE8D0</color>        <!-- Bright green -->
+    <color name="schedule_form_label">#95D79B</color>        <!-- Bright green -->
     <color name="schedule_time_button">#B8B8B8</color>       <!-- Light gray -->
     <color name="schedule_time_placeholder">#8C8C8C</color>  <!-- Medium gray -->
     <color name="schedule_detail_code">#B8B8B8</color>       <!-- Light gray -->
@@ -129,10 +140,10 @@
 
     <color name="glass_card_fill">#661E1E1E</color>
     <color name="glass_card_stroke">#33FFFFFF</color>
-    <color name="btn_primary_start">#12770E</color>
-    <color name="btn_primary_end">#12770E</color>
-    <color name="btn_secondary_stroke">#664CAF50</color>
-    <color name="btn_secondary_ripple">#1F4CAF50</color>
+    <color name="btn_primary_start">#39A044</color>
+    <color name="btn_primary_end">#2D8135</color>
+    <color name="btn_secondary_stroke">#4074C87B</color>
+    <color name="btn_secondary_ripple">#1F74C87B</color>
     <color name="glass_highlight_top">#26FFFFFF</color>
     <color name="glass_highlight_bottom">#00FFFFFF</color>
 

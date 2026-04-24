@@ -25,6 +25,7 @@
     <style name="Style.FreshGuide.Button.Primary" parent="Widget.MaterialComponents.Button">
         <item name="backgroundTint">@color/green_primary</item>
         <item name="android:textColor">@color/surface_white</item>
+        <item name="android:textAllCaps">false</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">15sp</item>
         <item name="cornerRadius">8dp</item>
@@ -33,6 +34,7 @@
     <style name="Style.FreshGuide.Button.Secondary" parent="Widget.MaterialComponents.Button.OutlinedButton">
         <item name="strokeColor">@color/green_primary</item>
         <item name="android:textColor">@color/green_primary</item>
+        <item name="android:textAllCaps">false</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">15sp</item>
         <item name="cornerRadius">8dp</item>
@@ -41,8 +43,39 @@
     <style name="Style.FreshGuide.Button.Danger" parent="Widget.MaterialComponents.Button">
         <item name="backgroundTint">@color/orange_accent</item>
         <item name="android:textColor">@color/surface_white</item>
+        <item name="android:textAllCaps">false</item>
         <item name="android:textStyle">bold</item>
         <item name="cornerRadius">8dp</item>
+    </style>
+
+    <style name="Style.FreshGuide.Button.BottomSheetPrimary" parent="Widget.MaterialComponents.Button">
+        <item name="android:background">@drawable/bg_bottom_sheet_save</item>
+        <item name="backgroundTint">@null</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/green_primary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">@font/inter_bold</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:elevation">0dp</item>
+        <item name="elevation">0dp</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:minHeight">50dp</item>
+    </style>
+
+    <style name="Style.FreshGuide.Button.BottomSheetSecondary" parent="Widget.MaterialComponents.Button">
+        <item name="android:background">@drawable/bg_bottom_sheet_cancel</item>
+        <item name="backgroundTint">@null</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">@font/inter_medium</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:elevation">0dp</item>
+        <item name="elevation">0dp</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:minHeight">50dp</item>
     </style>
 
     <!-- Text styles -->
@@ -57,7 +90,6 @@
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@color/text_hint</item>
         <item name="android:textAllCaps">true</item>
-        <item name="android:letterSpacing">0.08</item>
     </style>
 
     <style name="Style.FreshGuide.Text.Badge" parent="">
@@ -134,7 +166,6 @@
         <item name="android:textSize">12sp</item>
         <item name="android:textColor">@color/text_secondary</item>
         <item name="android:textAllCaps">true</item>
-        <item name="android:letterSpacing">0.05</item>
     </style>
 
     <style name="Style.FreshGuide.Text.AdminSectionLabel">
@@ -210,7 +241,7 @@
         <item name="android:background">@drawable/bg_admin_sheet_primary</item>
         <item name="android:backgroundTint">@null</item>
         <item name="android:fontFamily">@font/inter_bold</item>
-        <item name="android:textAllCaps">true</item>
+        <item name="android:textAllCaps">false</item>
         <item name="android:textColor">@color/admin_primary_on_fill</item>
         <item name="android:textSize">15sp</item>
         <item name="android:minHeight">56dp</item>
@@ -223,22 +254,21 @@
         <item name="android:background">@drawable/bg_admin_bottom_sheet_action_primary</item>
         <item name="android:backgroundTint">@null</item>
         <item name="android:fontFamily">@font/inter_extrabold</item>
-        <item name="android:textAllCaps">true</item>
-        <item name="android:textColor">@color/green_primary</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/admin_primary_on_fill</item>
         <item name="android:textSize">17sp</item>
         <item name="android:minHeight">64dp</item>
         <item name="android:paddingStart">28dp</item>
         <item name="android:paddingEnd">28dp</item>
         <item name="android:includeFontPadding">false</item>
         <item name="android:gravity">center</item>
-        <item name="android:letterSpacing">0.03</item>
     </style>
 
     <style name="Style.FreshGuide.Button.Admin.BottomSheetSecondary">
         <item name="android:background">@drawable/bg_admin_bottom_sheet_action_neutral</item>
         <item name="android:backgroundTint">@null</item>
         <item name="android:fontFamily">@font/inter_bold</item>
-        <item name="android:textAllCaps">true</item>
+        <item name="android:textAllCaps">false</item>
         <item name="android:textColor">@color/green_primary</item>
         <item name="android:textSize">15sp</item>
         <item name="android:minHeight">56dp</item>
@@ -246,14 +276,13 @@
         <item name="android:paddingEnd">24dp</item>
         <item name="android:includeFontPadding">false</item>
         <item name="android:gravity">center</item>
-        <item name="android:letterSpacing">0.03</item>
     </style>
 
     <style name="Style.FreshGuide.Button.Admin.BottomSheetAssist">
-        <item name="android:background">@drawable/bg_admin_bottom_sheet_action_primary</item>
+        <item name="android:background">@drawable/bg_admin_button_secondary</item>
         <item name="android:backgroundTint">@null</item>
         <item name="android:fontFamily">@font/inter_bold</item>
-        <item name="android:textAllCaps">true</item>
+        <item name="android:textAllCaps">false</item>
         <item name="android:textColor">@color/green_primary</item>
         <item name="android:textSize">13sp</item>
         <item name="android:minHeight">46dp</item>
@@ -261,7 +290,6 @@
         <item name="android:paddingEnd">18dp</item>
         <item name="android:includeFontPadding">false</item>
         <item name="android:gravity">center</item>
-        <item name="android:letterSpacing">0.03</item>
     </style>
 
     <style name="Style.FreshGuide.Button.Admin.Neutral">
@@ -284,6 +312,29 @@
         <item name="android:minHeight">44dp</item>
         <item name="android:paddingStart">18dp</item>
         <item name="android:paddingEnd">18dp</item>
+    </style>
+
+    <style name="Style.FreshGuide.Button.Admin.Logout" parent="Widget.MaterialComponents.Button">
+        <item name="android:background">@drawable/bg_admin_logout_button</item>
+        <item name="backgroundTint">@null</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">@color/red_accent</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">@font/inter_medium</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:paddingStart">22dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:gravity">center</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:elevation">0dp</item>
+        <item name="elevation">0dp</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="icon">@drawable/ic_logout</item>
+        <item name="iconPadding">12dp</item>
+        <item name="iconGravity">textStart</item>
+        <item name="iconTint">@color/red_accent</item>
     </style>
 
     <style name="Style.FreshGuide.Button.Admin.Circle">

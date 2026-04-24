@@ -196,6 +196,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="40dp"
                         android:text="@string/btn_scan_qr_login"
+                        android:textAllCaps="false"
                         android:textColor="@color/white"
                         android:textSize="14sp"
                         android:fontFamily="@font/inter_bold"
@@ -214,6 +215,7 @@
                         android:layout_height="40dp"
 
                         android:text="@string/btn_switch_to_admin_login"
+                        android:textAllCaps="false"
                         android:textColor="@color/green_primary"
                         android:textSize="14sp"
                         android:fontFamily="@font/inter_medium"

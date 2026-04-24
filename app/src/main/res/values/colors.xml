@@ -38,6 +38,15 @@
     <color name="red_accent">#D94B4B</color>
     <color name="red_surface">#FDECEC</color>
     <color name="red_pressed">#F8D9D9</color>
+    <color name="admin_logout_surface">#FFFFFF</color>
+    <color name="admin_logout_surface_pressed">#F6F3F0</color>
+    <color name="admin_logout_stroke">#08D94B4B</color>
+    <color name="profile_logout_glass_fill">#F2FFFFFF</color>
+    <color name="profile_logout_glass_pressed">#EAF7F2F0</color>
+    <color name="profile_logout_glass_stroke">#2ED94B4B</color>
+    <color name="profile_logout_glass_inner_stroke">#A6FFFFFF</color>
+    <color name="profile_logout_glass_highlight_top">#CCFFFFFF</color>
+    <color name="profile_logout_glass_highlight_bottom">#00FFFFFF</color>
     <color name="map_orange">#F4A340</color>
 
     <!-- Border & Divider Colors (Light Mode) -->
@@ -47,6 +56,7 @@
     <color name="neutral_surface">#F3F4F3</color>
     <color name="neutral_surface_pressed">#E9EBE9</color>
     <color name="neutral_stroke">#D6DAD6</color>
+    <color name="admin_button_outline">#2612770E</color>
     <color name="chip_border">#29A829</color>
     <color name="floor_chip_selected_bg">#12770E</color>
     <color name="floor_chip_unselected_bg">#FFFFFF</color>

@@ -28,18 +28,17 @@
                 android:id="@+id/tv_schedule_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/playfair_bold"
+                android:fontFamily="@font/inter_extrabold"
                 android:text="Class Schedule"
                 android:textColor="@color/green_primary"
                 android:paddingLeft="10dp"
                 android:paddingRight="10dp"
-                android:textSize="37sp" />
+                android:textSize="32sp" />
 
             <TextView
                 android:id="@+id/tv_schedule_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
                 android:fontFamily="@font/inter_bold"
                 android:textColor="@color/text_hint"
                 android:textSize="15sp"
